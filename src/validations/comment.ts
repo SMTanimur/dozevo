@@ -38,6 +38,8 @@ export const createCommentSchema = z.object({
   // contentBlocks: z.array(commentContentBlockSchema.pick({ type: true, text: true })).optional(),
 });
 
+export type TCreateComment = z.infer<typeof createCommentSchema>;
+
 // Schema for updating a comment (matching UpdateCommentDto)
 export const updateCommentSchema = z
   .object({
@@ -50,6 +52,8 @@ export const updateCommentSchema = z
     message: 'At least one field must be provided for update',
   });
 
+export type TUpdateComment = z.infer<typeof updateCommentSchema>;
+
 // Schema for adding a reaction (based on AddReactionDto)
 export const addReactionSchema = z.object({
   emoji: z
@@ -57,3 +61,5 @@ export const addReactionSchema = z.object({
     .min(1, 'Emoji cannot be empty'),
     // Add specific emoji validation if desired
 }); 
+
+export type TAddReaction = z.infer<typeof addReactionSchema>;

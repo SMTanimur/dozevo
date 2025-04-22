@@ -158,6 +158,9 @@ export const updateTaskSchema = z
     message: 'At least one field must be provided for update',
   });
 
+export type TCreateTask = z.infer<typeof createTaskSchema>;
+export type TUpdateTask = z.infer<typeof updateTaskSchema>;
+
 // Schema for task filtering query parameters (based on GetTasksFilterDto)
 export const GetTasksFilterDto = z.object({
     status: z.string().optional(),
@@ -168,4 +171,6 @@ export const GetTasksFilterDto = z.object({
     page: z.number().int().positive().optional(),
     limit: z.number().int().positive().optional(),
     // Add other potential filters like tags, priority, due date ranges if implemented
-}).optional(); // Make the whole filter object optional 
+}).optional(); // Make the whole filter object optional
+
+export type TGetTasksFilter = z.infer<typeof GetTasksFilterDto>;
