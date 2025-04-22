@@ -40,6 +40,9 @@ export const createWorkspaceSchema = z.object({
   // Add color, avatar, or initial members if the API supports it during creation
 });
 
+export type TCreateWorkspace = z.infer<typeof createWorkspaceSchema>;
+
+
 // Schema for updating a workspace (matching UpdateWorkspaceDto)
 export const updateWorkspaceSchema = z
   .object({
@@ -51,3 +54,5 @@ export const updateWorkspaceSchema = z
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field must be provided for update',
   }); 
+
+export type TUpdateWorkspace = z.infer<typeof updateWorkspaceSchema>;
