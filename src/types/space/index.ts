@@ -1,3 +1,11 @@
+import { z } from 'zod';
+import {
+  spaceSchema,
+  statusDefinitionSchema,
+  spaceFeaturesConfigSchema,
+  statusTypeSchema,
+} from '@/validations/space';
+
 // Represents a status definition in a response
 export interface IStatusDefinition {
     id: string;
@@ -37,4 +45,16 @@ export interface IStatusDefinition {
     total: number; // Total count for pagination
     // Add other pagination fields like page, limit if needed
   }
+  
+// Type derived from the Zod schema
+export type StatusType = z.infer<typeof statusTypeSchema>;
+
+// Type derived from the Zod schema
+export type StatusDefinition = z.infer<typeof statusDefinitionSchema>;
+
+// Type derived from the Zod schema
+export type SpaceFeaturesConfig = z.infer<typeof spaceFeaturesConfigSchema>;
+
+// Type derived from the Zod schema
+export type Space = z.infer<typeof spaceSchema>;
   

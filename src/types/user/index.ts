@@ -1,3 +1,6 @@
+import { z } from 'zod';
+import { userSchema } from '@/validations/user';
+
 export enum Role {
     ADMIN = 'admin',
     USER = 'user',
@@ -18,3 +21,6 @@ export interface IUser {
     activeWorkspace?: string | null; // Add optional active workspace ID
     // Add other non-sensitive fields as needed
   }
+
+// Type derived from the Zod schema
+export type User = z.infer<typeof userSchema>;

@@ -1,4 +1,15 @@
 import { IStatusDefinition } from "../space";
+import { z } from 'zod';
+import {
+  taskSchema,
+  tagSchema,
+  priorityValueSchema,
+  checklistItemSchema,
+  checklistSchema,
+  customFieldValueDataSchema,
+  taskRelationTypeSchema,
+  taskRelationSchema,
+} from '@/validations/task';
 
 //  for Task Priority (matches schema)
 export interface ITaskPriority {
@@ -64,3 +75,27 @@ export interface ITaskListResponse {
   total: number; // Total count for pagination
   // Add other pagination fields if needed
 }
+
+// Type derived from the Zod schema
+export type Tag = z.infer<typeof tagSchema>;
+
+// Type derived from the Zod schema
+export type PriorityValue = z.infer<typeof priorityValueSchema>;
+
+// Type derived from the Zod schema
+export type ChecklistItem = z.infer<typeof checklistItemSchema>;
+
+// Type derived from the Zod schema
+export type Checklist = z.infer<typeof checklistSchema>;
+
+// Type derived from the Zod schema
+export type CustomFieldValueData = z.infer<typeof customFieldValueDataSchema>;
+
+// Type derived from the Zod schema
+export type TaskRelationType = z.infer<typeof taskRelationTypeSchema>;
+
+// Type derived from the Zod schema
+export type TaskRelation = z.infer<typeof taskRelationSchema>;
+
+// Type derived from the Zod schema
+export type Task = z.infer<typeof taskSchema>;

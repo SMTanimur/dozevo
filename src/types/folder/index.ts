@@ -1,5 +1,12 @@
 import { IStatusDefinition } from "../space";
+import { z } from 'zod';
+import { folderSchema } from '@/validations/folder';
 
+// Type derived from the Zod schema
+export type Folder = z.infer<typeof folderSchema>;
+
+// export type CreateFolderInput = z.infer<typeof createFolderSchema>;
+// export type UpdateFolderInput = z.infer<typeof updateFolderSchema>;
 
 // Represents the data structure for a single folder response
 export interface IFolder {
