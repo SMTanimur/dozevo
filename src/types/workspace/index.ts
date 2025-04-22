@@ -43,4 +43,10 @@ export type Workspace = z.infer<typeof workspaceSchema>;
 // You can also define types for create/update if needed
 // export type CreateWorkspaceInput = z.infer<typeof createWorkspaceSchema>;
 // export type UpdateWorkspaceInput = z.infer<typeof updateWorkspaceSchema>;
+
+// Type for the list response structure
+export type WorkspaceListResponse = {
+  data: Workspace[];
+  total: number;
+};
   

@@ -99,3 +99,9 @@ export type TaskRelation = z.infer<typeof taskRelationSchema>;
 
 // Type derived from the Zod schema
 export type Task = z.infer<typeof taskSchema>;
+
+// Type for the list response structure
+export type TaskListResponse = {
+  data: Task[];
+  total: number;
+};
