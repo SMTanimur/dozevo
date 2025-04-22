@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { userSchema } from './user';
+
 import { statusDefinitionSchema } from './space'; // Import status schema
+
 
 // --- Sub-Schemas based on API structure ---
 
@@ -79,8 +80,8 @@ export const taskSchema = z.object({
   description: z.string().optional(),
   status: statusDefinitionSchema, // Embed status schema
   priority: priorityValueSchema.nullable().optional(),
-  assignees: z.array(userSchema).default([]), // Array of populated users
-  watchers: z.array(userSchema).default([]), // Array of populated users
+  assignees: z.array(z.string()).default([]), // Array of populated users
+  watchers: z.array(z.string()).default([]), // Array of populated users
   tags: z.array(tagSchema).default([]), // Array of populated tags (using simple schema above)
   checklists: z.array(checklistSchema).default([]),
   due_date: z.string().datetime().nullable().optional(),
@@ -93,7 +94,7 @@ export const taskSchema = z.object({
   parentTask: z.string().nullable().optional(), // Parent Task ID
   custom_fields: z.array(customFieldValueDataSchema).default([]),
   relations: z.array(taskRelationSchema).default([]),
-  creator: userSchema, // Embed populated creator user
+  creator: z.string().optional(), // Embed populated creator user
   orderindex: z.string().optional(), // ClickUp uses string here
   archived: z.boolean().default(false),
   date_created_clickup: z.string().datetime().optional(),
@@ -155,4 +156,16 @@ export const updateTaskSchema = z
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field must be provided for update',
-  }); 
+  });
+
+// Schema for task filtering query parameters (based on GetTasksFilterDto)
+export const GetTasksFilterDto = z.object({
+    status: z.string().optional(),
+    assignee: z.string().optional(),
+    archived: z.boolean().optional(),
+    search: z.string().optional(),
+    parentTaskId: z.string().nullable().optional(),
+    page: z.number().int().positive().optional(),
+    limit: z.number().int().positive().optional(),
+    // Add other potential filters like tags, priority, due date ranges if implemented
+}).optional(); // Make the whole filter object optional 

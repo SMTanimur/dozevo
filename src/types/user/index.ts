@@ -1,5 +1,6 @@
+import { userSchema } from '@/validations';
 import { z } from 'zod';
-import { userSchema } from '@/validations/user';
+
 
 export enum Role {
     ADMIN = 'admin',
@@ -8,7 +9,7 @@ export enum Role {
 
   
   // Represents the data returned for a single user profile
-export interface IUser {
+export interface IUser{
     id: string; // Typically the MongoDB _id as a string
     email: string;
     firstName?: string;
@@ -18,9 +19,14 @@ export interface IUser {
     roles: Role[];
     createdAt: string; // ISO Date string
     updatedAt: string; // ISO Date string
-    activeWorkspace?: string | null; // Add optional active workspace ID
+    activeWorkspace?: string | null; // ID of the active workspace
     // Add other non-sensitive fields as needed
   }
+
+// Represents the DTO for updating the active workspace
+export interface UpdateActiveWorkspaceDto {
+  workspaceId: string | null; // ID of the workspace, or null to clear
+}
 
 // Type derived from the Zod schema
 export type User = z.infer<typeof userSchema>;

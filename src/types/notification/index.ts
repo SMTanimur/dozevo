@@ -12,4 +12,10 @@ export type NotificationType = z.infer<typeof notificationTypeSchema>;
 export type NotificationEntityType = z.infer<typeof notificationEntityTypeSchema>;
 
 // Type derived from the Zod schema
-export type Notification = z.infer<typeof notificationSchema>; 
+export type Notification = z.infer<typeof notificationSchema>;
+
+// Type for the list response structure
+export type NotificationListResponse = {
+  data: Notification[];
+  total: number;
+}; 
