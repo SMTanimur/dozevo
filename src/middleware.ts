@@ -18,8 +18,8 @@ export function middleware(request: NextRequest) {
 
   // If user is authenticated (has token) and tries to access certain public authentication routes,
   // redirect to projects page
-  if (token && (path === '/' || path === '/login' || path === '/signup')) {
-    return NextResponse.redirect(new URL('/projects', request.url));
+  if (token && ( path === '/login' || path === '/signup')) {
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   // If it's not a public route and there's no token, redirect to login
