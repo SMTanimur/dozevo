@@ -1,3 +1,10 @@
+import { z } from 'zod';
+import {
+  workspaceSchema,
+  workspaceMemberSchema,
+  customRoleSchema,
+} from '@/validations/workspace';
+
 export enum WorkspaceRole {
     ADMIN = 'admin',
     MEMBER = 'member',
@@ -23,4 +30,17 @@ export enum WorkspaceRole {
     createdAt: string; // ISO Date string
     updatedAt: string; // ISO Date string
   }
+  
+// Type derived from the Zod schema
+export type CustomRole = z.infer<typeof customRoleSchema>;
+
+// Type derived from the Zod schema
+export type WorkspaceMember = z.infer<typeof workspaceMemberSchema>;
+
+// Type derived from the Zod schema
+export type Workspace = z.infer<typeof workspaceSchema>;
+
+// You can also define types for create/update if needed
+// export type CreateWorkspaceInput = z.infer<typeof createWorkspaceSchema>;
+// export type UpdateWorkspaceInput = z.infer<typeof updateWorkspaceSchema>;
   
