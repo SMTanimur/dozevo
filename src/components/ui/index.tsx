@@ -18,5 +18,7 @@ export * from "./dialog"
 export * from "./dropdown-menu"
 export * from "./form"
 export * from "./hover-card"
+export * from "./icon"
+
 
 
