@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Define public routes that don't require authentication
-const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/api'];
+const publicRoutes = ['/', '/login', '/signup', '/forgot-password', '/api'];
 
 export function middleware(request: NextRequest) {
   // Get the path from the request
@@ -18,7 +18,7 @@ export function middleware(request: NextRequest) {
 
   // If user is authenticated (has token) and tries to access certain public authentication routes,
   // redirect to projects page
-  if (token && (path === '/' || path === '/login' || path === '/register')) {
+  if (token && (path === '/' || path === '/login' || path === '/signup')) {
     return NextResponse.redirect(new URL('/projects', request.url));
   }
 
