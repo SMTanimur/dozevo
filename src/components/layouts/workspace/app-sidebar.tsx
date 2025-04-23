@@ -8,11 +8,9 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 
-
 import React from 'react';
 
-import { HelpCircle, Users} from 'lucide-react';
-
+import { HelpCircle, Users } from 'lucide-react';
 
 import { cn } from '@/lib';
 
@@ -24,15 +22,14 @@ const AppSidebar = ({
 }: React.ComponentProps<typeof Sidebar>) => {
   const { open } = useSidebar();
 
-
   return (
     <Sidebar collapsible='icon' {...props} className='!p-0'>
       <SidebarContent>{children}</SidebarContent>
-      
+
       <SidebarFooter
         className={cn(
           open
-            ? 'flex flex-row items-center gap-2 px-3 py-2 border-t'
+            ? 'flex flex-row !z-[999] items-center gap-2 px-3 py-2 border-t'
             : 'flex flex-col items-center gap-2 px-2 py-2 border-t'
         )}
       >

@@ -10,7 +10,6 @@ import {
   ChevronUp,
   Users,
   Search,
-
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -60,7 +59,7 @@ export function WorkspaceSidebar() {
   return (
     <Sidebar
       collapsible='icon'
-      className='flex flex-col justify-between h-full'
+      className='!flex !flex-col !justify-between h-screen'
     >
       <div>
         <SidebarHeader className='pl-3 pr-2 py-2 !flex !flex-row items-center justify-between border-b'>
@@ -260,7 +259,6 @@ export function WorkspaceSidebar() {
           indent={false}
         />
       </SidebarSection>
-
     </Sidebar>
   );
 }

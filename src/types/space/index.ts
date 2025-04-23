@@ -34,6 +34,11 @@ export interface IStatusDefinition {
     members?: ISpaceMember[]; // Array of space members
     icon: string;
     color: string;
+    description: string;
+    private: boolean;
+    archived: boolean;
+    multiple_assignees: boolean;
+    
     lists?: IList[];
     statuses: IStatusDefinition[]; // Array of status definitions
     features?: Record<string, boolean>; // Enabled features
