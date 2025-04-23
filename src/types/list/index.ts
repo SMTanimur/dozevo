@@ -14,6 +14,8 @@ export interface IList {
   workspace: string; // Workspace ID as string
   space: string; // Space ID as string
   name: string;
+  icon: string;
+  color: string;
   statuses?: IStatusDefinition[]; // Optional override statuses
   hidden: boolean;
   orderIndex?: number;
