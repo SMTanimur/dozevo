@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // Basic schema for Folder object returned by the API
-export const folderSchema = z.object({
+export const listSchema = z.object({
   _id: z.string({ required_error: 'Folder ID is required' }),
   name: z.string({ required_error: 'Folder name is required' }).min(1, 'Folder name cannot be empty'),
   workspace: z.string({ required_error: 'Workspace ID is required' }), // Assuming workspace ID is included
@@ -13,7 +13,7 @@ export const folderSchema = z.object({
 });
 
 // Schema for creating a folder (matching CreateFolderDto)
-export const createFolderSchema = z.object({
+export const createlistSchema = z.object({
   name: z
     .string({ required_error: 'Folder name is required' })
     .min(1, 'Folder name cannot be empty')
@@ -23,7 +23,7 @@ export const createFolderSchema = z.object({
 });
 
 // Schema for updating a folder (matching UpdateFolderDto)
-export const updateFolderSchema = z
+export const updatelistSchema = z
   .object({
     name: z.string().min(1, 'Folder name cannot be empty').trim().optional(),
     archived: z.boolean().optional(),

@@ -1,50 +1,50 @@
 import { api } from '@/api';
-import { Folder, FolderListResponse } from '@/types';
-import { createFolderSchema, updateFolderSchema } from '@/validations';
+import { IList,  ListListResponse } from '@/types';
+import { createlistSchema, updatelistSchema } from '@/validations';
 import { z } from 'zod';
 
 // Define types for the input data based on Zod schemas
-type CreateFolderInput = z.infer<typeof createFolderSchema>;
-type UpdateFolderInput = z.infer<typeof updateFolderSchema>;
+type CreateListInput = z.infer<typeof createlistSchema>;
+type UpdateListInput = z.infer<typeof updatelistSchema>;
 
 // Define the base API path function
 const getBasePath = (workspaceId: string, spaceId: string) =>
   `/v1/workspaces/${workspaceId}/spaces/${spaceId}/folders`;
 
-export class FolderService {
-  async getAllFolders(workspaceId: string, spaceId: string): Promise<IFolder[]> {
+export class ListService {
+  async getAllLists(workspaceId: string, spaceId: string): Promise<IList[]> {
     try {
       // API returns FolderListResponseDto { data: Folder[], total: number }
-      const response = await api.get<FolderListResponse>(
+      const response = await api.get<ListListResponse>(
         getBasePath(workspaceId, spaceId),
       );
       return response.data.data; // Return the array of folders
     } catch (error) {
-      console.error(`Failed to fetch folders for space ${spaceId}:`, error);
+      console.error(`Failed to fetch lists for space ${spaceId}:`, error);
       throw error;
     }
   }
 
-  async getFolderById(
+  async getListById(
     workspaceId: string,
     spaceId: string,
-    folderId: string,
-  ): Promise<Folder> {
+    listId: string,
+  ): Promise<IList> {
     try {
-      const response = await api.get<Folder>(
-        `${getBasePath(workspaceId, spaceId)}/${folderId}`,
+      const response = await api.get<IList>(
+        `${getBasePath(workspaceId, spaceId)}/${listId}`,
       );
       return response.data;
     } catch (error) {
-      console.error(`Failed to fetch folder ${folderId}:`, error);
+      console.error(`Failed to fetch list ${listId}:`, error);
       throw error;
     }
   }
 
-  async createFolder(data: CreateFolderInput): Promise<Folder> {
+  async createList(data: CreateListInput): Promise<IList> {
     // spaceId is required in the DTO
     if (!data.space) {
-      throw new Error('Space ID is missing in createFolder data.');
+      throw new Error('Space ID is missing in createList data.');
     }
     // Assuming workspaceId is implicitly handled by space context or not needed in body
     // Adjust if API requires workspaceId in body explicitly
@@ -59,54 +59,54 @@ export class FolderService {
     // Mocking workspaceId retrieval or passing it as an argument.
     const workspaceId = 'TEMP_WORKSPACE_ID'; // Placeholder
     if (workspaceId === 'TEMP_WORKSPACE_ID') {
-        console.warn('createFolder service needs workspaceId. Using placeholder.')
+        console.warn('createList service needs workspaceId. Using placeholder.')
     }
 
     try {
-      createFolderSchema.parse(data); // Validate original data
-      const response = await api.post<Folder>(
+      createlistSchema.parse(data); // Validate original data
+      const response = await api.post<IList>(
         getBasePath(workspaceId, spaceId),
         payload,
       );
       return response.data;
     } catch (error) {
-      console.error('Failed to create folder:', error);
+      console.error('Failed to create list:', error);
       throw error;
     }
   }
 
-  async updateFolder(
+  async updateList(
     workspaceId: string,
     spaceId: string,
-    folderId: string,
-    data: UpdateFolderInput,
-  ): Promise<Folder> {
+    listId: string,
+    data: UpdateListInput,
+  ): Promise<IList> {
     try {
-      updateFolderSchema.parse(data);
-      const response = await api.patch<Folder>(
-        `${getBasePath(workspaceId, spaceId)}/${folderId}`,
+      updatelistSchema.parse(data);
+      const response = await api.patch<IList>(
+        `${getBasePath(workspaceId, spaceId)}/${listId}`,
         data,
       );
       return response.data;
     } catch (error) {
-      console.error(`Failed to update folder ${folderId}:`, error);
+      console.error(`Failed to update list ${listId}:`, error);
       throw error;
     }
   }
 
-  async deleteFolder(
+  async deleteList(
     workspaceId: string,
     spaceId: string,
-    folderId: string,
+    listId: string,
   ): Promise<void> {
     try {
-      await api.delete(`${getBasePath(workspaceId, spaceId)}/${folderId}`);
+      await api.delete(`${getBasePath(workspaceId, spaceId)}/${listId}`);
     } catch (error) {
-      console.error(`Failed to delete folder ${folderId}:`, error);
+      console.error(`Failed to delete list ${listId}:`, error);
       throw error;
     }
   }
 }
 
 // Export a singleton instance
-export const folderService = new FolderService(); 
+export const listService = new ListService(); 
