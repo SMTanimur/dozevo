@@ -12,6 +12,12 @@ export enum WorkspaceRole {
   } 
 
 
+  export enum WorkspaceType {
+    WORK = 'work',
+    PERSONAL = 'personal',
+    SCHOOL = 'school',
+  }
+
   interface WorkspaceMemberDto {
     userId: string;
     role: WorkspaceRole;
@@ -25,6 +31,8 @@ export enum WorkspaceRole {
     description?: string; // Make optional as it is in schema
     owner: string; // User ID of the owner
     members: WorkspaceMemberDto[]; // Array of simplified member info
+
+    workspaceType: WorkspaceType;
     // spaces: string[]; // Optionally include array of Space IDs
     // settings?: Record<string, any>; // Optionally include settings
     createdAt: string; // ISO Date string
