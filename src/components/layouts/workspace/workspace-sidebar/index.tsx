@@ -193,34 +193,37 @@ export function WorkspaceSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuSubButton
-              href={`/${w_id}/inbox`}
+            <SidebarMenuButton
+              tooltip='Inbox'
+              onClick={() => router.push(`/${w_id}/inbox`)}
               isActive={isActive(`/${w_id}/inbox`)}
               className='gap-2'
             >
               <Inbox className='h-4 w-4' />
-              Inbox
-            </SidebarMenuSubButton>
+              {open && <span>Inbox</span>}
+            </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuSubButton
-              href={`/${w_id}/docs`}
+            <SidebarMenuButton
+              tooltip='Docs'
+              onClick={() => router.push(`/${w_id}/docs`)}
               isActive={isActive(`/${w_id}/docs`)}
               className='gap-2'
             >
               <FileText className='h-4 w-4' />
-              Docs
-            </SidebarMenuSubButton>
+              {open && <span>Docs</span>}
+            </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuSubButton
-              href={`/${w_id}/whiteboard`}
+            <SidebarMenuButton
+              tooltip='Whiteboard'
+              onClick={() => router.push(`/${w_id}/whiteboard`)}
               isActive={isActive(`/${w_id}/whiteboard`)}
               className='gap-2'
             >
               <FileText className='h-4 w-4' />
-              Whiteboard
-            </SidebarMenuSubButton>
+              {open && <span>Whiteboard</span>}
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
         <div className='mt-4 px-3 py-2'>

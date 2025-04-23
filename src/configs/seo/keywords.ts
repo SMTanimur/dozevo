@@ -1,0 +1,16 @@
+export const metaKeywords = [
+  'Task Management',
+  'Project Management',
+  'Productivity App',
+  'To-Do List',
+  'Kanban Board',
+  'Collaboration Tool',
+  'Workflow Automation',
+  'Team Productivity',
+  'Task Scheduling',
+  'Agile Project Management',
+  'Task Tracking',
+  'Get Things Done',
+  'Task Organizer',
+  'Project Planner',
+];
