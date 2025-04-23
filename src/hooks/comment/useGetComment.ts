@@ -1,5 +1,5 @@
 import { commentService } from "@/services";
-import { Comment } from "@/types";
+import { IComment } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 /**
@@ -14,7 +14,7 @@ export const useGetComment = (
   commentId: string,
   options?: { enabled?: boolean },
 ) => {
-  return useQuery<Comment, Error>({
+  return useQuery<IComment, Error>({
     // Use function name, taskId, and commentId for the query key
     queryKey: [commentService.getCommentById.name, taskId, commentId],
     queryFn: () => commentService.getCommentById(taskId, commentId),

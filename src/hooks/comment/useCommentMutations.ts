@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { commentService } from '@/services';
-import { Comment } from '@/types';
+import { IComment } from '@/types';
 import {
   TCreateComment,
   TUpdateComment,
@@ -51,7 +51,7 @@ export const useCommentMutations = () => {
 
   // --- Create Comment ---
   const { mutate: createComment, isPending: isCreatingComment } = useMutation<
-    Comment,
+    IComment,
     Error,
     CreateCommentMutationInput
   >({
@@ -69,7 +69,7 @@ export const useCommentMutations = () => {
 
   // --- Update Comment ---
   const { mutate: updateComment, isPending: isUpdatingComment } = useMutation<
-    Comment,
+    IComment,
     Error,
     UpdateCommentMutationInput
   >({
@@ -80,7 +80,9 @@ export const useCommentMutations = () => {
       toast.success('Comment updated successfully!');
       invalidateCommentQueries(variables.taskId, variables.commentId);
       // Update the specific comment cache
-      queryClient.setQueryData(
+      queryClient.setQueryData<
+        IComment
+      >(
         [commentService.getCommentById.name, variables.taskId, variables.commentId],
         updatedComment,
       );
@@ -118,7 +120,7 @@ export const useCommentMutations = () => {
 
   // --- Add Reaction ---
   const { mutate: addReaction, isPending: isAddingReaction } = useMutation<
-    Comment, // Returns the updated comment
+    IComment,
     Error,
     ReactionMutationInput
   >({
@@ -126,10 +128,11 @@ export const useCommentMutations = () => {
     mutationFn: ({ taskId, commentId, data }) =>
       commentService.addReaction(taskId, commentId, data),
     onSuccess: (updatedComment, variables) => {
-      // No toast needed usually for reactions, just UI update
       invalidateCommentQueries(variables.taskId, variables.commentId);
       // Update the specific comment cache
-      queryClient.setQueryData(
+      queryClient.setQueryData<
+        IComment
+      >(
         [commentService.getCommentById.name, variables.taskId, variables.commentId],
         updatedComment,
       );
@@ -141,7 +144,7 @@ export const useCommentMutations = () => {
 
   // --- Remove Reaction ---
   const { mutate: removeReaction, isPending: isRemovingReaction } = useMutation<
-    Comment, // Returns the updated comment
+    IComment,
     Error,
     ReactionMutationInput
   >({
@@ -149,10 +152,11 @@ export const useCommentMutations = () => {
     mutationFn: ({ taskId, commentId, data }) =>
       commentService.removeReaction(taskId, commentId, data),
     onSuccess: (updatedComment, variables) => {
-      // No toast needed usually for reactions
       invalidateCommentQueries(variables.taskId, variables.commentId);
       // Update the specific comment cache
-      queryClient.setQueryData(
+      queryClient.setQueryData<
+        IComment
+      >(
         [commentService.getCommentById.name, variables.taskId, variables.commentId],
         updatedComment,
       );

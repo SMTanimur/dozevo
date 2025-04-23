@@ -16,23 +16,34 @@ export type CommentContentBlock = z.infer<typeof commentContentBlockSchema>;
 export type Comment = z.infer<typeof commentSchema>;
 
 
-// Interface for a single reaction
-export interface IReaction {
-  emoji: string;
-  users: ITaskUser[]; // Array of user IDs who reacted
-  count: number;
+export interface ICommentContentBlock {
+  type: string; // e.g., 'text', 'mention'
+  text?: string; // Make text optional
 }
 
-// Main Comment Interface
+export interface IReaction {
+  user: ITaskUser; // Use the existing DTO for populated user
+  emoji: string;
+}
+
 export interface IComment {
   _id: string;
-  content: string;
-  taskId: string; // ID of the task this comment belongs to
-  author: ITaskUser // Basic author info
-  reactions: IReaction[];
-  createdAt: string; // Assuming ISO date string
-  updatedAt: string; // Assuming ISO date string
-  // Add other potential fields like mentions, parentCommentId, etc. if needed
+  task: string; // Task ID
+  user: ITaskUser; // Populated user who created the comment
+  comment_text?: string; // Optional legacy text content
+  comment_blocks?: CommentContentBlock[]; // Structured content blocks
+  resolved: boolean;
+  assignee?: ITaskUser | null; // User assigned to resolve the comment
+  assigned_by?: ITaskUser | null; // User who assigned the comment
+  createdAt: Date;
+  updatedAt: Date;
+  reactions?: IReaction[]; // Array of reactions
+}
+
+export interface ICommentList {
+  // Renamed from CommentList
+  data: IComment[];
+  total: number;
 }
 
 // Interface for the response when fetching a list of comments

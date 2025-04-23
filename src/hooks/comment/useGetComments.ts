@@ -1,5 +1,5 @@
 import { commentService } from "@/services";
-import { Comment } from "@/types";
+import { IComment } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 /**
@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
  * @param options - Optional React Query query options.
  */
 export const useGetComments = (taskId: string, options?: { enabled?: boolean }) => {
-  return useQuery<Comment[], Error>({
+  return useQuery<IComment[], Error>({
     // Use function name and taskId for the query key
     queryKey: [commentService.getAllComments.name, taskId],
     queryFn: () => commentService.getAllComments(taskId),
