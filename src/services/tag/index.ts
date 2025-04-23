@@ -1,11 +1,9 @@
 import { api } from '@/api';
-import { Tag, TagListResponse } from '@/types'; // Assuming TagListResponse exists or needs creation
-import { createTagSchema, updateTagSchema } from '@/validations';
-import { z } from 'zod';
+import { Tag, } from '@/types'; // Assuming TagListResponse exists or needs creation
+import { createTagSchema, TCreateTag, TUpdateTag, updateTagSchema } from '@/validations/tag';
 
-// Define types for the input data based on Zod schemas
-type CreateTagInput = z.infer<typeof createTagSchema>;
-type UpdateTagInput = z.infer<typeof updateTagSchema>;
+
+
 
 // Define the base API path function
 const getBasePath = (workspaceId: string) => `/v1/workspaces/${workspaceId}/tags`;
@@ -33,7 +31,7 @@ export class TagService {
     }
   }
 
-  async createTag(data: CreateTagInput): Promise<Tag> {
+  async createTag(data: TCreateTag): Promise<Tag> {
     if (!data.workspace) {
         throw new Error('Workspace ID is missing in createTag data.');
     }
@@ -51,7 +49,7 @@ export class TagService {
   async updateTag(
     workspaceId: string,
     tagId: string,
-    data: UpdateTagInput,
+    data: TUpdateTag,
   ): Promise<Tag> {
     try {
       updateTagSchema.parse(data);

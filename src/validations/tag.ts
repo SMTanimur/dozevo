@@ -18,8 +18,13 @@ export const createTagSchema = z.object({
     workspace: z.string({ required_error: 'Workspace ID is required' }),
 });
 
+export type TCreateTag = z.infer<typeof createTagSchema>;
+
 // Schema for updating a tag (example)
 export const updateTagSchema = z.object({
     name: z.string().min(1, 'Tag name cannot be empty').optional(),
     color: z.string().optional(),
 }); 
+
+
+export type TUpdateTag = z.infer<typeof updateTagSchema>;

@@ -20,6 +20,7 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
 
   const { theme, radius } = useThemeStore();
  
+ 
   return (
     <body
 
