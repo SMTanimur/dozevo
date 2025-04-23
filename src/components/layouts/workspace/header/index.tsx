@@ -40,7 +40,7 @@ export const WorkspaceHeader = () => {
                     {/* {user
                       ? getInitials(`${user.firstName} ${user.lastName}`)
                       : 'U'} */}
-                      U
+                    U
                   </AvatarFallback>
                 </Avatar>
                 <span className='hidden sm:inline'>
