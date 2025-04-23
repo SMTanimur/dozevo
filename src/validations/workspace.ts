@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { userSchema } from './user'; // Assuming user schema is in the same directory or adjust path
+import { WorkspaceType } from '@/types';
 
 // Schema for custom role within a workspace member (adjust if needed)
 export const customRoleSchema = z.object({
@@ -25,6 +26,7 @@ export const workspaceSchema = z.object({
   clickUpTeamId: z.string().optional(),
   color: z.string().optional(),
   avatar: z.string().url('Invalid avatar URL').nullable().optional(),
+  workspaceType: z.nativeEnum(WorkspaceType),
   members: z.array(workspaceMemberSchema).default([]),
   // spaces: z.array(z.string()).optional(), // Assuming space IDs are strings if included
   createdAt: z.string().datetime(),
@@ -37,8 +39,12 @@ export const createWorkspaceSchema = z.object({
     .string({ required_error: 'Workspace name is required' })
     .min(1, 'Workspace name cannot be empty')
     .trim(),
+  workspaceType: z.nativeEnum(WorkspaceType),
   // Add color, avatar, or initial members if the API supports it during creation
 });
+
+export type TCreateWorkspace = z.infer<typeof createWorkspaceSchema>;
+
 
 // Schema for updating a workspace (matching UpdateWorkspaceDto)
 export const updateWorkspaceSchema = z
@@ -46,8 +52,11 @@ export const updateWorkspaceSchema = z
     name: z.string().min(1, 'Workspace name cannot be empty').trim().optional(),
     color: z.string().nullable().optional(), // Allow setting color
     avatar: z.string().url('Invalid avatar URL').nullable().optional(), // Allow updating/clearing avatar
+    workspaceType: z.nativeEnum(WorkspaceType).optional(),
     // We don't usually allow updating members directly here, handle via separate endpoints
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field must be provided for update',
   }); 
+
+export type TUpdateWorkspace = z.infer<typeof updateWorkspaceSchema>;

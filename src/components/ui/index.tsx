@@ -19,6 +19,7 @@ export * from "./dropdown-menu"
 export * from "./form"
 export * from "./hover-card"
 export * from "./icon"
+export * from "./tooltip"
 
 
 

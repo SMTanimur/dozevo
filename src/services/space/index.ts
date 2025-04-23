@@ -1,5 +1,5 @@
 import { api } from '@/api';
-import { Space, SpaceListResponse } from '@/types';
+import { ISpace, ISpaceListResponse } from '@/types';
 import { createSpaceSchema, updateSpaceSchema } from '@/validations';
 import { z } from 'zod';
 
@@ -11,10 +11,10 @@ type UpdateSpaceInput = z.infer<typeof updateSpaceSchema>;
 const getBasePath = (workspaceId: string) => `/v1/workspaces/${workspaceId}/spaces`;
 
 export class SpaceService {
-  async getAllSpaces(workspaceId: string): Promise<Space[]> {
+  async getAllSpaces(workspaceId: string): Promise<ISpace[]> {
     try {
       // API returns SpaceListResponseDto { data: Space[], total: number }
-      const response = await api.get<SpaceListResponse>(getBasePath(workspaceId));
+      const response = await api.get<ISpaceListResponse>(getBasePath(workspaceId));
       return response.data.data; // Return the array of spaces
     } catch (error) {
       console.error(`Failed to fetch spaces for workspace ${workspaceId}:`, error);
@@ -22,9 +22,9 @@ export class SpaceService {
     }
   }
 
-  async getSpaceById(workspaceId: string, spaceId: string): Promise<Space> {
+  async getSpaceById(workspaceId: string, spaceId: string): Promise<ISpace> {
     try {
-      const response = await api.get<Space>(
+      const response = await api.get<ISpace>(
         `${getBasePath(workspaceId)}/${spaceId}`,
       );
       return response.data;
@@ -34,7 +34,7 @@ export class SpaceService {
     }
   }
 
-  async createSpace(data: CreateSpaceInput): Promise<Space> {
+  async createSpace(data: CreateSpaceInput): Promise<ISpace> {
     // Note: workspaceId is required in the data for the DTO, but also used in path
     // Ensure consistency or adjust DTO if path param is sufficient for backend
     if (!data.workspace) {
@@ -44,7 +44,7 @@ export class SpaceService {
     try {
       createSpaceSchema.parse(data); // Validate the original data including workspaceId
       // API returns SpaceDocument, assuming it maps to Space type
-      const response = await api.post<Space>(
+      const response = await api.post<ISpace>(
         getBasePath(workspaceId),
         payload, // Send payload without workspaceId if not needed in body
       );
@@ -59,11 +59,11 @@ export class SpaceService {
     workspaceId: string,
     spaceId: string,
     data: UpdateSpaceInput,
-  ): Promise<Space> {
+  ): Promise<ISpace> {
     try {
       updateSpaceSchema.parse(data);
       // API returns SpaceDocument, assume it maps to Space type
-      const response = await api.patch<Space>(
+      const response = await api.patch<ISpace>(
         `${getBasePath(workspaceId)}/${spaceId}`,
         data,
       );

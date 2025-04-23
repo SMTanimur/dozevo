@@ -1,5 +1,5 @@
 import { api } from '@/api';
-import { Comment, CommentListResponse } from '@/types';
+import { IComment, ICommentListResponse } from '@/types';
 import {
   createCommentSchema,
   updateCommentSchema,
@@ -20,10 +20,10 @@ const getReactionsPath = (taskId: string, commentId: string) =>
   `${getDetailPath(taskId, commentId)}/reactions`;
 
 export class CommentService {
-  async getAllComments(taskId: string): Promise<Comment[]> {
+  async getAllComments(taskId: string): Promise<IComment[]> {
     try {
       // Assuming API returns { data: Comment[], total: number }
-      const response = await api.get<CommentListResponse>(getBasePath(taskId));
+      const response = await api.get<ICommentListResponse>(getBasePath(taskId));
       return response.data.data; // Return the array of comments
     } catch (error) {
       console.error(`Failed to fetch comments for task ${taskId}:`, error);
@@ -31,9 +31,9 @@ export class CommentService {
     }
   }
 
-  async getCommentById(taskId: string, commentId: string): Promise<Comment> {
+  async getCommentById(taskId: string, commentId: string): Promise<IComment> {
     try {
-      const response = await api.get<Comment>(getDetailPath(taskId, commentId));
+      const response = await api.get<IComment>(getDetailPath(taskId, commentId));
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch comment ${commentId}:`, error);
@@ -44,10 +44,10 @@ export class CommentService {
   async createComment(
     taskId: string,
     data: CreateCommentInput,
-  ): Promise<Comment> {
+  ): Promise<IComment> {
     try {
       createCommentSchema.parse(data);
-      const response = await api.post<Comment>(getBasePath(taskId), data);
+      const response = await api.post<IComment>(getBasePath(taskId), data);
       return response.data;
     } catch (error) {
       console.error('Failed to create comment:', error);
@@ -59,10 +59,10 @@ export class CommentService {
     taskId: string,
     commentId: string,
     data: UpdateCommentInput,
-  ): Promise<Comment> {
+  ): Promise<IComment> {
     try {
       updateCommentSchema.parse(data);
-      const response = await api.patch<Comment>(
+      const response = await api.patch<IComment>(
         getDetailPath(taskId, commentId),
         data,
       );
@@ -88,10 +88,10 @@ export class CommentService {
     taskId: string,
     commentId: string,
     data: AddReactionInput,
-  ): Promise<Comment> {
+  ): Promise<IComment> {
     try {
       addReactionSchema.parse(data);
-      const response = await api.post<Comment>(
+      const response = await api.post<IComment>(
         getReactionsPath(taskId, commentId),
         data,
       );
@@ -106,10 +106,10 @@ export class CommentService {
     taskId: string,
     commentId: string,
     data: AddReactionInput, // API uses DELETE with body to specify emoji
-  ): Promise<Comment> {
+  ): Promise<IComment> {
     try {
       addReactionSchema.parse(data); // Validate emoji exists
-      const response = await api.delete<Comment>(
+      const response = await api.delete<IComment>(
         getReactionsPath(taskId, commentId),
         { data }, // Axios delete with body
       );

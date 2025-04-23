@@ -12,7 +12,7 @@ const getBasePath = (workspaceId: string, spaceId: string) =>
   `/v1/workspaces/${workspaceId}/spaces/${spaceId}/folders`;
 
 export class FolderService {
-  async getAllFolders(workspaceId: string, spaceId: string): Promise<Folder[]> {
+  async getAllFolders(workspaceId: string, spaceId: string): Promise<IFolder[]> {
     try {
       // API returns FolderListResponseDto { data: Folder[], total: number }
       const response = await api.get<FolderListResponse>(
