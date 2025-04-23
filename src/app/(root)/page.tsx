@@ -5,7 +5,11 @@ import {
   SocialProof,
   Footer
 } from '@/components/home'; // Updated import path
-
+import { Metadata } from 'next';
+export const metadata: Metadata = {
+  title: "TaskZen",
+  description: "TaskZen helps you manage your tasks and projects efficiently.",
+};
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-white text-gray-900 font-sans">

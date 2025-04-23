@@ -5,6 +5,7 @@ import {
   spaceFeaturesConfigSchema,
   statusTypeSchema,
 } from '@/validations/space';
+import { IList } from '../list';
 
 // Represents a status definition in a response
 export interface IStatusDefinition {
@@ -31,8 +32,14 @@ export interface IStatusDefinition {
     workspace: string; // Workspace ID as string
     name: string;
     members?: ISpaceMember[]; // Array of space members
-    folders?: string[]; // Array of Folder IDs
-    lists?: string[]; // Array of folderless List IDs
+    icon: string;
+    color: string;
+    description: string;
+    private: boolean;
+    archived: boolean;
+    multiple_assignees: boolean;
+    
+    lists?: IList[];
     statuses: IStatusDefinition[]; // Array of status definitions
     features?: Record<string, boolean>; // Enabled features
     createdAt: string; // ISO Date string
