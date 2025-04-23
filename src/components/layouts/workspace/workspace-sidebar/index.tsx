@@ -27,13 +27,11 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuSubButton,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { useGetSpaces, useGetWorkspace, useGetWorkspaces } from '@/hooks';
 import { useParams } from 'next/navigation';
-
-
-
 
 const getInitials = (name: string) => {
   return String(name)
@@ -56,19 +54,19 @@ export function WorkspaceSidebar() {
   const otherWorkspaces = workspaces?.filter(ws => ws._id !== w_id);
   return (
     <Sidebar>
-      <SidebarHeader className='pl-3 pr-2 py2'>
+      <SidebarHeader className='pl-3 pr-2 py-2 !flex !flex-row items-center border-b justify-between'>
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant='ghost'
-              className='w-full justify-start px-2 h-auto py-1.5'
+              className=' justify-start w-[190px] px-2 h-auto py-1.5'
             >
-              <Avatar className='mr-2 h-6 w-6 !bg-cyan-600 !rounded-lg'>
+              <Avatar className=' h-6 w-6 !bg-cyan-600 !text-sm !rounded-lg'>
                 <AvatarImage
                   src={workspace?.avatar as string}
                   alt={workspace?.name as string}
                 />
-                <AvatarFallback>
+                <AvatarFallback className='!bg-cyan-600 text-white !text-sm'>
                   {getInitials(workspace?.name as string)}
                 </AvatarFallback>
               </Avatar>
@@ -157,6 +155,10 @@ export function WorkspaceSidebar() {
             </div>
           </PopoverContent>
         </Popover>
+
+        <div className='flex items-center gap-2'>
+          <SidebarTrigger />
+        </div>
       </SidebarHeader>
 
       <SidebarContent className='flex-1 px-3 py-2 pr-2'>

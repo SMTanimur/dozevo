@@ -1,4 +1,5 @@
 'use client';
+import { SidebarTrigger } from '@/components/ui';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,8 +26,9 @@ export const WorkspaceHeader = () => {
 
   return (
     <header className='sticky top-0 left-0 py-2 px-4 bg-white border-b z-10 dark:bg-gray-900 dark:border-gray-700'>
+
       <div className='flex items-center justify-between'>
-        {/* Left Section: User Avatar + Workspace Switcher */}
+        <SidebarTrigger />
         <div className='flex items-center gap-3'>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
