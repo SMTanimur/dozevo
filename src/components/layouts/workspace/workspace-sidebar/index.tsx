@@ -6,17 +6,14 @@ import {
   Inbox,
   FileText,
   Plus,
-  LayoutGrid,
   Settings,
   ChevronUp,
   Users,
   Search,
-  Folder,
-  List,
-  HelpCircle,
+
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Popover,
@@ -26,12 +23,10 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSubButton,
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
@@ -39,7 +34,9 @@ import Link from 'next/link';
 import { useGetSpaces, useGetWorkspace, useGetWorkspaces } from '@/hooks';
 import { useParams, useRouter } from 'next/navigation';
 import { cn } from '@/lib';
-import { Icon } from '@/components/ui';
+import { SidebarSection } from '../../sidebar-section';
+import { SidebarSpaceItem } from '../sidebar-space-item';
+import { SidebarItem } from '../../sidebar-item';
 
 const getInitials = (name: string) => {
   return String(name)
@@ -243,107 +240,27 @@ export function WorkspaceSidebar() {
         </SidebarContent>
       </div>
 
-      <div className={cn('px-3 py-2 overflow-y-auto', open ? 'pr-2' : 'px-2')}>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip='Everything'
-              isActive={isActive(`/${w_id}/everything`)}
-              className='gap-2 justify-start'
-            >
-              <LayoutGrid className='h-4 w-4' />
-              {open && <span>Everything</span>}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <div className='flex items-center py-2 justify-between '>
-            <h3 className='mb-2 px-1 text-xs font-semibold tracking-tight text-muted-foreground'>
-              Spaces
-            </h3>
+      {/* Spaces section */}
+      <SidebarSection title='Spaces'>
+        {spaces?.map(space => (
+          <SidebarSpaceItem
+            key={space._id}
+            space={space}
+            isActive={isActive(`/${w_id}/s/${space._id}`)}
+            isCollapsed={!open}
+          />
+        ))}
 
-            {open && (
-              <div className='ml-auto  flex items-center gap-1'>
-                <Button variant='ghost' size='icon' className='h-5 w-5'>
-                  <Icon name='Ellipsis' className='h-4 w-4' />
-                </Button>
-                <Button variant='ghost' size='icon' className='h-5 w-5'>
-                  <Plus className='h-4 w-4' />
-                </Button>
-              </div>
-            )}
-          </div>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip='Space'
-              isActive={isActive(`/${w_id}/some-space`)}
-              className='gap-2 justify-start'
-            >
-              <Folder className='h-4 w-4' />
-              {open && <span>Space</span>}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+        <SidebarItem
+          href='/create-space'
+          icon={Plus}
+          label='Create Space'
+          isActive={isActive(`/${w_id}`)}
+          isCollapsed={!open}
+          indent={false}
+        />
+      </SidebarSection>
 
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip='List'
-              isActive={isActive(`/${w_id}/some-list`)}
-              className='gap-2 justify-start'
-            >
-              <List className='h-4 w-4' />
-              {open && <span>List</span>}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          {spaces?.map(space => (
-            <SidebarMenuItem key={space._id}>
-              <SidebarMenuSubButton
-                onClick={() => router.push(`/${w_id}/space/${space._id}`)}
-                isActive={isActive(`/${w_id}/space/${space._id}`)}
-                className='gap-2 justify-start'
-              >
-                <Avatar
-                  className='h-4 w-4 rounded-sm text-[10px]'
-                  style={{ backgroundColor: '#71717a' /* Default Gray */ }}
-                >
-                  <AvatarFallback
-                    key={`${space._id}-fallback`}
-                    className='bg-transparent text-white'
-                  >
-                    {space.name?.[0]?.toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                {open && <span className='truncate'>{space.name}</span>}
-              </SidebarMenuSubButton>
-            </SidebarMenuItem>
-          ))}
-
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip='Create Space'
-              className='gap-2 justify-start text-muted-foreground hover:text-foreground'
-            >
-              <Plus className='h-4 w-4' />
-              {open && <span>Create Space</span>}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </div>
-
-      <SidebarFooter
-        className={cn(
-          open
-            ? 'flex flex-row items-center gap-2 px-3 py-2 border-t'
-            : 'flex flex-col items-center gap-2 px-2 py-2 border-t'
-        )}
-      >
-        <SidebarMenuButton tooltip='Invite' className='gap-2'>
-          <Users className='h-4 w-4' />
-          {open && <span>Invite</span>}
-        </SidebarMenuButton>
-        <SidebarMenuButton tooltip='Help' className='gap-2'>
-          <HelpCircle className='h-4 w-4' />
-          {open && <span>Help</span>}
-        </SidebarMenuButton>
-      </SidebarFooter>
     </Sidebar>
   );
 }
