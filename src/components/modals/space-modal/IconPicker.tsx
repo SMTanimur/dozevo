@@ -138,8 +138,8 @@ export function IconPicker({
         </div>
       </div>
 
-      <ScrollArea className='h-32 w-full rounded-md border p-2'>
-        <div className='grid grid-cols-6 gap-1 p-2 w-full'>
+      <ScrollArea className='h-32 w-full  p-2'>
+        <div className='grid grid-cols-6  gap-1 p-2 w-full'>
           {/* Text Option Button with the same styling as icon buttons */}
           <button
             type='button'

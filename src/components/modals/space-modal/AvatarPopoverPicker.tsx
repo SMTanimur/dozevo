@@ -39,16 +39,14 @@ export function AvatarPopoverPicker({
       ? icon.charAt(0).toUpperCase()
       : 'M';
 
-
-
   return (
     <div className='space-y-2'>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal={false}>
         <PopoverTrigger asChild>
           <button
             type='button'
             className={cn(
-              'h-8 w-8 rounded-md cursor-pointer border-2 text-xl font-semibold flex items-center justify-center transition-colors'
+              'h-8 w-8 rounded-md cursor-pointer border-2 text-xl font-semibold flex items-center justify-center '
             )}
             style={{ backgroundColor: color || '#f3f4f6' }}
             aria-label='Select space icon and color'
