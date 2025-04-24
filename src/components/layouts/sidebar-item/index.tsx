@@ -12,7 +12,7 @@ import {
 
 import { Icon } from '@/components/ui';
 import { icons } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+
 
 interface SidebarItemProps {
   href: string;
@@ -39,7 +39,7 @@ export function SidebarItem({
   variant = 'default',
   actions,
 }: SidebarItemProps) {
-  const router = useRouter();
+
   const IconComponent = () => {
     if (icon) {
       return (
@@ -70,8 +70,6 @@ export function SidebarItem({
       onClick={e => {
         if (onExpand) {
           e.preventDefault();
-          console.log('onExpand');
-          router.push(href);
           onExpand();
         }
       }}

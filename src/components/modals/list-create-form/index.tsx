@@ -48,7 +48,6 @@ export function CreateListModal({
     onClose();
   };
 
-  console.log({ errors: form.formState.errors });
 
   const onSubmit: SubmitHandler<TCreateList> = (values: TCreateList) => {
    
