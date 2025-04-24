@@ -29,15 +29,15 @@ const AppSidebar = ({
       <SidebarFooter
         className={cn(
           open
-            ? 'flex flex-row !z-[999] items-center gap-2 px-3 py-2 border-t'
+            ? 'flex flex-row  items-center gap-2 px-3 py-2 border-t'
             : 'flex flex-col items-center gap-2 px-2 py-2 border-t'
         )}
       >
-        <SidebarMenuButton tooltip='Invite' className='gap-2'>
+        <SidebarMenuButton tooltip='Invite' className='gap-2 !z-[99999]'>
           <Users className='h-4 w-4' />
           {open && <span>Invite</span>}
         </SidebarMenuButton>
-        <SidebarMenuButton tooltip='Help' className='gap-2'>
+        <SidebarMenuButton tooltip='Help' className='gap-2 !z-[99999]'>
           <HelpCircle className='h-4 w-4' />
           {open && <span>Help</span>}
         </SidebarMenuButton>

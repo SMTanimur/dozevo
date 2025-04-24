@@ -76,7 +76,7 @@ export function WorkspaceSidebar() {
                     className='data-[state=open]:bg-sidebar-accent justify-start w-[190px] px-2 h-auto py-1.5 '
                   >
                     <div
-                      className='flex h-7 w-7   items-center justify-center rounded-sm'
+                      className='flex h-6 w-6   items-center justify-center rounded-sm'
                       style={{ backgroundColor: workspace?.color ?? '#ec4899' }}
                     >
                       <span className='text-[10px] text-white'>
@@ -85,14 +85,15 @@ export function WorkspaceSidebar() {
                       </span>
                     </div>
 
-                    <span
-                      className={cn(
-                        open ? 'block font-medium truncate' : 'hidden'
-                      )}
-                    >
-                      {workspace?.name}
-                    </span>
-                    <ChevronDown className='ml-auto h-4 w-4 opacity-50' />
+                    {open && (
+                      <span className={cn(' font-medium truncate')}>
+                        {workspace?.name}
+                      </span>
+                    )}
+
+                    {open && (
+                      <ChevronDown className='ml-auto h-4 w-4 opacity-50' />
+                    )}
                   </SidebarMenuButton>
                 </PopoverTrigger>
                 <PopoverContent
@@ -103,7 +104,7 @@ export function WorkspaceSidebar() {
                   <div className='p-4'>
                     <div className='flex items-center gap-3'>
                       <div
-                        className='flex h-7 w-7   items-center justify-center rounded-sm'
+                        className='flex h-6 w-6   items-center justify-center rounded-sm'
                         style={{
                           backgroundColor: workspace?.color ?? '#ec4899',
                         }}
@@ -164,7 +165,7 @@ export function WorkspaceSidebar() {
                           className='flex h-auto w-full items-center justify-start gap-2 px-2 py-1.5'
                         >
                           <div
-                            className='flex h-7 w-7   items-center justify-center rounded-sm'
+                            className='flex h-6 w-6   items-center justify-center rounded-sm'
                             style={{ backgroundColor: ws?.color ?? '#ec4899' }}
                           >
                             <span className='text-[10px] text-white'>
@@ -254,25 +255,27 @@ export function WorkspaceSidebar() {
         </div>
 
         {/* Spaces section */}
+        
+        {open && (
+          <SidebarSection title='Spaces'>
+            {spaces?.map(space => (
+              <SidebarSpaceItem
+                key={space._id}
+                space={space}
+                isActive={isActive(`/${w_id}/s/${space._id}`)}
+                isCollapsed={!open}
+              />
+            ))}
 
-        <SidebarSection title='Spaces'>
-          {spaces?.map(space => (
-            <SidebarSpaceItem
-              key={space._id}
-              space={space}
-              isActive={isActive(`/${w_id}/s/${space._id}`)}
-              isCollapsed={!open}
-            />
-          ))}
-
-          <Button
-            variant='ghost'
-            className='w-full cursor-pointer justify-start gap-2'
-            onClick={() => setIsCreateSpaceModalOpen(true)}
-          >
-            <Plus className='h-4 w-4' /> {open && 'Create Space'}
-          </Button>
-        </SidebarSection>
+            <Button
+              variant='ghost'
+              className='w-full cursor-pointer justify-start gap-2'
+              onClick={() => setIsCreateSpaceModalOpen(true)}
+            >
+              <Plus className='h-4 w-4' /> {open && 'Create Space'}
+            </Button>
+          </SidebarSection>
+        )}
       </Sidebar>
 
       {/* Modal rendering (outside the main Sidebar structure if needed, or inside if portal handles it) */}
