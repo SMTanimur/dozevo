@@ -16,6 +16,8 @@ export interface IList {
   name: string;
   icon: string;
   color: string;
+  private: boolean;
+  override_statuses: boolean;
   statuses?: IStatusDefinition[]; // Optional override statuses
   hidden: boolean;
   orderIndex?: number;

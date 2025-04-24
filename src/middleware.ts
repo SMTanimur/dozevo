@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Define public routes that don't require authentication
-// Removed root '/' as it will be handled by authenticated logic
-const publicRoutes = ['/','/login', '/signup', '/forgot-password', '/api'];
+const publicRoutes = ['/login', '/signup', '/forgot-password', '/api'];
 
 export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -12,8 +11,12 @@ export function middleware(request: NextRequest) {
 
   // Helper function to check if path starts with any public prefix
   const isPublicPath = (pathname: string) => {
-    return publicRoutes.some(route => pathname.startsWith(route));
+    return publicRoutes.some(
+      route => pathname === route || pathname.startsWith(route)
+    );
   };
+
+  const workspaceHomePath = `/${workspace}/home`;
 
   if (token) {
     // --- Authenticated User Logic ---
@@ -21,25 +24,32 @@ export function middleware(request: NextRequest) {
       // User is authenticated but no workspace selected/set
       // Redirect to /workspace unless already there or accessing API
       if (path !== '/workspace' && !path.startsWith('/api')) {
-        console.log('[Middleware] Auth + No Workspace -> Redirecting to /workspace');
+        console.log(
+          '[Middleware] Auth + No Workspace -> Redirecting to /workspace'
+        );
         return NextResponse.redirect(new URL('/workspace', request.url));
       }
-    } else {
+    } else if (
+      path === '/' ||
+      path === '/login' ||
+      path === '/signup' ||
+      path === '/forgot-password'
+    ) {
       // User is authenticated AND has a workspace selected
-      const workspaceHomePath = `/${workspace}/home`;
-
-      // Redirect to their workspace home if they are not already there,
-      // not trying to access /workspace, and not accessing an API route.
-      if (path !== workspaceHomePath && path !== '/workspace' && !path.startsWith('/api')) {
-        console.log(`[Middleware] Auth + Workspace -> Redirecting to ${workspaceHomePath}`);
-        return NextResponse.redirect(new URL(workspaceHomePath, request.url));
-      }
+      // Only redirect from explicit public pages to workspace home
+      console.log(
+        `[Middleware] Auth + Workspace + Public Route -> Redirecting to ${workspaceHomePath}`
+      );
+      return NextResponse.redirect(new URL(workspaceHomePath, request.url));
     }
   } else {
     // --- Unauthenticated User Logic ---
     // If the route is not public and there's no token, redirect to login
-    if (!isPublicPath(path) && path !== '/') { // Allow access to root for unauthenticated
-      console.log('[Middleware] No Auth + Protected Route -> Redirecting to /login');
+    if (!isPublicPath(path) && path !== '/') {
+      // Allow access to root for unauthenticated
+      console.log(
+        '[Middleware] No Auth + Protected Route -> Redirecting to /login'
+      );
       const loginUrl = new URL('/login', request.url);
       return NextResponse.redirect(loginUrl);
     }

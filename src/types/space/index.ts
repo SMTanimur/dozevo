@@ -32,7 +32,7 @@ export interface IStatusDefinition {
     workspace: string; // Workspace ID as string
     name: string;
     members?: ISpaceMember[]; // Array of space members
-    icon: string;
+    avatar: string;
     color: string;
     description: string;
     private: boolean;

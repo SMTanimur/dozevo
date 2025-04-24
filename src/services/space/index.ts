@@ -1,11 +1,9 @@
 import { api } from '@/api';
 import { ISpace, ISpaceListResponse } from '@/types';
-import { createSpaceSchema, updateSpaceSchema } from '@/validations';
-import { z } from 'zod';
+import { createSpaceSchema, TCreateSpace, TUpdateSpace, updateSpaceSchema } from '@/validations';
 
-// Define types for the input data based on Zod schemas
-type CreateSpaceInput = z.infer<typeof createSpaceSchema>;
-type UpdateSpaceInput = z.infer<typeof updateSpaceSchema>;
+
+
 
 // Define the base API path function
 const getBasePath = (workspaceId: string) => `/v1/workspaces/${workspaceId}/spaces`;
@@ -34,7 +32,7 @@ export class SpaceService {
     }
   }
 
-  async createSpace(data: CreateSpaceInput): Promise<ISpace> {
+  async createSpace(data: TCreateSpace): Promise<ISpace> {
     // Note: workspaceId is required in the data for the DTO, but also used in path
     // Ensure consistency or adjust DTO if path param is sufficient for backend
     if (!data.workspace) {
@@ -58,7 +56,7 @@ export class SpaceService {
   async updateSpace(
     workspaceId: string,
     spaceId: string,
-    data: UpdateSpaceInput,
+    data: TUpdateSpace,
   ): Promise<ISpace> {
     try {
       updateSpaceSchema.parse(data);

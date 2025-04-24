@@ -1,12 +1,17 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 
-import { Button } from "@/components/ui/button";
-import { ChevronRight, MoreHorizontal, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { ISpace } from "@/types";
-import { SidebarItem } from "../../sidebar-item";
+import { Button } from '@/components/ui/button';
+import { icons, MoreHorizontal, Plus } from 'lucide-react';
+
+import { ISpace } from '@/types';
+import { SidebarItem } from '../../sidebar-item';
+import Link from 'next/link';
+import { CreateListModal } from '@/components/modals';
+import { ListItem } from '../list-item';
+
+import { ListItemPlus } from '@/components/list-item-plus';
 
 interface SidebarSpaceItemProps {
   space: ISpace;
@@ -20,78 +25,94 @@ export function SidebarSpaceItem({
   isCollapsed = false,
 }: SidebarSpaceItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-
+  const [showCreateListModal, setShowCreateListModal] = useState(false);
   const hasLists = space.lists && space.lists.length > 0;
+
+  const handleExpand = () => {
+    if (isCollapsed) {
+      setIsExpanded(true);
+    } else {
+      setIsExpanded(!isExpanded);
+    }
+  };
 
   return (
     <div>
-      <div className="group relative flex items-center">
-        {hasLists && !isCollapsed && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute left-2 z-10 h-6 w-6 -translate-x-full p-0 opacity-0 group-hover:opacity-100"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            <ChevronRight
-              className={cn(
-                "h-3 w-3 text-muted-foreground transition-transform",
-                isExpanded && "rotate-90"
-              )}
-            />
-          </Button>
-        )}
-
+      <div className='group w-full  relative flex items-center'>
         <SidebarItem
-          href={`/space/${space._id}`}
-          icon={() => (
-            <div 
-              className="flex h-5 w-5 items-center justify-center rounded-sm"
-              style={{ backgroundColor: space.color }}
-            >
-              <span className="text-xs text-white">{space.icon}</span>
-            </div>
-          )}
+          href={`/${space.workspace}/s/${space._id}`}
+          color={space.color}
+          icon={space.avatar as keyof typeof icons}
           label={space.name}
           isActive={isActive}
+          onExpand={handleExpand}
           isCollapsed={isCollapsed}
           actions={
             !isCollapsed ? (
               <>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
-                  <MoreHorizontal className="h-3 w-3" />
+                <Button variant='ghost' size='icon' className='h-6 w-6'>
+                  <MoreHorizontal className='h-3 w-3' />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
-                  <Plus className="h-3 w-3" />
-                </Button>
+                <ListItemPlus itemPlusType='space' space={space} />
               </>
             ) : null
           }
-          onClick={hasLists ? () => setIsExpanded(!isExpanded) : undefined}
         />
       </div>
 
-      {isExpanded && !isCollapsed && hasLists && (
-        <div className="ml-4 mt-1 space-y-1">
-          {space.lists?.map((list) => (
-            <SidebarItem
-              key={list._id}
-              href={`/space/${space._id}/list/${list._id}`}
-              icon={() => (
-                <div 
-                  className="flex h-5 w-5 items-center justify-center rounded-sm"
-                  style={{ backgroundColor: list.color }}
+      {isExpanded && !isCollapsed && (
+        <div className='mt-1 pl-3 space-y-1 w-full overflow-hidden'>
+          {hasLists ? (
+            space.lists?.map(list => (
+              <ListItem
+                key={list._id}
+                href={`/${space.workspace}/s/${space._id}/l/${list._id}`}
+                color={list.color}
+                icon={list.icon as keyof typeof icons}
+                label={list.name}
+                isCollapsed={isCollapsed}
+                actions={
+                  !isCollapsed ? (
+                    <>
+                      <Button variant='ghost' size='icon' className='h-6 w-6'>
+                        <MoreHorizontal className='h-3 w-3' />
+                      </Button>
+                      <Button variant='ghost' size='icon' className='h-6 w-6'>
+                        <Plus className='h-3 w-3' />
+                      </Button>
+                    </>
+                  ) : null
+                }
+              />
+            ))
+          ) : (
+            <div className='py-2 text-center text-sm text-muted-foreground'>
+              <p className='mb-2'>
+                Create a
+                <button
+                  onClick={() => setShowCreateListModal(true)}
+                  className='mx-1 text-primary hover:underline'
                 >
-                  <span className="text-xs text-white">{list.icon}</span>
-                </div>
-              )}
-              label={list.name}
-              isCollapsed={isCollapsed}
-              indent
-            />
-          ))}
+                  List
+                </button>
+                or
+                <Link
+                  href={`/space/${space._id}/doc/new`}
+                  className='mx-1 text-primary hover:underline'
+                >
+                  Doc
+                </Link>
+              </p>
+            </div>
+          )}
         </div>
       )}
+
+      <CreateListModal
+        isOpen={showCreateListModal}
+        onClose={() => setShowCreateListModal(false)}
+        spaceId={space._id}
+      />
     </div>
   );
 }
