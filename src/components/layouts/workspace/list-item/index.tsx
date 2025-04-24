@@ -36,15 +36,11 @@ export function ListItem({
       return (
         <Icon
           name={icon as keyof typeof icons}
-          className='h-3 w-3 text-white'
+          className={`h-3 w-3 text-${color}`}
         />
       );
     }
-    return (
-      <span className='text-xs text-white'>
-        {label.charAt(0).toUpperCase()}
-      </span>
-    );
+    return <Icon name='FileText' className={`h-3 w-3 text-${color}`} />;
   };
 
   return (
@@ -61,10 +57,7 @@ export function ListItem({
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className='flex shrink-0 items-center gap-2 justify-center'>
-        <div
-          className='flex h-6 w-6 items-center justify-center rounded-sm'
-          style={{ backgroundColor: color ? color : '#ec4899' }}
-        >
+        <div className='flex h-6 w-6 items-center justify-center rounded-sm'>
           <IconComponent />
         </div>
         <span className='truncate'>{label}</span>

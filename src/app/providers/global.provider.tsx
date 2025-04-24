@@ -7,6 +7,7 @@ import { PrimaryLoader } from '@/components/ui/primary-loader';
 
 import { ThemeProvider } from 'next-themes';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { TooltipProvider } from '@/components';
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -43,13 +44,15 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         } as React.CSSProperties
       }
     >
-      <ThemeProvider
-        attribute='class'
-        enableSystem={false}
-        defaultTheme='light'
-      >
-        {isLoading ? <PrimaryLoader /> : children}
-      </ThemeProvider>
+      <TooltipProvider>
+        <ThemeProvider
+          attribute='class'
+          enableSystem={false}
+          defaultTheme='light'
+        >
+          {isLoading ? <PrimaryLoader /> : children}
+        </ThemeProvider>
+      </TooltipProvider>
     </body>
   );
 };

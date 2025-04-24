@@ -1,7 +1,6 @@
 'use client';
 
 import { ReactNode } from 'react';
-import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import {
   Tooltip,
@@ -12,7 +11,7 @@ import {
 
 import { Icon } from '@/components/ui';
 import { icons } from 'lucide-react';
-
+import { useRouter } from 'next/navigation';
 
 interface SidebarItemProps {
   href: string;
@@ -39,7 +38,7 @@ export function SidebarItem({
   variant = 'default',
   actions,
 }: SidebarItemProps) {
-
+  const router = useRouter();
   const IconComponent = () => {
     if (icon) {
       return (
@@ -57,19 +56,18 @@ export function SidebarItem({
   };
 
   const item = (
-    <Link
-      href={href}
+    <div
       className={cn(
-        'group flex w-full z-50 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted',
+        'group flex w-full cursor-pointer z-50 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted',
         isActive && variant === 'default' && 'bg-muted text-foreground',
         isActive &&
           variant === 'accent' &&
           'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300',
         indent && !isCollapsed && 'ml-4'
       )}
-      onClick={e => {
+      onClick={() => {
         if (onExpand) {
-          e.preventDefault();
+          router.push(href);
           onExpand();
         }
       }}
@@ -91,7 +89,7 @@ export function SidebarItem({
           )}
         </>
       )}
-    </Link>
+    </div>
   );
 
   if (isCollapsed) {
