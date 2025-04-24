@@ -1,3 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
@@ -44,6 +47,7 @@ const useTree = () => {
   return context;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface TreeViewComponentProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 type Direction = "rtl" | "ltr" | undefined;
@@ -225,6 +229,7 @@ const Folder = forwardRef<
       children,
       ...props
     },
+     
     ref,
   ) => {
     const {
@@ -357,6 +362,7 @@ const CollapseButton = forwardRef<
 
   const closeAll = useCallback(() => {
     setExpandedItems?.([]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -364,6 +370,7 @@ const CollapseButton = forwardRef<
     if (expandAll) {
       expendAllTree(elements);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expandAll]);
 
   return (

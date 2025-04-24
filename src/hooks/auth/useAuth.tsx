@@ -65,7 +65,7 @@ export const useAuth = () => {
   const login = loginForm.handleSubmit(async (data: LogingInput) => {
     try {
       await loginMutateAsync(data);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     } catch (error: any) {
       console.log({ error });
     }
@@ -74,7 +74,7 @@ export const useAuth = () => {
   const signUp = registerForm.handleSubmit(async (data: TCreateUser) => {
     try {
       await registerMutateAsync(data);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     } catch (error: any) {
       toast.error(error.message || 'Registration failed');
       

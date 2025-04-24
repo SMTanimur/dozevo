@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { userSchema } from './user';
+
 
 // Enum matching API definition
 export const statusTypeSchema = z.enum([
@@ -62,11 +62,17 @@ export const createSpaceSchema = z.object({
     .min(1, 'Space name cannot be empty')
     .trim(),
   workspace: z.string({ required_error: 'Workspace ID is required' }),
-  // Add initial members, statuses, features, etc., if API supports
-  color: z.string().nullable().optional(),
-  avatar: z.string().url('Invalid avatar URL').nullable().optional(),
-  private: z.boolean().optional().default(false),
+
+  description: z.string().optional(),
+
+  color: z.string().optional(),
+  avatar: z.string().optional(),
+  private: z.boolean({
+    required_error: 'Private is required',
+  }),
 });
+
+export type TCreateSpace = z.infer<typeof createSpaceSchema>;
 
 // Schema for updating a space (matching UpdateSpaceDto)
 export const updateSpaceSchema = z
@@ -84,3 +90,5 @@ export const updateSpaceSchema = z
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field must be provided for update',
   }); 
+
+  export type TUpdateSpace = z.infer<typeof updateSpaceSchema>;
