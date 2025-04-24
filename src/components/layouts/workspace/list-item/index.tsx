@@ -40,7 +40,7 @@ export function ListItem({
         />
       );
     }
-    return <Icon name='FileText' className={`h-3 w-3 text-${color}`} />;
+    return <Icon name='List' className={`h-4 w-4 text-${color}`} />;
   };
 
   return (
@@ -57,7 +57,7 @@ export function ListItem({
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className='flex shrink-0 items-center gap-2 justify-center'>
-        <div className='flex h-6 w-6 items-center justify-center rounded-sm'>
+        <div className='flex h-6 w-6 items-center justify-center rounded-sm hover:bg-gray-200'>
           <IconComponent />
         </div>
         <span className='truncate'>{label}</span>

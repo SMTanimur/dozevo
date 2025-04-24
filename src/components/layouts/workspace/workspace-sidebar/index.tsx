@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Popover,
   PopoverContent,
@@ -76,15 +75,16 @@ export function WorkspaceSidebar() {
                     size='lg'
                     className='data-[state=open]:bg-sidebar-accent justify-start w-[190px] px-2 h-auto py-1.5 '
                   >
-                    <Avatar className=' h-6 w-6 !bg-cyan-600 !text-sm !rounded-lg'>
-                      <AvatarImage
-                        src={workspace?.avatar as string}
-                        alt={workspace?.name as string}
-                      />
-                      <AvatarFallback className='!bg-cyan-600 text-white !text-sm'>
+                    <div
+                      className='flex h-7 w-7   items-center justify-center rounded-sm'
+                      style={{ backgroundColor: workspace?.color ?? '#ec4899' }}
+                    >
+                      <span className='text-[10px] text-white'>
+                        {' '}
                         {getInitials(workspace?.name as string)}
-                      </AvatarFallback>
-                    </Avatar>
+                      </span>
+                    </div>
+
                     <span
                       className={cn(
                         open ? 'block font-medium truncate' : 'hidden'
@@ -102,15 +102,17 @@ export function WorkspaceSidebar() {
                 >
                   <div className='p-4'>
                     <div className='flex items-center gap-3'>
-                      <Avatar className='h-8 w-8'>
-                        <AvatarImage
-                          src={workspace?.avatar as string}
-                          alt={workspace?.name as string}
-                        />
-                        <AvatarFallback>
+                      <div
+                        className='flex h-7 w-7   items-center justify-center rounded-sm'
+                        style={{
+                          backgroundColor: workspace?.color ?? '#ec4899',
+                        }}
+                      >
+                        <span className='text-[10px] text-white'>
+                          {' '}
                           {getInitials(workspace?.name as string)}
-                        </AvatarFallback>
-                      </Avatar>
+                        </span>
+                      </div>
                       <div>
                         <p className='font-semibold'>{workspace?.name}</p>
                       </div>
@@ -161,11 +163,15 @@ export function WorkspaceSidebar() {
                           variant='ghost'
                           className='flex h-auto w-full items-center justify-start gap-2 px-2 py-1.5'
                         >
-                          <Avatar className='h-6 w-6 text-xs'>
-                            <AvatarFallback>
-                              {getInitials(ws.name)}
-                            </AvatarFallback>
-                          </Avatar>
+                          <div
+                            className='flex h-7 w-7   items-center justify-center rounded-sm'
+                            style={{ backgroundColor: ws?.color ?? '#ec4899' }}
+                          >
+                            <span className='text-[10px] text-white'>
+                              {' '}
+                              {getInitials(ws?.name as string)}
+                            </span>
+                          </div>
                           <div className='flex flex-col items-start'>
                             <span className='text-sm font-medium'>
                               {ws.name}
