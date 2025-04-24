@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { icons } from 'lucide-react';
 import { Input } from '@/components/ui';
-import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -68,11 +67,17 @@ const preferredIconNames = [
 interface IconPickerProps {
   selected: string;
   onChange: (icon: string) => void;
+  spaceName?: string;
+  color?: string;
 }
 
-export function IconPicker({ selected, onChange }: IconPickerProps) {
+export function IconPicker({
+  selected,
+  onChange,
+  color = '',
+  spaceName = 'M',
+}: IconPickerProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAll, setShowAll] = useState(false);
 
   // Initialize common icons on component mount
   useEffect(() => {
@@ -90,43 +95,30 @@ export function IconPicker({ selected, onChange }: IconPickerProps) {
         commonIcons.push(found);
       }
     });
-
-    // If we didn't find enough, add some more common icons
-    if (commonIcons.length < 30) {
-      const moreIcons = availableIcons
-        .filter(icon => !commonIcons.includes(icon))
-        .slice(0, 30 - commonIcons.length);
-
-      commonIcons.push(...moreIcons);
-    }
   }, []);
 
   // Filter icons based on search term
-  const filteredIcons = showAll
-    ? (Object.keys(icons).filter(icon =>
-        icon.toLowerCase().includes(searchTerm.toLowerCase())
-      ) as (keyof typeof icons)[])
-    : commonIcons.filter(icon =>
-        icon.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  const filteredIcons = Object.keys(icons).filter(icon =>
+    icon.toLowerCase().includes(searchTerm.toLowerCase())
+  ) as (keyof typeof icons)[];
 
   return (
-    <div className='space-y-4'>
-      <div className='space-y-2'>
+    <div className='space-y-4 w-full'>
+      <div className='space-y-2 w-full'>
         <label className='text-sm font-medium'>Icon</label>
 
         <div className='flex items-center gap-2'>
           <div
             className={cn(
-              'h-12 w-12 flex items-center justify-center rounded-md border',
-              selected ? 'bg-secondary/50' : 'bg-muted'
+              'h-8 w-8 flex items-center text-white justify-center rounded-md border'
             )}
+            style={{ backgroundColor: color || '#f3f4f6' }}
           >
             {selected ? (
-              <Icon name={selected as keyof typeof icons} className='h-6 w-6' />
+              <Icon name={selected as keyof typeof icons} className='h-4 w-4' />
             ) : (
-              <span className='text-2xl font-bold text-muted-foreground'>
-                ?
+              <span className='text-lg font-bold text-white'>
+                {spaceName ?? 'M'}
               </span>
             )}
           </div>
@@ -143,20 +135,23 @@ export function IconPicker({ selected, onChange }: IconPickerProps) {
               className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground'
             />
           </div>
-
-          <Button
-            type='button'
-            variant='outline'
-            onClick={() => setShowAll(!showAll)}
-            className='whitespace-nowrap'
-          >
-            {showAll ? 'Show Less' : 'Show All'}
-          </Button>
         </div>
       </div>
 
-      <ScrollArea className='h-60 rounded-md border p-2'>
-        <div className='grid grid-cols-6 gap-2 p-2'>
+      <ScrollArea className='h-32 w-full rounded-md border p-2'>
+        <div className='grid grid-cols-6 gap-1 p-2 w-full'>
+          {/* Text Option Button with the same styling as icon buttons */}
+          <button
+            type='button'
+            onClick={() => onChange('')}
+            className={cn(
+              'flex h-8 w-8 items-center justify-center rounded-md border transition-colors'
+            )}
+            style={{ backgroundColor: color || '#f3f4f6' }}
+          >
+            <span className='text-sm font-bold text-white'>{spaceName}</span>
+          </button>
+
           {filteredIcons.length > 0 ? (
             filteredIcons.map(iconName => (
               <button
@@ -164,13 +159,13 @@ export function IconPicker({ selected, onChange }: IconPickerProps) {
                 type='button'
                 onClick={() => onChange(iconName)}
                 className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-md border transition-colors',
+                  'flex h-8 w-8 items-center justify-center rounded-md border transition-colors',
                   selected === iconName
                     ? 'border-primary bg-primary/10'
                     : 'border-transparent hover:border-muted-foreground/20 hover:bg-muted'
                 )}
               >
-                <Icon name={iconName} className='h-5 w-5' />
+                <Icon name={iconName} className='h-4 w-4' />
               </button>
             ))
           ) : (

@@ -70,6 +70,9 @@ export function CreateSpaceModal({ isOpen, onClose }: CreateSpaceModalProps) {
     });
   };
 
+  // Watch the name field to get its current value
+  const spaceName = form.watch('name');
+
   return (
     <BaseModal
       open={isOpen}
@@ -84,18 +87,18 @@ export function CreateSpaceModal({ isOpen, onClose }: CreateSpaceModalProps) {
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
             {/* Icon & Name Row */}
             <div className='flex flex-col gap-2 items-start'>
-              {/* Avatar/Icon & Color Picker */}
               <FormLabel>Icon & name</FormLabel>
-              <div className='flex items-center gap-2'>
+              <div className='flex items-center gap-2 w-full'>
                 <AvatarPopoverPicker
                   icon={form.watch('avatar') || ''}
                   color={form.watch('color') || '#6366f1'}
+                  spaceName={spaceName}
                   onIconChange={icon => form.setValue('avatar', icon)}
                   onColorChange={color => form.setValue('color', color)}
                 />
 
                 {/* Space Name */}
-                <div className='flex-1'>
+                <div className='flex-1 w-full'>
                   <FormField
                     control={form.control}
                     name='name'
@@ -103,6 +106,7 @@ export function CreateSpaceModal({ isOpen, onClose }: CreateSpaceModalProps) {
                       <FormItem>
                         <FormControl>
                           <Input
+                            className='w-full'
                             placeholder='e.g. Marketing, Engineering, HR'
                             {...field}
                           />

@@ -29,7 +29,7 @@ export function ColorPicker({ selected, onChange }: ColorPickerProps) {
   return (
     <div className=' flex flex-col gap-3'>
       <label className='text-sm font-medium'>Space color</label>
-      <div className='grid grid-cols-6 gap-2 sm:grid-cols-7 md:grid-cols-13'>
+      <div className='grid grid-cols-6 gap-2 sm:grid-cols-7 md:grid-cols-8'>
         {colorOptions.map(color => (
           <button
             key={color.value}

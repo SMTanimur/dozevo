@@ -17,6 +17,7 @@ import { ColorPicker } from './ColorPicker';
 interface AvatarPopoverPickerProps {
   icon: string;
   color: string;
+  spaceName?: string;
   onIconChange: (icon: string) => void;
   onColorChange: (color: string) => void;
 }
@@ -24,14 +25,20 @@ interface AvatarPopoverPickerProps {
 export function AvatarPopoverPicker({
   icon,
   color,
+  spaceName = '',
   onIconChange,
-  onColorChange
+  onColorChange,
 }: AvatarPopoverPickerProps) {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('color');
 
-  // Get first letter of icon name or use 'M' as default
-  const displayLetter = icon ? icon.charAt(0) : 'M';
+  // Get first letter of space name or use the first letter of the icon name or 'M' as default
+  const displayLetter =
+    !icon && spaceName
+      ? spaceName.charAt(0).toUpperCase()
+      : icon
+      ? icon.charAt(0).toUpperCase()
+      : 'M';
 
   // Handle uploads (mock implementation)
   const handleUpload = () => {
@@ -48,10 +55,7 @@ export function AvatarPopoverPicker({
           <button
             type='button'
             className={cn(
-              'h-8 w-8 rounded-md border-2 text-xl font-semibold flex items-center justify-center transition-colors',
-              color
-                ? 'border-transparent'
-                : 'border-dashed border-muted-foreground/50'
+              'h-8 w-8 rounded-md cursor-pointer border-2 text-xl font-semibold flex items-center justify-center transition-colors'
             )}
             style={{ backgroundColor: color || '#f3f4f6' }}
             aria-label='Select space icon and color'
@@ -59,15 +63,17 @@ export function AvatarPopoverPicker({
             {icon ? (
               <Icon
                 name={icon as keyof typeof icons}
-                className='h-8 w-8 text-white'
+                className='h-4 w-4 text-white'
               />
             ) : (
-              <span className='text-2xl'>{displayLetter}</span>
+              <span className='text-lg text-white font-semibold'>
+                {displayLetter}
+              </span>
             )}
           </button>
         </PopoverTrigger>
 
-        <PopoverContent className='max-w-sm w-full p-3' align='start'>
+        <PopoverContent className='max-w-64 w-full p-3' align='start'>
           <div className='flex justify-between items-center p-2 border-b'>
             <p className='text-sm font-medium ml-2'>Customize</p>
             <Button
@@ -111,8 +117,10 @@ export function AvatarPopoverPicker({
               />
             </TabsContent>
 
-            <TabsContent value='icon' className='pt-2'>
+            <TabsContent value='icon' className='pt-2 w-full'>
               <IconPicker
+                spaceName={displayLetter}
+                color={color}
                 selected={icon || ''}
                 onChange={newIcon => {
                   onIconChange(newIcon);
