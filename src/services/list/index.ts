@@ -1,22 +1,22 @@
 import { api } from '@/api';
-import { IList,  ListListResponse } from '@/types';
-import { createlistSchema, updatelistSchema } from '@/validations';
-import { z } from 'zod';
-
-// Define types for the input data based on Zod schemas
-type CreateListInput = z.infer<typeof createlistSchema>;
-type UpdateListInput = z.infer<typeof updatelistSchema>;
+import { IList, ListListResponse } from '@/types';
+import {
+  createlistSchema,
+  TCreateList,
+  TUpdateList,
+  updatelistSchema,
+} from '@/validations';
 
 // Define the base API path function
 const getBasePath = (workspaceId: string, spaceId: string) =>
-  `/v1/workspaces/${workspaceId}/spaces/${spaceId}/folders`;
+  `/v1/workspaces/${workspaceId}/spaces/${spaceId}/lists`;
 
 export class ListService {
   async getAllLists(workspaceId: string, spaceId: string): Promise<IList[]> {
     try {
       // API returns FolderListResponseDto { data: Folder[], total: number }
       const response = await api.get<ListListResponse>(
-        getBasePath(workspaceId, spaceId),
+        getBasePath(workspaceId, spaceId)
       );
       return response.data.data; // Return the array of folders
     } catch (error) {
@@ -28,11 +28,11 @@ export class ListService {
   async getListById(
     workspaceId: string,
     spaceId: string,
-    listId: string,
+    listId: string
   ): Promise<IList> {
     try {
       const response = await api.get<IList>(
-        `${getBasePath(workspaceId, spaceId)}/${listId}`,
+        `${getBasePath(workspaceId, spaceId)}/${listId}`
       );
       return response.data;
     } catch (error) {
@@ -41,7 +41,7 @@ export class ListService {
     }
   }
 
-  async createList(data: CreateListInput): Promise<IList> {
+  async createList(workspaceId: string, data: TCreateList): Promise<IList> {
     // spaceId is required in the DTO
     if (!data.space) {
       throw new Error('Space ID is missing in createList data.');
@@ -49,24 +49,15 @@ export class ListService {
     // Assuming workspaceId is implicitly handled by space context or not needed in body
     // Adjust if API requires workspaceId in body explicitly
     const { space: spaceId, ...payload } = data;
-    // Need workspaceId for the path, which isn't in CreateFolderInput. How to get it?
-    // We need to rethink how createFolder gets workspaceId.
-    // For now, let's assume it's passed separately or the API doesn't need it in path?
-    // This needs clarification based on API implementation details.
-    // Let's assume for now the API handles workspace context via spaceId.
 
     // TODO: Clarify how workspaceId is passed or derived for the API call path.
     // Mocking workspaceId retrieval or passing it as an argument.
-    const workspaceId = 'TEMP_WORKSPACE_ID'; // Placeholder
-    if (workspaceId === 'TEMP_WORKSPACE_ID') {
-        console.warn('createList service needs workspaceId. Using placeholder.')
-    }
 
     try {
       createlistSchema.parse(data); // Validate original data
       const response = await api.post<IList>(
         getBasePath(workspaceId, spaceId),
-        payload,
+        payload
       );
       return response.data;
     } catch (error) {
@@ -79,13 +70,13 @@ export class ListService {
     workspaceId: string,
     spaceId: string,
     listId: string,
-    data: UpdateListInput,
+    data: TUpdateList
   ): Promise<IList> {
     try {
       updatelistSchema.parse(data);
       const response = await api.patch<IList>(
         `${getBasePath(workspaceId, spaceId)}/${listId}`,
-        data,
+        data
       );
       return response.data;
     } catch (error) {
@@ -97,7 +88,7 @@ export class ListService {
   async deleteList(
     workspaceId: string,
     spaceId: string,
-    listId: string,
+    listId: string
   ): Promise<void> {
     try {
       await api.delete(`${getBasePath(workspaceId, spaceId)}/${listId}`);
@@ -109,4 +100,4 @@ export class ListService {
 }
 
 // Export a singleton instance
-export const listService = new ListService(); 
+export const listService = new ListService();

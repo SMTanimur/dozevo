@@ -19,16 +19,28 @@ export const createlistSchema = z.object({
     .min(1, 'Folder name cannot be empty')
     .trim(),
   space: z.string({ required_error: 'Space ID is required' }),
+  private: z.boolean(),
+
   // Add workspace if needed by API endpoint
 });
+
+export type TCreateList = z.infer<typeof createlistSchema>;
 
 // Schema for updating a folder (matching UpdateFolderDto)
 export const updatelistSchema = z
   .object({
     name: z.string().min(1, 'Folder name cannot be empty').trim().optional(),
     archived: z.boolean().optional(),
+    private: z.boolean().optional(),
+    override_statuses: z.boolean().optional(),
+    color: z.string().optional(),
+    icon: z.string().optional(),
+    hidden: z.boolean().optional(),
+    orderindex: z.number().optional(),
     // Add other fields like color, orderindex if updatable
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field must be provided for update',
   }); 
+
+  export type TUpdateList = z.infer<typeof updatelistSchema>;

@@ -9,8 +9,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { icons } from 'lucide-react';
+
 import { Icon } from '@/components/ui';
+import { icons } from 'lucide-react';
 
 interface SidebarItemProps {
   href: string;
@@ -19,6 +20,7 @@ interface SidebarItemProps {
   color: string;
   isActive?: boolean;
   isCollapsed?: boolean;
+  onExpand?: () => void;
   indent?: boolean;
   variant?: 'default' | 'accent';
   actions?: ReactNode;
@@ -33,6 +35,7 @@ export function SidebarItem({
   isActive = false,
   isCollapsed = false,
   indent = false,
+  onExpand,
   variant = 'default',
   actions,
   onClick,
@@ -71,9 +74,12 @@ export function SidebarItem({
         }
       }}
     >
-      <div className='flex shrink-0 items-center justify-center'>
+      <div
+        className='flex shrink-0 group items-center justify-center'
+        onClick={onExpand}
+      >
         <div
-          className='flex h-6 w-6 items-center justify-center rounded-sm'
+          className='flex h-6 w-6   items-center justify-center rounded-sm'
           style={{ backgroundColor: color ? color : '#ec4899' }}
         >
           <IconComponent />
