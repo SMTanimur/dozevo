@@ -38,7 +38,7 @@ export function SidebarSpaceItem({
     <div>
       <div className='group w-full  relative flex items-center'>
         <SidebarItem
-          href={`/space/${space._id}`}
+          href={`/${space.workspace}/s/${space._id}`}
           color={space.color}
           icon={space.avatar as keyof typeof icons}
           label={space.name}
@@ -57,7 +57,7 @@ export function SidebarSpaceItem({
               </>
             ) : null
           }
-          onClick={() => setIsExpanded(!isExpanded)}
+         
         />
       </div>
 
@@ -67,7 +67,7 @@ export function SidebarSpaceItem({
             space.lists?.map(list => (
               <ListItem
                 key={list._id}
-                href={`/space/${space._id}/list/${list._id}`}
+                href={`/${space.workspace}/s/${space._id}/l/${list._id}`}
                 color={list.color}
                 icon={list.icon as keyof typeof icons}
                 label={list.name}

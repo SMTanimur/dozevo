@@ -12,7 +12,7 @@ import {
 
 import { Icon } from '@/components/ui';
 import { icons } from 'lucide-react';
-
+import { useRouter } from 'next/navigation';
 
 interface SidebarItemProps {
   href: string;
@@ -25,7 +25,6 @@ interface SidebarItemProps {
   indent?: boolean;
   variant?: 'default' | 'accent';
   actions?: ReactNode;
-  onClick?: () => void;
 }
 
 export function SidebarItem({
@@ -39,8 +38,8 @@ export function SidebarItem({
   onExpand,
   variant = 'default',
   actions,
-  onClick,
 }: SidebarItemProps) {
+  const router = useRouter();
   const IconComponent = () => {
     if (icon) {
       return (
@@ -57,8 +56,6 @@ export function SidebarItem({
     );
   };
 
- 
-
   const item = (
     <Link
       href={href}
@@ -71,16 +68,15 @@ export function SidebarItem({
         indent && !isCollapsed && 'ml-4'
       )}
       onClick={e => {
-        if (onClick) {
+        if (onExpand) {
           e.preventDefault();
-          onClick();
+          console.log('onExpand');
+          router.push(href);
+          onExpand();
         }
       }}
     >
-      <div
-        className='flex items-center gap-2 shrink-0 group  justify-center'
-        onClick={onExpand}
-      >
+      <div className='flex items-center gap-2 shrink-0 group  justify-center'>
         <div
           className='flex h-6 w-6   items-center justify-center rounded-sm'
           style={{ backgroundColor: color ? color : '#ec4899' }}
