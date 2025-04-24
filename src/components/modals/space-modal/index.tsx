@@ -34,6 +34,8 @@ export function CreateSpaceModal({ isOpen, onClose }: CreateSpaceModalProps) {
     defaultValues: {
       name: '',
       description: '',
+      avatar: '',
+      color: '',
       workspace: w_id ?? '',
       private: false,
     },
