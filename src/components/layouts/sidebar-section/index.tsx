@@ -15,14 +15,14 @@ export function SidebarSection({
   className,
 }: SidebarSectionProps) {
   return (
-    <div className={cn('py-2 px-2', className)}>
+    <div className={cn('py-2 px-2 w-full overflow-hidden', className)}>
       <div className='flex items-center px-4 py-1'>
         <span className='text-xs font-medium text-muted-foreground ml-1'>
           {title}
         </span>
       </div>
 
-      <div className={cn('mt-1')}>{children}</div>
+      <div className={cn('mt-1 ')}>{children}</div>
     </div>
   );
 }

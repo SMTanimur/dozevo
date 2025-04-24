@@ -9,6 +9,7 @@ import { ISpace } from '@/types';
 import { SidebarItem } from '../../sidebar-item';
 import Link from 'next/link';
 import { CreateListModal } from '@/components/modals';
+import { ListItem } from '../list-item';
 
 interface SidebarSpaceItemProps {
   space: ISpace;
@@ -35,7 +36,7 @@ export function SidebarSpaceItem({
 
   return (
     <div>
-      <div className='group w-full relative flex items-center'>
+      <div className='group w-full  relative flex items-center'>
         <SidebarItem
           href={`/space/${space._id}`}
           color={space.color}
@@ -61,10 +62,10 @@ export function SidebarSpaceItem({
       </div>
 
       {isExpanded && !isCollapsed && (
-        <div className='ml-4 mt-1 space-y-1'>
+        <div className='mt-1 pl-3 space-y-1 w-full overflow-hidden'>
           {hasLists ? (
             space.lists?.map(list => (
-              <SidebarItem
+              <ListItem
                 key={list._id}
                 onClick={() => setIsExpanded(!isExpanded)}
                 href={`/space/${space._id}/list/${list._id}`}
@@ -72,7 +73,18 @@ export function SidebarSpaceItem({
                 icon={list.icon as keyof typeof icons}
                 label={list.name}
                 isCollapsed={isCollapsed}
-                indent
+                actions={
+                  !isCollapsed ? (
+                    <>
+                      <Button variant='ghost' size='icon' className='h-6 w-6'>
+                        <MoreHorizontal className='h-3 w-3' />
+                      </Button>
+                      <Button variant='ghost' size='icon' className='h-6 w-6'>
+                        <Plus className='h-3 w-3' />
+                      </Button>
+                    </>
+                  ) : null
+                }
               />
             ))
           ) : (

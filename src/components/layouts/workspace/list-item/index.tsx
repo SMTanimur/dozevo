@@ -3,17 +3,11 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 import { Icon } from '@/components/ui';
 import { icons } from 'lucide-react';
 
-interface SidebarItemProps {
+interface ListItemProps {
   href: string;
   icon: keyof typeof icons;
   label: string;
@@ -27,19 +21,18 @@ interface SidebarItemProps {
   onClick?: () => void;
 }
 
-export function SidebarItem({
+export function ListItem({
   href,
   icon,
   label,
   color,
   isActive = false,
   isCollapsed = false,
-  indent = false,
   onExpand,
   variant = 'default',
   actions,
   onClick,
-}: SidebarItemProps) {
+}: ListItemProps) {
   const IconComponent = () => {
     if (icon) {
       return (
@@ -60,12 +53,11 @@ export function SidebarItem({
     <Link
       href={href}
       className={cn(
-        'group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted',
+        'group flex w-full items-center gap-2 overflow-hidden rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted',
         isActive && variant === 'default' && 'bg-muted text-foreground',
         isActive &&
           variant === 'accent' &&
-          'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300',
-        indent && !isCollapsed && 'ml-4'
+          'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
       )}
       onClick={e => {
         if (onClick) {
@@ -75,7 +67,7 @@ export function SidebarItem({
       }}
     >
       <div
-        className='flex items-center gap-2 shrink-0 group  justify-center'
+        className='flex shrink-0 group items-center gap-2 justify-center'
         onClick={onExpand}
       >
         <div
@@ -96,23 +88,6 @@ export function SidebarItem({
       )}
     </Link>
   );
-
-  if (isCollapsed) {
-    return (
-      <TooltipProvider delayDuration={0}>
-        <Tooltip>
-          <TooltipTrigger asChild>{item}</TooltipTrigger>
-          <TooltipContent
-            side='right'
-            align='start'
-            className='flex items-center gap-2'
-          >
-            {label}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  }
 
   return item;
 }

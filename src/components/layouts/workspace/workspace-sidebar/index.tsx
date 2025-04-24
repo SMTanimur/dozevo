@@ -248,6 +248,7 @@ export function WorkspaceSidebar() {
         </div>
 
         {/* Spaces section */}
+
         <SidebarSection title='Spaces'>
           {spaces?.map(space => (
             <SidebarSpaceItem
