@@ -67,7 +67,6 @@ export function SidebarSpaceItem({
             space.lists?.map(list => (
               <ListItem
                 key={list._id}
-                onClick={() => setIsExpanded(!isExpanded)}
                 href={`/space/${space._id}/list/${list._id}`}
                 color={list.color}
                 icon={list.icon as keyof typeof icons}

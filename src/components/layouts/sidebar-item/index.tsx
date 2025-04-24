@@ -13,6 +13,7 @@ import {
 import { Icon } from '@/components/ui';
 import { icons } from 'lucide-react';
 
+
 interface SidebarItemProps {
   href: string;
   icon: keyof typeof icons;
@@ -56,11 +57,13 @@ export function SidebarItem({
     );
   };
 
+ 
+
   const item = (
     <Link
       href={href}
       className={cn(
-        'group flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted',
+        'group flex w-full z-50 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted',
         isActive && variant === 'default' && 'bg-muted text-foreground',
         isActive &&
           variant === 'accent' &&
