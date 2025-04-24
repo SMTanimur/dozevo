@@ -19,6 +19,7 @@ import {
 import { useSpaceMutations } from '@/hooks/space/useSpaceMutations';
 import { createSpaceSchema, TCreateSpace } from '@/validations';
 import { BaseModal } from '../base-modal';
+import { AvatarPopoverPicker } from './AvatarPopoverPicker';
 
 interface CreateSpaceModalProps {
   isOpen: boolean;
@@ -35,7 +36,7 @@ export function CreateSpaceModal({ isOpen, onClose }: CreateSpaceModalProps) {
       name: '',
       description: '',
       avatar: '',
-      color: '',
+      color: '#6366f1', // Default color - indigo
       workspace: w_id ?? '',
       private: false,
     },
@@ -81,23 +82,38 @@ export function CreateSpaceModal({ isOpen, onClose }: CreateSpaceModalProps) {
       <BaseModal.Content>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-            {/* Icon & Name */}
-            <FormField
-              control={form.control}
-              name='name'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder='e.g. Marketing, Engineering, HR'
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Icon & Name Row */}
+            <div className='flex flex-col gap-2 items-start'>
+              {/* Avatar/Icon & Color Picker */}
+              <FormLabel>Icon & name</FormLabel>
+              <div className='flex items-center gap-2'>
+                <AvatarPopoverPicker
+                  icon={form.watch('avatar') || ''}
+                  color={form.watch('color') || '#6366f1'}
+                  onIconChange={icon => form.setValue('avatar', icon)}
+                  onColorChange={color => form.setValue('color', color)}
+                />
+
+                {/* Space Name */}
+                <div className='flex-1'>
+                  <FormField
+                    control={form.control}
+                    name='name'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            placeholder='e.g. Marketing, Engineering, HR'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
 
             {/* Description */}
             <FormField
