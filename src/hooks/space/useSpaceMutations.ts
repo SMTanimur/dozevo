@@ -2,22 +2,21 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { spaceService } from '@/services';
 import { ISpace } from '@/types';
-import { z } from 'zod';
-import { createSpaceSchema, updateSpaceSchema } from '@/validations';
+import { TCreateSpace, TUpdateSpace } from '@/validations';
 
-// Infer input types from schemas
-type CreateSpaceInputData = z.infer<typeof createSpaceSchema>;
-type UpdateSpaceInputData = z.infer<typeof updateSpaceSchema>;
+
+
+
 
 // --- Input Types for Mutations ---
 interface CreateSpaceMutationInput {
-  data: CreateSpaceInputData;
+  data: TCreateSpace
 }
 
 interface UpdateSpaceMutationInput {
   workspaceId: string;
   spaceId: string;
-  data: UpdateSpaceInputData;
+  data: TUpdateSpace;
 }
 
 interface DeleteSpaceMutationInput {
