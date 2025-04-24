@@ -26,7 +26,7 @@ interface CreateSpaceModalProps {
 }
 
 export function CreateSpaceModal({ isOpen, onClose }: CreateSpaceModalProps) {
-  const { workspaceId } = useParams<{ workspaceId: string }>();
+  const { w_id } = useParams<{ w_id: string }>();
   const { createSpace, isCreatingSpace } = useSpaceMutations();
 
   const form = useForm<TCreateSpace>({
@@ -34,7 +34,7 @@ export function CreateSpaceModal({ isOpen, onClose }: CreateSpaceModalProps) {
     defaultValues: {
       name: '',
       description: '',
-      workspace: workspaceId ?? '',
+      workspace: w_id ?? '',
       private: false,
     },
   });
@@ -45,7 +45,7 @@ export function CreateSpaceModal({ isOpen, onClose }: CreateSpaceModalProps) {
   };
 
   const onSubmit: SubmitHandler<TCreateSpace> = values => {
-    if (!workspaceId) {
+    if (!w_id) {
       toast.error('Workspace ID is missing.');
       return;
     }
@@ -53,7 +53,7 @@ export function CreateSpaceModal({ isOpen, onClose }: CreateSpaceModalProps) {
     // Convert FormValues to TCreateSpace
     const spaceData: TCreateSpace = {
       ...values,
-      workspace: workspaceId,
+      workspace: w_id,
     };
 
     const mutationData = {
