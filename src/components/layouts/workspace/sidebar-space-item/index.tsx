@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { ChevronRight, MoreHorizontal, Plus } from "lucide-react";
+import { ChevronRight, icons, MoreHorizontal, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ISpace } from "@/types";
 import { SidebarItem } from "../../sidebar-item";
@@ -25,7 +25,7 @@ export function SidebarSpaceItem({
 
   return (
     <div>
-      <div className="group relative flex items-center">
+      <div className="group w-full relative flex items-center">
         {hasLists && !isCollapsed && (
           <Button
             variant="ghost"
@@ -44,14 +44,8 @@ export function SidebarSpaceItem({
 
         <SidebarItem
           href={`/space/${space._id}`}
-          icon={() => (
-            <div 
-              className="flex h-5 w-5 items-center justify-center rounded-sm"
-              style={{ backgroundColor: space.color }}
-            >
-              <span className="text-xs text-white">{space.icon}</span>
-            </div>
-          )}
+          color={space.color}
+          icon={space.avatar as keyof typeof icons}
           label={space.name}
           isActive={isActive}
           isCollapsed={isCollapsed}
@@ -77,14 +71,8 @@ export function SidebarSpaceItem({
             <SidebarItem
               key={list._id}
               href={`/space/${space._id}/list/${list._id}`}
-              icon={() => (
-                <div 
-                  className="flex h-5 w-5 items-center justify-center rounded-sm"
-                  style={{ backgroundColor: list.color }}
-                >
-                  <span className="text-xs text-white">{list.icon}</span>
-                </div>
-              )}
+              color={list.color}
+              icon={list.icon as keyof typeof icons}
               label={list.name}
               isCollapsed={isCollapsed}
               indent
