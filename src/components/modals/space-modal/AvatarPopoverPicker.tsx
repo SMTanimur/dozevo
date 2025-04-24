@@ -19,15 +19,13 @@ interface AvatarPopoverPickerProps {
   color: string;
   onIconChange: (icon: string) => void;
   onColorChange: (color: string) => void;
-  label?: string;
 }
 
 export function AvatarPopoverPicker({
   icon,
   color,
   onIconChange,
-  onColorChange,
-  label = 'Icon & name',
+  onColorChange
 }: AvatarPopoverPickerProps) {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('color');
