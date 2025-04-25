@@ -22,7 +22,7 @@ export function SidebarSection({
         </span>
       </div>
 
-      <div className={cn('mt-1 ')}>{children}</div>
+      <div className={cn('mt-1 flex flex-col gap-2')}>{children}</div>
     </div>
   );
 }

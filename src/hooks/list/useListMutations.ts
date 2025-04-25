@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { listService } from '@/services';
+import { listService, spaceService } from '@/services';
 import { IList } from '@/types';
 import { TCreateList, TUpdateList } from '@/validations';
 
@@ -38,6 +38,10 @@ export const useListMutations = () => {
     // Invalidate the list of folders for the space
     queryClient.invalidateQueries({
       queryKey: [listService.getAllLists.name, workspaceId, spaceId],
+    });
+
+    queryClient.invalidateQueries({
+      queryKey: [spaceService.getAllSpaces.name, workspaceId],
     });
     // Invalidate the specific list query if listId is provided
     if (listId) {
