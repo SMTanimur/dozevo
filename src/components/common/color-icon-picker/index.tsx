@@ -108,13 +108,13 @@ export function ColorIconPicker({
       <div className='p-4'>
         <div>
           <h3 className='text-sm font-medium mb-3'>Color</h3>
-          <div className='grid grid-cols-9 gap-2'>
+          <div className='grid grid-cols-7 gap-2'>
             {colors.slice(0, 9).map(color => (
               <Tooltip key={color.name}>
                 <TooltipTrigger asChild>
                   <button
                     className={cn(
-                      'w-8 h-8 rounded-full transition-all duration-200',
+                      'w-6 h-6 rounded-full transition-all duration-200',
                       selectedColor === color.value
                         ? 'ring-2 ring-offset-2 ring-gray-400'
                         : 'hover:scale-110'
@@ -127,27 +127,6 @@ export function ColorIconPicker({
                 <TooltipContent>{color.name}</TooltipContent>
               </Tooltip>
             ))}
-          </div>
-          <div className='grid grid-cols-9 gap-2 mt-2'>
-            {colors.slice(9).map(color => (
-              <Tooltip key={color.name}>
-                <TooltipTrigger asChild>
-                  <button
-                    className={cn(
-                      'w-8 h-8 rounded-full transition-all duration-200',
-                      selectedColor === color.value
-                        ? 'ring-2 ring-offset-2 ring-gray-400'
-                        : 'hover:scale-110'
-                    )}
-                    style={{ backgroundColor: color.value }}
-                    onClick={() => handleColorSelect(color.value)}
-                    type='button'
-                  />
-                </TooltipTrigger>
-                <TooltipContent>{color.name}</TooltipContent>
-              </Tooltip>
-            ))}
-            <div className='col-span-6'></div>
           </div>
         </div>
 
@@ -157,7 +136,7 @@ export function ColorIconPicker({
               <Search className='absolute left-2 top-2 h-4 w-4 text-gray-400' />
               <Input
                 placeholder='Search icons...'
-                className='pl-8 h-8 w-[220px]'
+                className='pl-8 h-8 w-[150px]'
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
               />
