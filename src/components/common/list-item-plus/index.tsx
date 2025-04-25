@@ -2,9 +2,9 @@
 
 import { ISpace } from '@/types';
 import React, { useState } from 'react';
-import { Button, Popover, PopoverContent, PopoverTrigger } from '../ui';
+import { Button, Popover, PopoverContent, PopoverTrigger } from '../../ui';
 import { FileText, ListTodo, Pencil, Plus } from 'lucide-react';
-import { CreateListModal } from '../modals';
+import { CreateListModal } from '../../modals';
 
 export enum ListItemType {}
 interface ListItemPlusProps {

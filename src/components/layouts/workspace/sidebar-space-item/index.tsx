@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { icons, MoreHorizontal, Plus } from 'lucide-react';
+import { icons} from 'lucide-react';
 
 import { ISpace } from '@/types';
 import { SidebarItem } from '../../sidebar-item';
@@ -11,7 +10,7 @@ import Link from 'next/link';
 import { CreateListModal } from '@/components/modals';
 import { ListItem } from '../list-item';
 
-import { ListItemPlus } from '@/components/list-item-plus';
+import { ItemSettings, ListItemPlus } from '@/components';
 
 interface SidebarSpaceItemProps {
   space: ISpace;
@@ -50,9 +49,11 @@ export function SidebarSpaceItem({
           actions={
             !isCollapsed ? (
               <>
-                <Button variant='ghost' size='icon' className='h-6 w-6'>
-                  <MoreHorizontal className='h-3 w-3' />
-                </Button>
+                <ItemSettings
+                  itemType='space'
+                  item={space}
+                  spaceId={space._id}
+                />
                 <ListItemPlus itemPlusType='space' space={space} />
               </>
             ) : null
@@ -74,12 +75,12 @@ export function SidebarSpaceItem({
                 actions={
                   !isCollapsed ? (
                     <>
-                      <Button variant='ghost' size='icon' className='h-6 w-6'>
-                        <MoreHorizontal className='h-3 w-3' />
-                      </Button>
-                      <Button variant='ghost' size='icon' className='h-6 w-6'>
-                        <Plus className='h-3 w-3' />
-                      </Button>
+                      <ItemSettings
+                        itemType='list'
+                        item={list}
+                        spaceId={space._id}
+                        listId={list._id}
+                      />
                     </>
                   ) : null
                 }

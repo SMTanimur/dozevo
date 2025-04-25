@@ -79,7 +79,7 @@ export const updateSpaceSchema = z
   .object({
     name: z.string().min(1, 'Space name cannot be empty').trim().optional(),
     color: z.string().nullable().optional(),
-    avatar: z.string().url('Invalid avatar URL').nullable().optional(),
+    avatar: z.string().optional(),
     private: z.boolean().optional(),
     archived: z.boolean().optional(),
     multiple_assignees: z.boolean().optional(),

@@ -12,63 +12,11 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from '@/components/ui/tooltip';
+import { preferredIconNames } from '@/constants';
 
 // Use a subset of icons that actually exist in the lucide library
 // These will be populated at runtime
 const commonIcons: (keyof typeof icons)[] = [];
-
-// List of icon names we want to use if they exist
-const preferredIconNames = [
-  'Folder',
-  'File',
-  'Users',
-  'Briefcase',
-  'BarChart',
-  'Calendar',
-  'CheckSquare',
-  'Mail',
-  'MessageSquare',
-  'Settings',
-  'Star',
-  'Target',
-  'Zap',
-  'Award',
-  'Bell',
-  'Book',
-  'Clock',
-  'Coffee',
-  'Compass',
-  'Database',
-  'Pencil',
-  'FilePlus',
-  'Flag',
-  'Heart',
-  'Building',
-  'Image',
-  'Link',
-  'Map',
-  'Monitor',
-  'Moon',
-  'Music',
-  'Package',
-  'Paperclip',
-  'Phone',
-  'Printer',
-  'Shield',
-  'ShoppingBag',
-  'Sun',
-  'Truck',
-  'Upload',
-  'UserPlus',
-  'Video',
-  'Code',
-  'Box',
-  'LayoutGrid',
-  'Layout',
-  'GitBranch',
-  'Headphones',
-  'Info',
-];
 
 interface IconPickerProps {
   selected: string;
@@ -151,12 +99,12 @@ export function IconPicker({
         <ScrollArea className='h-32 overflow-auto'>
           <div className='grid grid-cols-6 gap-1 p-2 w-full'>
             {/* Text Option Button with the same styling as icon buttons */}
-            <Tooltip>
+           <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   type='button'
                   onClick={() => onChange('')}
-                  className={cn(
+                   className={cn(
                     'flex h-8 w-8 items-center justify-center rounded-md border transition-colors'
                   )}
                   style={{ backgroundColor: color || '#f3f4f6' }}

@@ -1,11 +1,11 @@
 'use client';
 
 import { ReactNode, useState } from 'react';
-import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 import { Icon } from '@/components/ui';
 import { icons } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface ListItemProps {
   href: string;
@@ -29,8 +29,7 @@ export function ListItem({
   variant = 'default',
   actions,
 }: ListItemProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
+  const router = useRouter();
   const IconComponent = () => {
     if (icon) {
       return (
@@ -44,17 +43,15 @@ export function ListItem({
   };
 
   return (
-    <Link
-      href={href}
+    <div
       className={cn(
-        'flex w-full items-center gap-2 overflow-hidden rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted',
+        'flex w-full items-center group gap-2 overflow-hidden rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted',
         isActive && variant === 'default' && 'bg-muted text-foreground',
         isActive &&
           variant === 'accent' &&
           'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
       )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onClick={() => router.push(href)}
     >
       <div className='flex shrink-0 items-center gap-2 justify-center'>
         <div className='flex h-6 w-6 items-center justify-center rounded-sm hover:bg-gray-200'>
@@ -66,20 +63,10 @@ export function ListItem({
       {!isCollapsed && (
         <>
           {actions && (
-            <div
-              className={cn(
-                'ml-auto items-center gap-1',
-                isHovered ? 'flex' : 'hidden'
-              )}
-            >
-              {actions}
-            </div>
+            <div className={cn('ml-auto items-center gap-1 ')}>{actions}</div>
           )}
         </>
       )}
-      <div className={cn('ml-auto pr-2', isHovered ? 'hidden' : 'block')}>
-        <span>4</span>
-      </div>
-    </Link>
+    </div>
   );
 }
