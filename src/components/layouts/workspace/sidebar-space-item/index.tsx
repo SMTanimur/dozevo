@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { CreateListModal } from '@/components/modals';
 import { ListItem } from '../list-item';
 
-import { ListItemPlus } from '@/components/list-item-plus';
+import { ItemSettings, ListItemPlus } from '@/components';
 
 interface SidebarSpaceItemProps {
   space: ISpace;
@@ -50,9 +50,11 @@ export function SidebarSpaceItem({
           actions={
             !isCollapsed ? (
               <>
-                <Button variant='ghost' size='icon' className='h-6 w-6'>
-                  <MoreHorizontal className='h-3 w-3' />
-                </Button>
+                <ItemSettings
+                  itemType='space'
+                  item={space}
+                  spaceId={space._id}
+                />
                 <ListItemPlus itemPlusType='space' space={space} />
               </>
             ) : null

@@ -12,63 +12,11 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from '@/components/ui/tooltip';
+import { preferredIconNames } from '@/constants';
 
 // Use a subset of icons that actually exist in the lucide library
 // These will be populated at runtime
 const commonIcons: (keyof typeof icons)[] = [];
-
-// List of icon names we want to use if they exist
-const preferredIconNames = [
-  'Folder',
-  'File',
-  'Users',
-  'Briefcase',
-  'BarChart',
-  'Calendar',
-  'CheckSquare',
-  'Mail',
-  'MessageSquare',
-  'Settings',
-  'Star',
-  'Target',
-  'Zap',
-  'Award',
-  'Bell',
-  'Book',
-  'Clock',
-  'Coffee',
-  'Compass',
-  'Database',
-  'Pencil',
-  'FilePlus',
-  'Flag',
-  'Heart',
-  'Building',
-  'Image',
-  'Link',
-  'Map',
-  'Monitor',
-  'Moon',
-  'Music',
-  'Package',
-  'Paperclip',
-  'Phone',
-  'Printer',
-  'Shield',
-  'ShoppingBag',
-  'Sun',
-  'Truck',
-  'Upload',
-  'UserPlus',
-  'Video',
-  'Code',
-  'Box',
-  'LayoutGrid',
-  'Layout',
-  'GitBranch',
-  'Headphones',
-  'Info',
-];
 
 interface IconPickerProps {
   selected: string;
