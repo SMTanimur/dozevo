@@ -82,12 +82,15 @@ export const ItemSettings = ({
 
   return (
     <>
-      <Popover>
+      <Popover >
         <PopoverTrigger asChild>
           <Button
             variant='ghost'
             size='icon'
-            className='h-6 w-6 cursor-pointer'
+            className={cn(
+              'h-6 w-6 cursor-pointer',
+              
+            )}
             isTooltip
             tooltipContent={
               itemType === 'space'
@@ -202,17 +205,31 @@ function MenuItemWithSubmenu({
   label,
   onClick,
   submenuContent,
-  open,
+  open: controlledOpen,
   onOpenChange,
 }: MenuItemWithSubmenuProps) {
-  const controlledProps =
-    open !== undefined && onOpenChange ? { open, onOpenChange } : {};
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+
+  const isControlled =
+    controlledOpen !== undefined && onOpenChange !== undefined;
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (isControlled) {
+      onOpenChange?.(newOpen);
+    } else {
+      setUncontrolledOpen(newOpen);
+    }
+  };
 
   return (
-    <Popover {...controlledProps}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <button
-          className='flex rounded-lg  items-center justify-between px-2 py-2 hover:bg-gray-100 w-full text-left transition-colors'
+          className={cn(
+            'flex rounded-lg items-center justify-between px-2 py-2 hover:bg-gray-100 w-full text-left transition-colors',
+            open && 'bg-gray-100'
+          )}
           onClick={e => {
             e.stopPropagation();
             onClick?.();
