@@ -29,6 +29,7 @@ import { useParams } from 'next/navigation';
 interface ItemSettingsProps {
   itemType: 'space' | 'list';
   spaceId?: string;
+  listId?: string;
   item: ISpace | IList;
 }
 
@@ -36,6 +37,7 @@ export const ItemSettings = ({
   itemType,
   item,
   spaceId,
+  listId,
 }: ItemSettingsProps) => {
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const { w_id } = useParams();

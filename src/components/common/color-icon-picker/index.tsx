@@ -123,7 +123,11 @@ export function ColorIconPicker({
                         : 'hover:scale-110'
                     )}
                     style={{ backgroundColor: color.value }}
-                    onClick={() => handleColorSelect(color.value)}
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleColorSelect(color.value);
+                      onClose?.();
+                    }}
                     type='button'
                   />
                 </TooltipTrigger>
@@ -157,7 +161,10 @@ export function ColorIconPicker({
                   <TooltipTrigger asChild>
                     <button
                       type='button'
-                      onClick={() => handleIconSelect('')}
+                      onClick={e => {
+                        e.stopPropagation();
+                        handleIconSelect('');
+                      }}
                       className={cn(
                         'flex h-6 w-6 items-center justify-center rounded-md border transition-colors'
                       )}
@@ -177,7 +184,11 @@ export function ColorIconPicker({
                     <TooltipTrigger asChild>
                       <button
                         type='button'
-                        onClick={() => handleIconSelect(iconName)}
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleIconSelect(iconName);
+                          onClose?.();
+                        }}
                         className={cn(
                           'flex h-6 w-6 items-center justify-center rounded-md border transition-colors',
                           selectedIcon === iconName
@@ -205,7 +216,10 @@ export function ColorIconPicker({
             variant='outline'
             size='sm'
             className='mr-2'
-            onClick={onClose}
+            onClick={e => {
+              e.stopPropagation();
+              onClose?.();
+            }}
           >
             Close
           </Button>

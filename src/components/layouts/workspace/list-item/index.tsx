@@ -1,11 +1,11 @@
 'use client';
 
 import { ReactNode, useState } from 'react';
-import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 import { Icon } from '@/components/ui';
 import { icons } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface ListItemProps {
   href: string;
@@ -30,7 +30,7 @@ export function ListItem({
   actions,
 }: ListItemProps) {
   const [isHovered, setIsHovered] = useState(false);
-
+  const router = useRouter();
   const IconComponent = () => {
     if (icon) {
       return (
@@ -44,8 +44,7 @@ export function ListItem({
   };
 
   return (
-    <Link
-      href={href}
+    <div
       className={cn(
         'flex w-full items-center gap-2 overflow-hidden rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted',
         isActive && variant === 'default' && 'bg-muted text-foreground',
@@ -53,6 +52,7 @@ export function ListItem({
           variant === 'accent' &&
           'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
       )}
+      onClick={() => router.push(href)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -80,6 +80,6 @@ export function ListItem({
       <div className={cn('ml-auto pr-2', isHovered ? 'hidden' : 'block')}>
         <span>4</span>
       </div>
-    </Link>
+    </div>
   );
 }

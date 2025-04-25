@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { icons, MoreHorizontal, Plus } from 'lucide-react';
+import { icons} from 'lucide-react';
 
 import { ISpace } from '@/types';
 import { SidebarItem } from '../../sidebar-item';
@@ -76,12 +75,12 @@ export function SidebarSpaceItem({
                 actions={
                   !isCollapsed ? (
                     <>
-                      <Button variant='ghost' size='icon' className='h-6 w-6'>
-                        <MoreHorizontal className='h-3 w-3' />
-                      </Button>
-                      <Button variant='ghost' size='icon' className='h-6 w-6'>
-                        <Plus className='h-3 w-3' />
-                      </Button>
+                      <ItemSettings
+                        itemType='list'
+                        item={list}
+                        spaceId={space._id}
+                        listId={list._id}
+                      />
                     </>
                   ) : null
                 }
