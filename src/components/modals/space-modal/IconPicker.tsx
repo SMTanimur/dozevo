@@ -99,12 +99,12 @@ export function IconPicker({
         <ScrollArea className='h-32 overflow-auto'>
           <div className='grid grid-cols-6 gap-1 p-2 w-full'>
             {/* Text Option Button with the same styling as icon buttons */}
-            <Tooltip>
+           <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   type='button'
                   onClick={() => onChange('')}
-                  className={cn(
+                   className={cn(
                     'flex h-8 w-8 items-center justify-center rounded-md border transition-colors'
                   )}
                   style={{ backgroundColor: color || '#f3f4f6' }}

@@ -39,6 +39,7 @@ const commonIcons: (keyof typeof icons)[] = [];
 interface ColorIconPickerProps {
   initialColor?: string;
   initialIcon?: string;
+  itemType?: 'space' | 'list';
   onColorChange?: (color: string) => void;
   onIconChange?: (icon: string) => void;
   item?: ISpace | IList;
@@ -49,8 +50,10 @@ export function ColorIconPicker({
   initialColor,
   initialIcon,
   onColorChange,
+  itemType = 'space',
   onIconChange,
   onClose,
+  item,
 }: ColorIconPickerProps) {
   const [selectedColor, setSelectedColor] = useState<string>(
     initialColor || colors[0].value
@@ -147,23 +150,27 @@ export function ColorIconPicker({
             </Button>
           </div>
 
-          {/* Display current selection */}
-          <div
-            className='h-12 w-12 flex items-center justify-center rounded-md mb-4 text-white'
-            style={{ backgroundColor: selectedColor || '#2DD4BF' }}
-          >
-            {selectedIcon ? (
-              <Icon
-                name={selectedIcon as keyof typeof icons}
-                className='h-5 w-5'
-              />
-            ) : (
-              <span className='text-xl font-medium'>M</span>
-            )}
-          </div>
-
           <ScrollArea className='h-[300px]'>
-            <div className='grid grid-cols-6 sm:grid-cols-9 gap-2 p-2'>
+            <div className='grid grid-cols-6 sm:grid-cols-9 gap-3 p-2'>
+              {itemType === 'space' && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type='button'
+                      onClick={() => handleIconSelect('')}
+                      className={cn(
+                        'flex h-6 w-6 items-center justify-center rounded-md border transition-colors'
+                      )}
+                      style={{ backgroundColor: selectedColor || '#f3f4f6' }}
+                    >
+                      <span className='text-sm font-bold text-white'>
+                        {item?.name?.charAt(0).toUpperCase()}
+                      </span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Text Initial</TooltipContent>
+                </Tooltip>
+              )}
               {filteredIcons.length > 0 ? (
                 filteredIcons.map(iconName => (
                   <Tooltip key={iconName}>
@@ -172,7 +179,7 @@ export function ColorIconPicker({
                         type='button'
                         onClick={() => handleIconSelect(iconName)}
                         className={cn(
-                          'flex h-8 w-8 items-center justify-center rounded-md border transition-colors',
+                          'flex h-6 w-6 items-center justify-center rounded-md border transition-colors',
                           selectedIcon === iconName
                             ? 'border-primary bg-primary/10'
                             : 'border-transparent hover:border-muted-foreground/20 hover:bg-muted'

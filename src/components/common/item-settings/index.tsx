@@ -120,6 +120,7 @@ export const ItemSettings = ({
                 submenuContent={
                   <ColorIconPicker
                     initialColor={item.color as string}
+                    itemType={itemType}
                     initialIcon={
                       itemType === 'space'
                         ? (item as ISpace).avatar
