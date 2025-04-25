@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { useGetSpaces, useGetWorkspace, useGetWorkspaces } from '@/hooks';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib';
 import { SidebarSection } from '../../sidebar-section';
 import { SidebarSpaceItem } from '../sidebar-space-item';
@@ -47,7 +47,10 @@ const getInitials = (name: string) => {
 export function WorkspaceSidebar() {
   // TODO: Replace with actual logic to get active path
   const { w_id } = useParams();
-  const isActive = (path: string) => path === `/${w_id}/home`; // Example active state
+  const pathname = usePathname();
+  const isActive = (path: string) => {
+    return pathname === path;
+  };
   const router = useRouter();
   const { data: workspace } = useGetWorkspace(w_id as string);
   const { data: spaces } = useGetSpaces(w_id as string, {
@@ -255,7 +258,7 @@ export function WorkspaceSidebar() {
         </div>
 
         {/* Spaces section */}
-        
+
         {open && (
           <SidebarSection title='Spaces'>
             {spaces?.map(space => (

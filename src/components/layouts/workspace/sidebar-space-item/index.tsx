@@ -34,7 +34,7 @@ export function SidebarSpaceItem({
       setIsExpanded(!isExpanded);
     }
   };
-
+ 
   return (
     <div>
       <div className='group w-full  relative flex items-center'>

@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 import { Icon } from '@/components/ui';
@@ -36,10 +36,17 @@ export function ListItem({
         <Icon
           name={icon as keyof typeof icons}
           className={`h-3 w-3 text-${color}`}
+          style={{ color: color }}
         />
       );
     }
-    return <Icon name='List' className={`h-4 w-4 text-${color}`} />;
+    return (
+      <Icon
+        name='List'
+        className={`h-4 w-4 !text-${color}`}
+        style={{ color: color }}
+      />
+    );
   };
 
   return (

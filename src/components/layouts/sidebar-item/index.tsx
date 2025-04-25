@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
   Tooltip,
@@ -38,6 +38,7 @@ export function SidebarItem({
   variant = 'default',
   actions,
 }: SidebarItemProps) {
+  const [isHovering, setIsHovering] = useState(false);
   const router = useRouter();
   const IconComponent = () => {
     if (icon) {
@@ -65,6 +66,8 @@ export function SidebarItem({
           'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300',
         indent && !isCollapsed && 'ml-4'
       )}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
       onClick={() => {
         if (onExpand) {
           router.push(href);
@@ -73,12 +76,16 @@ export function SidebarItem({
       }}
     >
       <div className='flex items-center gap-2 shrink-0 group  justify-center'>
-        <div
-          className='flex h-6 w-6   items-center justify-center rounded-sm'
-          style={{ backgroundColor: color ? color : '#ec4899' }}
-        >
-          <IconComponent />
-        </div>
+        {!isHovering ? (
+          <div
+            className='flex h-6 w-6   items-center justify-center rounded-sm'
+            style={{ backgroundColor: color ? color : '#ec4899' }}
+          >
+            <IconComponent />
+          </div>
+        ) : (
+          <Icon name='ChevronDown' className='h-6 w-6' />
+        )}
         <span className='truncate'>{label}</span>
       </div>
 
