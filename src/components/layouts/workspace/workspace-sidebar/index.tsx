@@ -260,7 +260,7 @@ export function WorkspaceSidebar() {
         {/* Spaces section */}
 
         {open && (
-          <SidebarSection title='Spaces'>
+          <SidebarSection title='Spaces' >
             {spaces?.map(space => (
               <SidebarSpaceItem
                 key={space._id}
@@ -270,13 +270,15 @@ export function WorkspaceSidebar() {
               />
             ))}
 
-            <Button
-              variant='ghost'
-              className='w-full cursor-pointer justify-start gap-2'
-              onClick={() => setIsCreateSpaceModalOpen(true)}
-            >
-              <Plus className='h-4 w-4' /> {open && 'Create Space'}
-            </Button>
+            <div className='mt-4'>
+              <Button
+                variant='ghost'
+                className='w-full cursor-pointer justify-start gap-2'
+                onClick={() => setIsCreateSpaceModalOpen(true)}
+              >
+                <Plus className='h-4 w-4' /> {open && 'Create Space'}
+              </Button>
+            </div>
           </SidebarSection>
         )}
       </Sidebar>
