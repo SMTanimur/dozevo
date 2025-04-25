@@ -25,6 +25,7 @@ import { ColorIconPicker } from '../color-icon-picker';
 import { useSpaceMutations } from '@/hooks';
 import { useListMutations } from '@/hooks/list';
 import { useParams } from 'next/navigation';
+import { CreateItemOptions } from '../create-item-options';
 
 interface ItemSettingsProps {
   itemType: 'space' | 'list';
@@ -37,6 +38,7 @@ export const ItemSettings = ({
   itemType,
   item,
   spaceId,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   listId,
 }: ItemSettingsProps) => {
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
@@ -112,6 +114,9 @@ export const ItemSettings = ({
               <MenuItemWithSubmenu
                 icon={<Plus className='h-4 w-4' />}
                 label='Create new'
+                submenuContent={
+                  <CreateItemOptions itemType={itemType} spaceId={spaceId} />
+                }
               />
 
               <MenuItemWithSubmenu
@@ -220,7 +225,7 @@ function MenuItemWithSubmenu({
           <ChevronRight className='h-4 w-4 text-gray-400' />
         </button>
       </PopoverTrigger>
-      <PopoverContent className='w-[280px] p-0' align='start' side='right'>
+      <PopoverContent className='w-[280px] p-0 ml-6' align='start' side='right'>
         {submenuContent || <div className='p-4'>Submenu content</div>}
       </PopoverContent>
     </Popover>
