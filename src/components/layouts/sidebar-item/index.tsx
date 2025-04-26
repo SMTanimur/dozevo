@@ -84,7 +84,14 @@ export function SidebarItem({
             <IconComponent />
           </div>
         ) : (
-          <Icon name='ChevronDown' className='h-6 w-6' />
+          <Icon
+            name='ChevronDown'
+            className='h-6 w-6'
+            onClick={e => {
+              e.stopPropagation();
+              onExpand?.();
+            }}
+          />
         )}
         <span className='truncate'>{label}</span>
       </div>

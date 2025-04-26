@@ -61,7 +61,7 @@ export function SidebarSpaceItem({
         />
       </div>
 
-      {isExpanded && !isCollapsed && (
+      {isExpanded &&  (
         <div className='mt-1 pl-3 space-y-1 w-full overflow-hidden'>
           {hasLists ? (
             space.lists?.map(list => (
@@ -73,7 +73,7 @@ export function SidebarSpaceItem({
                 label={list.name}
                 isCollapsed={isCollapsed}
                 actions={
-                  !isCollapsed ? (
+                
                     <>
                       <ItemSettings
                         itemType='list'
@@ -82,7 +82,7 @@ export function SidebarSpaceItem({
                         listId={list._id}
                       />
                     </>
-                  ) : null
+               
                 }
               />
             ))

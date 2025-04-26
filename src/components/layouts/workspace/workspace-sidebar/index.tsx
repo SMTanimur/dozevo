@@ -11,6 +11,7 @@ import {
   ChevronUp,
   Users,
   Search,
+  LayoutDashboard,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -50,6 +51,10 @@ export function WorkspaceSidebar() {
   const pathname = usePathname();
   const isActive = (path: string) => {
     return pathname === path;
+  };
+  const [isSecondarySpacesOpen, setIsSecondarySpacesOpen] = useState(false);
+  const handleDashboardClick = () => {
+    setIsSecondarySpacesOpen(!isSecondarySpacesOpen);
   };
   const router = useRouter();
   const { data: workspace } = useGetWorkspace(w_id as string);
@@ -259,8 +264,8 @@ export function WorkspaceSidebar() {
 
         {/* Spaces section */}
 
-        {open && (
-          <SidebarSection title='Spaces' >
+        {open ? (
+          <SidebarSection title='Spaces'>
             {spaces?.map(space => (
               <SidebarSpaceItem
                 key={space._id}
@@ -280,6 +285,25 @@ export function WorkspaceSidebar() {
               </Button>
             </div>
           </SidebarSection>
+        ) : (
+          <div className='flex flex-col gap-2 items-center'>
+            <Button
+              variant={isSecondarySpacesOpen ? 'secondary' : 'ghost'}
+              size='icon'
+              onClick={handleDashboardClick}
+              aria-label='Toggle Spaces Panel'
+            >
+              <LayoutDashboard className='size-4' />
+            </Button>
+          </div>
+        )}
+
+        {isSecondarySpacesOpen && (
+          <div className='absolute left-12 top-0 z-[9999999] h-screen w-60 border-r bg-background p-3 shadow-md'>
+            <h3 className='text-sm font-semibold text-muted-foreground mb-2 px-1'>
+              Spaces
+            </h3>
+          </div>
         )}
       </Sidebar>
 
