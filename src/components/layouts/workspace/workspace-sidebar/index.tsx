@@ -299,10 +299,27 @@ export function WorkspaceSidebar() {
         )}
 
         {isSecondarySpacesOpen && (
-          <div className='absolute left-12 top-0 z-[9999999] h-screen w-60 border-r bg-background p-3 shadow-md'>
-            <h3 className='text-sm font-semibold text-muted-foreground mb-2 px-1'>
-              Spaces
-            </h3>
+          <div className='absolute left-12 top-0 bg-background z-[9999] h-screen w-60 border-r   p-4 shadow-[5px_0_25px_0_rgba(94,92,154,0.1)] transition-[left] duration-800   dark:bg-black'>
+            <SidebarSection title='Spaces'>
+              {spaces?.map(space => (
+                <SidebarSpaceItem
+                  key={space._id}
+                  space={space}
+                  isActive={isActive(`/${w_id}/s/${space._id}`)}
+                  isCollapsed={!open}
+                />
+              ))}
+
+              <div className='mt-4'>
+                <Button
+                  variant='ghost'
+                  className='w-full cursor-pointer justify-start gap-2'
+                  onClick={() => setIsCreateSpaceModalOpen(true)}
+                >
+                  <Plus className='h-4 w-4' />  Create Space
+                </Button>
+              </div>
+            </SidebarSection>
           </div>
         )}
       </Sidebar>

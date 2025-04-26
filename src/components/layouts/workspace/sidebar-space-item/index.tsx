@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { icons} from 'lucide-react';
+import { icons } from 'lucide-react';
 
 import { ISpace } from '@/types';
 import { SidebarItem } from '../../sidebar-item';
@@ -34,7 +34,7 @@ export function SidebarSpaceItem({
       setIsExpanded(!isExpanded);
     }
   };
- 
+
   return (
     <div>
       <div className='group w-full  relative flex items-center'>
@@ -61,7 +61,7 @@ export function SidebarSpaceItem({
         />
       </div>
 
-      {isExpanded &&  (
+      {isExpanded && (
         <div className='mt-1 pl-3 space-y-1 w-full overflow-hidden'>
           {hasLists ? (
             space.lists?.map(list => (
@@ -73,16 +73,14 @@ export function SidebarSpaceItem({
                 label={list.name}
                 isCollapsed={isCollapsed}
                 actions={
-                
-                    <>
-                      <ItemSettings
-                        itemType='list'
-                        item={list}
-                        spaceId={space._id}
-                        listId={list._id}
-                      />
-                    </>
-               
+                  <>
+                    <ItemSettings
+                      itemType='list'
+                      item={list}
+                      spaceId={space._id}
+                      listId={list._id}
+                    />
+                  </>
                 }
               />
             ))
