@@ -26,7 +26,7 @@ export function SidebarSpaceItem({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCreateListModal, setShowCreateListModal] = useState(false);
   const hasLists = space.lists && space.lists.length > 0;
-
+  const [editListOpen, setEditListOpen] = useState<string | null>(null);
   const handleExpand = () => {
     if (isCollapsed) {
       setIsExpanded(true);
@@ -44,6 +44,7 @@ export function SidebarSpaceItem({
           icon={space.avatar as keyof typeof icons}
           label={space.name}
           isActive={isActive}
+          editListOpen={editListOpen}
           onExpand={handleExpand}
           isCollapsed={isCollapsed}
           actions={
@@ -52,6 +53,7 @@ export function SidebarSpaceItem({
                 <ItemSettings
                   itemType='space'
                   item={space}
+                  setEditListOpen={setEditListOpen}
                   spaceId={space._id}
                 />
                 <ListItemPlus itemPlusType='space' space={space} />
@@ -77,6 +79,7 @@ export function SidebarSpaceItem({
                     <ItemSettings
                       itemType='list'
                       item={list}
+                      setEditListOpen={setEditListOpen}
                       spaceId={space._id}
                       listId={list._id}
                     />

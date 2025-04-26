@@ -3,7 +3,6 @@ import { create } from 'zustand';
 
 interface GlobalModalState {
  
-
   setGlobalStore: (
     updater:
       | Partial<GlobalModalState>

@@ -32,6 +32,7 @@ interface ItemSettingsProps {
   itemType: 'space' | 'list';
   spaceId?: string;
   listId?: string;
+  setEditListOpen?: React.Dispatch<React.SetStateAction<string | null>>;
   item: ISpace | IList;
 }
 
@@ -39,6 +40,7 @@ export const ItemSettings = ({
   itemType,
   item,
   spaceId,
+  setEditListOpen,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   listId,
 }: ItemSettingsProps) => {
@@ -127,7 +129,14 @@ export const ItemSettings = ({
         <PopoverContent className='w-64 p-0' align='start'>
           <div className='flex flex-col'>
             <div className='px-3 pt-2'>
-              <MenuItem icon={<Pencil className='h-4 w-4' />} label='Rename' />
+              <MenuItem
+                icon={<Pencil className='h-4 w-4' />}
+                label='Rename'
+                onClick={() => {
+                  console.log('clicked');
+                  setEditListOpen?.(item._id);
+                }}
+              />
             </div>
 
             <div className='h-px bg-gray-200 my-2' />
