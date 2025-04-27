@@ -38,7 +38,7 @@ const SpaceScreen = () => {
   };
 
   return (
-    <div className='flex flex-col h-[calc(100vh-4rem)] bg-white'>
+    <div className='flex flex-col h-[calc(100vh-4rem)] bg-background'>
       <header className='flex items-center justify-between p-4 border-b'>
         <div className='flex items-center gap-2'>
           <h1 className='text-xl font-semibold'>Team Space</h1>
