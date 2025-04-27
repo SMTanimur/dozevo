@@ -16,6 +16,7 @@ export const CheckProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
       if (user) {
+        console.log('user', user);
         // Get the current workspace value from the cookie
         const currentCookieValue = Cookies.get('workspace');
         // Determine the new value based on user data (default to empty string)

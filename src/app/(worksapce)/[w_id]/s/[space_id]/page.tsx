@@ -1,11 +1,7 @@
-import React from 'react'
+import SpaceScreen from './screen/space-screen';
 
 const SpacePage = () => {
-  return (
-    <div>
-      <h1>Space Page</h1>
-    </div>
-  )
-}
+  return <SpaceScreen />;
+};
 
 export default SpacePage;
