@@ -11,6 +11,7 @@ import {
   ChevronUp,
   Users,
   Search,
+  LayoutDashboard,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -50,6 +51,10 @@ export function WorkspaceSidebar() {
   const pathname = usePathname();
   const isActive = (path: string) => {
     return pathname === path;
+  };
+  const [isSecondarySpacesOpen, setIsSecondarySpacesOpen] = useState(false);
+  const handleDashboardClick = () => {
+    setIsSecondarySpacesOpen(!isSecondarySpacesOpen);
   };
   const router = useRouter();
   const { data: workspace } = useGetWorkspace(w_id as string);
@@ -259,8 +264,8 @@ export function WorkspaceSidebar() {
 
         {/* Spaces section */}
 
-        {open && (
-          <SidebarSection title='Spaces' >
+        {open ? (
+          <SidebarSection title='Spaces'>
             {spaces?.map(space => (
               <SidebarSpaceItem
                 key={space._id}
@@ -280,6 +285,42 @@ export function WorkspaceSidebar() {
               </Button>
             </div>
           </SidebarSection>
+        ) : (
+          <div className='flex flex-col gap-2 items-center'>
+            <Button
+              variant={isSecondarySpacesOpen ? 'secondary' : 'ghost'}
+              size='icon'
+              onClick={handleDashboardClick}
+              aria-label='Toggle Spaces Panel'
+            >
+              <LayoutDashboard className='size-4' />
+            </Button>
+          </div>
+        )}
+
+        {isSecondarySpacesOpen && (
+          <div className='absolute left-12 top-0 bg-background z-[9999] h-screen w-60 border-r   p-4 shadow-[5px_0_25px_0_rgba(94,92,154,0.1)] transition-[left] duration-800   dark:bg-black'>
+            <SidebarSection title='Spaces'>
+              {spaces?.map(space => (
+                <SidebarSpaceItem
+                  key={space._id}
+                  space={space}
+                  isActive={isActive(`/${w_id}/s/${space._id}`)}
+                  isCollapsed={!open}
+                />
+              ))}
+
+              <div className='mt-4'>
+                <Button
+                  variant='ghost'
+                  className='w-full cursor-pointer justify-start gap-2'
+                  onClick={() => setIsCreateSpaceModalOpen(true)}
+                >
+                  <Plus className='h-4 w-4' />  Create Space
+                </Button>
+              </div>
+            </SidebarSection>
+          </div>
         )}
       </Sidebar>
 

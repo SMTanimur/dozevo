@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
 import '@/styles/globals.css';
 import '@/styles/theme.css';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
 import GlobalModals from './providers/global-modals';
 import { QueryProvider } from './providers/query.provider';
 import { Toaster } from '@/components/ui/sonner';
 import { GlobalProvider } from './providers/global.provider';
 import { defaultMetadata } from '@/configs';
+import { CheckProvider } from './providers/check-provider';
 
 export const metadata: Metadata = defaultMetadata;
 export default function RootLayout({
@@ -21,9 +24,11 @@ export default function RootLayout({
       </head>
       <GlobalProvider>
         <QueryProvider>
-          <Toaster />
-          <GlobalModals />
-          {children}
+          <CheckProvider>
+            <Toaster />
+            <GlobalModals />
+            {children}
+          </CheckProvider>
         </QueryProvider>
       </GlobalProvider>
     </html>

@@ -1,2 +1,3 @@
-export * from './global-store'
-export * from './useThemestore'
+export * from './global-store';
+export * from './useThemestore';
+

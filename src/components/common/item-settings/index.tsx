@@ -26,11 +26,13 @@ import { useSpaceMutations } from '@/hooks';
 import { useListMutations } from '@/hooks/list';
 import { useParams } from 'next/navigation';
 import { CreateItemOptions } from '../create-item-options';
+import { DeleteConfirmationDialog } from '@/components/modals';
 
 interface ItemSettingsProps {
   itemType: 'space' | 'list';
   spaceId?: string;
   listId?: string;
+  setEditListOpen?: React.Dispatch<React.SetStateAction<string | null>>;
   item: ISpace | IList;
 }
 
@@ -38,13 +40,16 @@ export const ItemSettings = ({
   itemType,
   item,
   spaceId,
+  setEditListOpen,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   listId,
 }: ItemSettingsProps) => {
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const { w_id } = useParams();
-  const { updateSpace } = useSpaceMutations();
-  const { updateList } = useListMutations();
+
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { updateSpace, deleteSpace } = useSpaceMutations();
+  const { updateList, deleteList } = useListMutations();
 
   const handleColorChange = (color: string) => {
     if (itemType === 'space') {
@@ -80,17 +85,32 @@ export const ItemSettings = ({
     }
   };
 
+  const handleDelete = () => {
+    if (itemType === 'space') {
+      deleteSpace({ spaceId: item._id, workspaceId: item.workspace });
+      setIsDeleting(false);
+    } else if (itemType === 'list') {
+      deleteList({
+        listId: listId as string,
+        spaceId: spaceId as string,
+        workspaceId: w_id as string,
+      });
+      setIsDeleting(false);
+    }
+  };
+
+  const onClose = () => {
+    setIsDeleting(false);
+  };
+
   return (
     <>
-      <Popover >
+      <Popover>
         <PopoverTrigger asChild>
           <Button
             variant='ghost'
             size='icon'
-            className={cn(
-              'h-6 w-6 cursor-pointer',
-              
-            )}
+            className={cn('h-6 w-6 cursor-pointer')}
             isTooltip
             tooltipContent={
               itemType === 'space'
@@ -109,7 +129,14 @@ export const ItemSettings = ({
         <PopoverContent className='w-64 p-0' align='start'>
           <div className='flex flex-col'>
             <div className='px-3 pt-2'>
-              <MenuItem icon={<Pencil className='h-4 w-4' />} label='Rename' />
+              <MenuItem
+                icon={<Pencil className='h-4 w-4' />}
+                label='Rename'
+                onClick={() => {
+                  console.log('clicked');
+                  setEditListOpen?.(item._id);
+                }}
+              />
             </div>
 
             <div className='h-px bg-gray-200 my-2' />
@@ -159,6 +186,9 @@ export const ItemSettings = ({
               <MenuItem
                 icon={<Trash2 className='h-4 w-4 text-red-500' />}
                 label='Delete'
+                onClick={() => {
+                  setIsDeleting(true);
+                }}
                 labelClassName='text-red-500'
               />
             </div>
@@ -171,6 +201,13 @@ export const ItemSettings = ({
           </div>
         </PopoverContent>
       </Popover>
+      <DeleteConfirmationDialog
+        isOpen={isDeleting}
+        onClose={onClose}
+        onConfirm={handleDelete}
+        title='Delete'
+        description='Are you sure you want to delete this item?'
+      />
     </>
   );
 };
@@ -186,7 +223,10 @@ function MenuItem({ icon, label, onClick, labelClassName }: MenuItemProps) {
   return (
     <button
       className='flex rounded-lg items-center gap-2 px-2 py-2 hover:bg-gray-100 w-full text-left transition-colors'
-      onClick={onClick}
+      onClick={e => {
+        e.stopPropagation();
+        onClick?.();
+      }}
     >
       <span className='w-5'>{icon}</span>
       <span className={cn('text-sm', labelClassName)}>{label}</span>

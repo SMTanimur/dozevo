@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { icons} from 'lucide-react';
+import { icons } from 'lucide-react';
 
 import { ISpace } from '@/types';
 import { SidebarItem } from '../../sidebar-item';
@@ -26,7 +26,7 @@ export function SidebarSpaceItem({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCreateListModal, setShowCreateListModal] = useState(false);
   const hasLists = space.lists && space.lists.length > 0;
-
+  const [editListOpen, setEditListOpen] = useState<string | null>(null);
   const handleExpand = () => {
     if (isCollapsed) {
       setIsExpanded(true);
@@ -34,7 +34,7 @@ export function SidebarSpaceItem({
       setIsExpanded(!isExpanded);
     }
   };
- 
+
   return (
     <div>
       <div className='group w-full  relative flex items-center'>
@@ -44,6 +44,7 @@ export function SidebarSpaceItem({
           icon={space.avatar as keyof typeof icons}
           label={space.name}
           isActive={isActive}
+          editListOpen={editListOpen}
           onExpand={handleExpand}
           isCollapsed={isCollapsed}
           actions={
@@ -52,6 +53,7 @@ export function SidebarSpaceItem({
                 <ItemSettings
                   itemType='space'
                   item={space}
+                  setEditListOpen={setEditListOpen}
                   spaceId={space._id}
                 />
                 <ListItemPlus itemPlusType='space' space={space} />
@@ -61,7 +63,7 @@ export function SidebarSpaceItem({
         />
       </div>
 
-      {isExpanded && !isCollapsed && (
+      {isExpanded && (
         <div className='mt-1 pl-3 space-y-1 w-full overflow-hidden'>
           {hasLists ? (
             space.lists?.map(list => (
@@ -73,16 +75,15 @@ export function SidebarSpaceItem({
                 label={list.name}
                 isCollapsed={isCollapsed}
                 actions={
-                  !isCollapsed ? (
-                    <>
-                      <ItemSettings
-                        itemType='list'
-                        item={list}
-                        spaceId={space._id}
-                        listId={list._id}
-                      />
-                    </>
-                  ) : null
+                  <>
+                    <ItemSettings
+                      itemType='list'
+                      item={list}
+                      setEditListOpen={setEditListOpen}
+                      spaceId={space._id}
+                      listId={list._id}
+                    />
+                  </>
                 }
               />
             ))

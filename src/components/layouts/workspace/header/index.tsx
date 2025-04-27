@@ -26,7 +26,7 @@ export const WorkspaceHeader = () => {
   ];
 
   return (
-    <header className='sticky top-0 left-0 py-2 px-2 bg-white border-b z-10 dark:bg-gray-900 dark:border-gray-700'>
+    <header className='sticky top-0 left-0 py-2 px-2 bg-white border-b dark:bg-gray-900 dark:border-gray-700'>
       <div className='flex items-center '>
         {!open && <SidebarTrigger />}
         <div

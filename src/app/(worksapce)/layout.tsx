@@ -10,7 +10,7 @@ export default function NoteBookLayout({ children }: { children: ReactNode }) {
       <AppSidebar>
         <WorkspaceSidebar />
       </AppSidebar>
-      <main className="relative h-full max-w-full max-h-[100vh] overflow-auto scroll-smooth flex-1 ">
+      <main className="relative h-full max-w-full  overflow-auto scroll-smooth flex-1 ">
         <Setting/>
         <WorkspaceHeader />
         {children}

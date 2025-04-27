@@ -9,7 +9,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-import { Icon } from '@/components/ui';
+import { Icon, Input } from '@/components/ui';
 import { icons } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -18,6 +18,7 @@ interface SidebarItemProps {
   icon: keyof typeof icons;
   label: string;
   color: string;
+  editListOpen?: string | null;
   isActive?: boolean;
   isCollapsed?: boolean;
   onExpand?: () => void;
@@ -31,6 +32,7 @@ export function SidebarItem({
   icon,
   label,
   color,
+  editListOpen,
   isActive = false,
   isCollapsed = false,
   indent = false,
@@ -40,6 +42,7 @@ export function SidebarItem({
 }: SidebarItemProps) {
   const [isHovering, setIsHovering] = useState(false);
   const router = useRouter();
+  console.log({ editListOpen });
   const IconComponent = () => {
     if (icon) {
       return (
@@ -64,37 +67,50 @@ export function SidebarItem({
         isActive &&
           variant === 'accent' &&
           'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300',
-        indent && !isCollapsed && 'ml-4'
+        indent && !isCollapsed && 'ml-4',
+        editListOpen && 'bg-transparent border border-border'
       )}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
       onClick={() => {
-        if (onExpand) {
+        if (!editListOpen && onExpand) {
           router.push(href);
           onExpand();
         }
       }}
     >
       <div className='flex items-center gap-2 shrink-0 group  justify-center'>
-        {!isHovering ? (
+        {!editListOpen && isHovering ? (
+          <Icon
+            name='ChevronDown'
+            className='h-6 w-6'
+            onClick={e => {
+              e.stopPropagation();
+              onExpand?.();
+            }}
+          />
+        ) : (
           <div
             className='flex h-6 w-6   items-center justify-center rounded-sm'
             style={{ backgroundColor: color ? color : '#ec4899' }}
           >
             <IconComponent />
           </div>
-        ) : (
-          <Icon name='ChevronDown' className='h-6 w-6' />
         )}
-        <span className='truncate'>{label}</span>
+        {!editListOpen && <span className='truncate'>{label}</span>}
       </div>
 
-      {!isCollapsed && (
+      {!isCollapsed && !editListOpen && (
         <>
           {actions && (
             <div className='ml-auto flex items-center gap-1'>{actions}</div>
           )}
         </>
+      )}
+      {editListOpen && (
+        <div className='ml-auto flex items-center gap-1'>
+          <Input type='text' value={label} className='w-full' />
+        </div>
       )}
     </div>
   );
