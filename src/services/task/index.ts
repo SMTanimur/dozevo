@@ -16,23 +16,23 @@ type TaskFilters = z.infer<typeof GetTasksFilterDto>; // Make sure GetTasksFilte
 // Define the base API paths (note the context)
 const getSpaceTasksPath = (workspaceId: string, spaceId: string) =>
   `/v1/workspaces/${workspaceId}/spaces/${spaceId}/tasks`;
-const getFolderTasksPath = (
+const getListTasksPath = (
   workspaceId: string,
   spaceId: string,
-  folderId: string,
-) => `/v1/workspaces/${workspaceId}/spaces/${spaceId}/folders/${folderId}/tasks`;
+  listId: string,
+) => `/v1/workspaces/${workspaceId}/spaces/${spaceId}/lists/${listId}/tasks`;
 const getTaskDetailPath = (taskId: string) => `/v1/tasks/${taskId}`; // Simpler path assuming service handles context
 
 export class TaskService {
   async getAllTasks(params: {
     workspaceId: string;
     spaceId: string;
-    folderId?: string;
+    listId?: string;
     filters?: TaskFilters;
   }): Promise<TaskListResponse> {
-    const { workspaceId, spaceId, folderId, filters } = params;
-    const path = folderId
-      ? getFolderTasksPath(workspaceId, spaceId, folderId)
+    const { workspaceId, spaceId, listId, filters } = params;
+    const path = listId
+      ? getListTasksPath(workspaceId, spaceId, listId)
       : getSpaceTasksPath(workspaceId, spaceId);
 
     try {
@@ -65,13 +65,13 @@ export class TaskService {
     params: {
       workspaceId: string;
       spaceId: string;
-      folderId?: string;
+      listId?: string;
     },
     data: CreateTaskInput,
   ): Promise<Task> {
-    const { workspaceId, spaceId, folderId } = params;
-    const path = folderId
-      ? getFolderTasksPath(workspaceId, spaceId, folderId)
+    const { workspaceId, spaceId, listId } = params;
+    const path = listId
+      ? getListTasksPath(workspaceId, spaceId, listId)
       : getSpaceTasksPath(workspaceId, spaceId);
 
     try {

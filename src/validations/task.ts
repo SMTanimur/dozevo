@@ -118,7 +118,7 @@ export const createTaskSchema = z.object({
     orderindex: true,
     color: true,
     type: true,
-  }).extend({ clickUpId: z.string().optional() }),
+  }).extend({ clickUpId: z.string().optional() }).optional(),
   description: z.string().optional(),
   assignees: z.array(z.string()).optional(), // Array of User IDs
   watchers: z.array(z.string()).optional(), // Array of User IDs
