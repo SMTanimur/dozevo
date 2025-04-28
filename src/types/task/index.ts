@@ -47,7 +47,7 @@ export interface ITask {
   _id: string; // Or map to 'id'
   workspace: string; // Workspace ID as string
   space: string; // Space ID as string
-  folder: string | null; // Optional Folder ID as string
+  list: string | null; // Optional Folder ID as string
   name: string;
   description?: string;
   status: IStatusDefinition; // Use the Status 

@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 import { statusDefinitionSchema } from './space'; // Import status schema
 
-
 // --- Sub-Schemas based on API structure ---
 
 // Simple Tag representation (assuming this structure)
@@ -75,7 +74,9 @@ export const taskSchema = z.object({
   folder: z.string().nullable().optional(), // Folder ID
   clickUpTaskId: z.string().optional(),
   custom_id: z.string().nullable().optional(),
-  name: z.string({ required_error: 'Task name is required' }).min(1, 'Task name cannot be empty'),
+  name: z
+    .string({ required_error: 'Task name is required' })
+    .min(1, 'Task name cannot be empty'),
   text_content: z.string().optional(),
   description: z.string().optional(),
   status: statusDefinitionSchema, // Embed status schema
@@ -113,19 +114,31 @@ export const createTaskSchema = z.object({
   // workspace and space are typically path parameters, not in body
   folderId: z.string().optional(), // Folder ID is optional
   parentTask: z.string().nullable().optional(), // Optional parent task ID
-  status: statusDefinitionSchema.pick({ // Require necessary fields for status subdoc
-    status: true,
-    orderindex: true,
-    color: true,
-    type: true,
-  }).extend({ clickUpId: z.string().optional() }).optional(),
+  status: statusDefinitionSchema
+    .pick({
+      // Require necessary fields for status subdoc
+      status: true,
+      orderindex: true,
+      color: true,
+      type: true,
+    })
+    .extend({ clickUpId: z.string().optional() })
+    .optional(),
   description: z.string().optional(),
   assignees: z.array(z.string()).optional(), // Array of User IDs
   watchers: z.array(z.string()).optional(), // Array of User IDs
   tags: z.array(z.string()).optional(), // Array of Tag IDs
   priority: priorityValueSchema.nullable().optional(),
-  due_date: z.string().datetime({ message: 'Invalid due date format' }).nullable().optional(),
-  start_date: z.string().datetime({ message: 'Invalid start date format' }).nullable().optional(),
+  due_date: z
+    .string()
+    .datetime({ message: 'Invalid due date format' })
+    .nullable()
+    .optional(),
+  start_date: z
+    .string()
+    .datetime({ message: 'Invalid start date format' })
+    .nullable()
+    .optional(),
   time_estimate: z.number().int().positive().nullable().optional(),
   // points, custom_fields, checklists might be added if supported
 });
@@ -134,27 +147,39 @@ export const createTaskSchema = z.object({
 export const updateTaskSchema = z
   .object({
     name: z.string().min(1, 'Task name cannot be empty').trim().optional(),
-    folderId: z.string().nullable().optional(), // Allow moving or removing from folder
+    listId: z.string().nullable().optional(), // Allow moving or removing from folder
     parentTask: z.string().nullable().optional(),
-    status: statusDefinitionSchema.pick({ // Allow updating status fields
-      status: true,
-      orderindex: true,
-      color: true,
-      type: true,
-    }).extend({ clickUpId: z.string().optional() }).optional(),
+    status: statusDefinitionSchema
+      .pick({
+        // Allow updating status fields
+        status: true,
+        orderindex: true,
+        color: true,
+        type: true,
+      })
+      .extend({ clickUpId: z.string().optional() })
+      .optional(),
     description: z.string().nullable().optional(),
     assignees: z.array(z.string()).optional(),
     watchers: z.array(z.string()).optional(),
     tags: z.array(z.string()).optional(),
     priority: priorityValueSchema.nullable().optional(),
-    due_date: z.string().datetime({ message: 'Invalid due date format' }).nullable().optional(),
-    start_date: z.string().datetime({ message: 'Invalid start date format' }).nullable().optional(),
+    due_date: z
+      .string()
+      .datetime({ message: 'Invalid due date format' })
+      .nullable()
+      .optional(),
+    start_date: z
+      .string()
+      .datetime({ message: 'Invalid start date format' })
+      .nullable()
+      .optional(),
     time_estimate: z.number().int().positive().nullable().optional(),
     time_spent: z.number().int().nonnegative().optional(),
     archived: z.boolean().optional(),
     // points, custom_fields, checklists updates if supported
   })
-  .refine((data) => Object.keys(data).length > 0, {
+  .refine(data => Object.keys(data).length > 0, {
     message: 'At least one field must be provided for update',
   });
 
@@ -162,7 +187,8 @@ export type TCreateTask = z.infer<typeof createTaskSchema>;
 export type TUpdateTask = z.infer<typeof updateTaskSchema>;
 
 // Schema for task filtering query parameters (based on GetTasksFilterDto)
-export const GetTasksFilterDto = z.object({
+export const GetTasksFilterDto = z
+  .object({
     status: z.string().optional(),
     assignee: z.string().optional(),
     archived: z.boolean().optional(),
@@ -171,6 +197,7 @@ export const GetTasksFilterDto = z.object({
     page: z.number().int().positive().optional(),
     limit: z.number().int().positive().optional(),
     // Add other potential filters like tags, priority, due date ranges if implemented
-}).optional(); // Make the whole filter object optional
+  })
+  .optional(); // Make the whole filter object optional
 
 export type TGetTasksFilter = z.infer<typeof GetTasksFilterDto>;

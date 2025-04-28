@@ -1,11 +1,8 @@
-import React from 'react'
+import React from 'react';
+import ListScreen from './screen/list-screen';
 
 const ListPage = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+  return <ListScreen />;
+};
 
-export default ListPage
+export default ListPage;
