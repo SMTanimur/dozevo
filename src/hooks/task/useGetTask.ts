@@ -13,8 +13,8 @@ export const useGetTask = (taskId: string, options?: { enabled?: boolean }) => {
   return useQuery<Task, Error>({
     // Use function name and ID for the query key
     queryKey: [taskService.getTaskById.name, taskId],
-    queryFn: () => taskService.getTaskById(taskId),
+    queryFn: () => taskService.getTaskById({ taskId }), // Pass taskId as an object property
     // Ensure taskId is provided and respect enabled option
     enabled: !!taskId && (options?.enabled !== undefined ? options.enabled : true),
   });
-}; 
+};

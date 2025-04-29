@@ -1,7 +1,8 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { listService } from '@/services'; // Adjust path if needed
-import { TStatus } from '@/types/status';
+
 import { AxiosError } from 'axios';
+import { IStatusDefinition } from '@/types';
 
 interface UseGetStatusesParams {
   workspaceId: string;
@@ -21,10 +22,10 @@ export const getStatusesQueryKey = (params: UseGetStatusesParams) => [
 
 export const useGetStatuses = (
   params: UseGetStatusesParams,
-  options?: Omit<UseQueryOptions<TStatus[], AxiosError>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<IStatusDefinition[], AxiosError>, 'queryKey' | 'queryFn'>
 ) => {
   const { workspaceId, spaceId, listId } = params;
-  return useQuery<TStatus[], AxiosError>({
+  return useQuery<IStatusDefinition[], AxiosError>({
     queryKey: getStatusesQueryKey(params),
     queryFn: async () => listService.getStatuses(workspaceId, spaceId, listId),
     enabled: !!workspaceId && !!spaceId && !!listId,

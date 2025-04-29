@@ -46,7 +46,6 @@ export interface ITaskUser {
 // Represents the data structure for a single task response
 export interface ITask {
   _id: string; // Or map to 'id'
-  workspace: string; // Workspace ID as string
   space: string; // Space ID as string
   list: string | null; // Optional Folder ID as string
   name: string;

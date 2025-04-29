@@ -1,5 +1,5 @@
 import { api } from '@/api';
-import { IList, ListListResponse } from '@/types';
+import { IList, IStatusDefinition, ListListResponse } from '@/types';
 import {
   createlistSchema,
   TCreateList,
@@ -7,7 +7,7 @@ import {
   updatelistSchema,
 } from '@/validations';
 // Import status types
-import { TStatus } from '@/types/status'; // Assuming TStatus is defined in types/status
+
 import { TCreateStatus, TUpdateStatus } from '@/validations/status'; // Assuming these are defined in validations/status
 
 // Define the base API path function for lists
@@ -114,9 +114,9 @@ export class ListService {
     workspaceId: string,
     spaceId: string,
     listId: string
-  ): Promise<TStatus[]> {
+  ): Promise<IStatusDefinition[]> {
     try {
-      const response = await api.get<TStatus[]>(
+      const response = await api.get<IStatusDefinition[]>(
         getStatusBasePath(workspaceId, spaceId, listId)
       );
       return response.data;
@@ -131,10 +131,10 @@ export class ListService {
     spaceId: string,
     listId: string,
     data: TCreateStatus
-  ): Promise<TStatus> {
+  ): Promise<IStatusDefinition> {
     try {
       // TODO: Add validation using createStatusSchema if needed
-      const response = await api.post<TStatus>(
+      const response = await api.post<IStatusDefinition>(
         getStatusBasePath(workspaceId, spaceId, listId),
         data
       );
@@ -151,10 +151,10 @@ export class ListService {
     listId: string,
     statusId: string,
     data: Partial<TUpdateStatus> // Allow partial updates
-  ): Promise<TStatus> {
+  ): Promise<IStatusDefinition> {
     try {
       // TODO: Add validation using updateStatusSchema if needed (careful with partials)
-      const response = await api.patch<TStatus>(
+      const response = await api.patch<IStatusDefinition>(
         `${getStatusBasePath(workspaceId, spaceId, listId)}/${statusId}`,
         data
       );

@@ -8,7 +8,7 @@ import {
   Draggable,
   DropResult,
 } from '@hello-pangea/dnd';
-import { ITask, IStatusDefinition, IList } from '@/types'; // Assuming IList might be needed for context
+import { ITask, IStatusDefinition } from '@/types'; // Assuming IList might be needed for context
 import { useGetTasks, useTaskMutations } from '@/hooks/task';
 import { useGetStatuses } from '@/hooks/list';
 import { useGlobalStateStore } from '@/stores';
@@ -33,7 +33,6 @@ export default function TaskBoardView({
   const { data, isLoading: isLoadingTasks } = useGetTasks({
     listId: listId,
     spaceId: spaceId,
-    workspaceId: workspaceId,
   });
 
 
@@ -52,15 +51,20 @@ export default function TaskBoardView({
     };
     createTask({
       data: newTask,
-      params: { workspaceId, spaceId },
+      params: { spaceId },
     });
   };
-
   // Group tasks by status ID
-  const tasksByStatus = statuses.reduce((acc, status: IStatusDefinition) => {
-    acc[status._id as string] = data?.data.filter(task => task.status?._id === status._id) || [];
-    return acc;
-  }, {} as Record<string, ITask[]>);
+  const tasksByStatus = statuses.reduce(
+    (acc, status) => { // Let TS infer types from initial value and statuses array
+      // Assuming status._id will always be defined here based on context,
+      // but added optional chaining for safety if needed in the future.
+      // Type inference should resolve the overload mismatch.
+      acc[status._id as string] = data?.data?.filter(task => task.status?._id === status._id) || [];
+      return acc;
+    },
+    {} as Record<string, ITask[]>
+  );
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -72,7 +76,7 @@ export default function TaskBoardView({
     )
       return;
 
-    const task = tasks.find(t => t._id === draggableId);
+    const task = data?.data?.find(t => t._id === draggableId);
     if (!task) return;
 
     const newStatus = statuses.find(s => s._id === destination.droppableId);
@@ -82,7 +86,6 @@ export default function TaskBoardView({
     updateTask({
       taskId: task._id,
       data: { status: newStatus._id },
-      params: { workspaceId, spaceId, listId }, // Pass params for the API call
     });
   };
 
@@ -161,7 +164,7 @@ export default function TaskBoardView({
         <DragDropContext onDragEnd={handleDragEnd}>
           <div className='flex gap-4 h-full'>
             {statuses.map(status => (
-              <Droppable key={status._id} droppableId={status._id}>
+              <Droppable key={status._id} droppableId={status._id as string}>
                 {provided => (
                   <div
                     ref={provided.innerRef}
@@ -195,7 +198,7 @@ export default function TaskBoardView({
                         </div>
                         <span className='font-medium'>{status.status}</span>
                         <span className='ml-2 text-gray-500 text-sm'>
-                          {tasksByStatus[status._id]?.length || 0}
+                          {tasksByStatus[status._id as string]?.length || 0}
                         </span>
                       </div>
                       <div className='flex items-center'>
@@ -206,7 +209,7 @@ export default function TaskBoardView({
                     </div>
 
                     <div className='flex-1 overflow-auto p-2 space-y-2'>
-                      {(tasksByStatus[status._id] || []).map((task, index) => (
+                      {(tasksByStatus[status._id as string] || []).map((task, index) => (
                         <Draggable
                           key={task._id}
                           draggableId={task._id}
@@ -238,7 +241,7 @@ export default function TaskBoardView({
                         variant='ghost'
                         size='sm'
                         className='w-full justify-start text-gray-500'
-                        onClick={() => handleAddTask(status)}
+                        onClick={() => handleAddTask(status as IStatusDefinition)}
                       >
                         <Plus className='h-4 w-4 mr-1' />
                         Add Task

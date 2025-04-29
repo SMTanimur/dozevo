@@ -15,7 +15,7 @@ type TaskFilters = z.infer<typeof GetTasksFilterDto>; // Make sure GetTasksFilte
 
 // Define the base API paths (note the context)
 const getSpaceBasePath = (workspaceId: string, spaceId: string) =>
-  `/v1/workspaces/${workspaceId}/spaces/${spaceId}`;
+  `/v1/spaces/${spaceId}`;
 
 const getListBasePath = (
   workspaceId: string,
@@ -35,30 +35,18 @@ const getListTasksPath = (
 ) => `${getListBasePath(workspaceId, spaceId, listId)}/tasks`;
 
 // Path for a specific task (requires context: workspace, space, list?)
-const getTaskDetailPath = (params: {
-  workspaceId: string;
-  spaceId: string;
-  listId?: string;
-  taskId: string;
-}) => {
-  const { workspaceId, spaceId, listId, taskId } = params;
-  const basePath = listId
-    ? getListBasePath(workspaceId, spaceId, listId)
-    : getSpaceBasePath(workspaceId, spaceId);
-  return `${basePath}/tasks/${taskId}`;
-};
+const getTaskDetailPath = (taskId: string) => `/v1/tasks/${taskId}`;
 
 export class TaskService {
   async getAllTasks(params: {
-    workspaceId: string;
     spaceId: string;
     listId?: string;
     filters?: TaskFilters;
   }): Promise<TaskListResponse> {
-    const { workspaceId, spaceId, listId, filters } = params;
+    const { spaceId, listId, filters } = params;
     const path = listId
-      ? getListTasksPath(workspaceId, spaceId, listId)
-      : getSpaceTasksPath(workspaceId, spaceId);
+      ? getListTasksPath('-', spaceId, listId)
+      : getSpaceTasksPath('-', spaceId);
 
     try {
       const response = await api.get<TaskListResponse>(path, {
@@ -71,14 +59,9 @@ export class TaskService {
     }
   }
 
-  async getTaskById(params: {
-    workspaceId: string;
-    spaceId: string;
-    listId?: string; // listId might be needed if task is inside a list
-    taskId: string;
-  }): Promise<Task> {
-    const { workspaceId, spaceId, listId, taskId } = params;
-    const path = getTaskDetailPath({ workspaceId, spaceId, listId, taskId });
+  async getTaskById(params: { taskId: string }): Promise<Task> {
+    const { taskId } = params;
+    const path = getTaskDetailPath(taskId);
     try {
       const response = await api.get<Task>(path);
       return response.data;
@@ -90,16 +73,15 @@ export class TaskService {
 
   async createTask(
     params: {
-      workspaceId: string;
       spaceId: string;
       listId?: string;
     },
     data: CreateTaskInput
   ): Promise<Task> {
-    const { workspaceId, spaceId, listId } = params;
+    const { spaceId, listId } = params;
     const path = listId
-      ? getListTasksPath(workspaceId, spaceId, listId)
-      : getSpaceTasksPath(workspaceId, spaceId);
+      ? getListTasksPath('-', spaceId, listId)
+      : getSpaceTasksPath('-', spaceId);
 
     try {
       createTaskSchema.parse(data);
@@ -112,16 +94,11 @@ export class TaskService {
   }
 
   async updateTask(
-    params: {
-      workspaceId: string;
-      spaceId: string;
-      listId?: string;
-      taskId: string;
-    },
+    params: { taskId: string },
     data: UpdateTaskInput
   ): Promise<Task> {
-    const { workspaceId, spaceId, listId, taskId } = params;
-    const path = getTaskDetailPath({ workspaceId, spaceId, listId, taskId });
+    const { taskId } = params;
+    const path = getTaskDetailPath(taskId);
     try {
       updateTaskSchema.parse(data);
       const response = await api.patch<Task>(path, data);
@@ -132,14 +109,9 @@ export class TaskService {
     }
   }
 
-  async deleteTask(params: {
-    workspaceId: string;
-    spaceId: string;
-    listId?: string;
-    taskId: string;
-  }): Promise<void> {
-    const { workspaceId, spaceId, listId, taskId } = params;
-    const path = getTaskDetailPath({ workspaceId, spaceId, listId, taskId });
+  async deleteTask(params: { taskId: string }): Promise<void> {
+    const { taskId } = params;
+    const path = getTaskDetailPath(taskId);
     try {
       await api.delete(path);
     } catch (error) {

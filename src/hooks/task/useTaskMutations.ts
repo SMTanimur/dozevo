@@ -2,15 +2,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { taskService } from '@/services';
 import { Task } from '@/types';
-import {
-  TCreateTask,
-  TUpdateTask,
-} from '@/validations'; // Assuming these types are exported
+import { TCreateTask, TUpdateTask } from '@/validations'; // Assuming these types are exported
 
 // Define structure for createTask mutation input
 interface CreateTaskMutationInput {
   params: {
-    workspaceId: string;
     spaceId: string;
   };
   data: TCreateTask;
@@ -28,13 +24,13 @@ export const useTaskMutations = () => {
 
   // Helper to invalidate relevant task list queries
   const invalidateTaskListQueries = (
-    params: CreateTaskMutationInput['params'], // Use the same params structure
+    params: CreateTaskMutationInput['params'] // Use the same params structure
   ) => {
     // Invalidate the specific list query where the task was added/modified/deleted
     queryClient.invalidateQueries({
       queryKey: [
         taskService.getAllTasks.name,
-        { workspaceId: params.workspaceId, spaceId: params.spaceId },
+        { spaceId: params.spaceId },
         // We might need to invalidate across different filters, or just the default/no filter
       ],
       // Consider `refetchType: 'none'` if you only want to mark as stale
@@ -54,7 +50,7 @@ export const useTaskMutations = () => {
       invalidateTaskListQueries(variables.params);
       // Optionally, update the specific task list cache if needed
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || 'Failed to create task.');
     },
   });
@@ -66,7 +62,7 @@ export const useTaskMutations = () => {
     UpdateTaskMutationInput
   >({
     mutationKey: [taskService.updateTask.name],
-    mutationFn: ({ taskId, data }) => taskService.updateTask(taskId, data),
+    mutationFn: ({ taskId, data }) => taskService.updateTask({ taskId }, data),
     onSuccess: (updatedTask, variables) => {
       toast.success(`Task "${updatedTask.name}" updated successfully!`);
 
@@ -77,7 +73,7 @@ export const useTaskMutations = () => {
       // Update the specific task query data in the cache
       queryClient.setQueryData(
         [taskService.getTaskById.name, variables.taskId],
-        updatedTask,
+        updatedTask
       );
 
       // Invalidate relevant task list queries (need context like workspace/space ID)
@@ -86,7 +82,7 @@ export const useTaskMutations = () => {
       // Example: queryClient.invalidateQueries({ queryKey: [taskService.getAllTasks.name] }); // Broad invalidation
       // OR pass context: invalidateTaskListQueries({ workspaceId: ..., spaceId: ... });
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || 'Failed to update task.');
     },
   });
@@ -98,7 +94,7 @@ export const useTaskMutations = () => {
     string // Expects taskId
   >({
     mutationKey: [taskService.deleteTask.name],
-    mutationFn: (taskId: string) => taskService.deleteTask(taskId),
+    mutationFn: taskId => taskService.deleteTask({ taskId }), // Correctly accept the string variable
     onSuccess: (_, taskId) => {
       toast.success('Task deleted successfully!');
 
@@ -110,7 +106,7 @@ export const useTaskMutations = () => {
       // Invalidate relevant task list queries (same challenge as update)
       // Example: queryClient.invalidateQueries({ queryKey: [taskService.getAllTasks.name] }); // Broad invalidation
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || 'Failed to delete task.');
     },
   });
@@ -123,4 +119,4 @@ export const useTaskMutations = () => {
     deleteTask,
     isDeletingTask,
   };
-}; 
+};

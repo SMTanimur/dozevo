@@ -10,6 +10,7 @@ import { IList, IStatusDefinition, ITask } from '@/types';
 import { useGetStatuses } from '@/hooks/list';
 import { useTaskMutations } from '@/hooks/task';
 import { useGlobalStateStore } from '@/stores';
+import { TCreateTask } from '@/validations';
 
 type TaskListViewProps = {
   list: IList;
@@ -44,20 +45,19 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
   };
 
   const handleAddTask = (status: IStatusDefinition) => {
-    const newTask: Partial<Omit<ITask, '_id'>> = {
+    const newTask: TCreateTask = {
       name: 'New Task',
       status: status._id,
-      list: list._id,
-      space: list.space,
-      workspace: list.workspace,
+      listId: list._id,
+      
     };
 
     createTask({
       data: newTask,
       params: {
-        workspaceId: list.workspace,
+       
         spaceId: list.space,
-        listId: list._id,
+        
       },
     });
   };

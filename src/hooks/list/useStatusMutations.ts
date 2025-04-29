@@ -6,7 +6,7 @@ import {
 import { AxiosError } from 'axios';
 import { listService } from '@/services'; // Adjust path if needed
 import { TCreateStatus, TUpdateStatus } from '@/validations/status';
-import { TStatus } from '@/types/status';
+import { IStatusDefinition } from '@/types/status';
 import { getStatusesQueryKey } from './useGetStatuses'; // Import query key generator
 
 interface StatusMutationParams {
@@ -19,11 +19,11 @@ interface StatusMutationParams {
 type CreateStatusVariables = StatusMutationParams & { data: TCreateStatus };
 
 export const useCreateStatus = (
-  options?: UseMutationOptions<TStatus, AxiosError, CreateStatusVariables>
+  options?: UseMutationOptions<IStatusDefinition, AxiosError, CreateStatusVariables>
 ) => {
   const queryClient = useQueryClient();
 
-  return useMutation<TStatus, AxiosError, CreateStatusVariables>({
+  return useMutation<IStatusDefinition, AxiosError, CreateStatusVariables>({
     mutationFn: ({
       workspaceId,
       spaceId,
@@ -32,7 +32,7 @@ export const useCreateStatus = (
     }: CreateStatusVariables) =>
       listService.createStatus(workspaceId, spaceId, listId, data),
     ...options,
-    onSuccess: (data: TStatus, variables: CreateStatusVariables, context) => {
+    onSuccess: (data: IStatusDefinition, variables: CreateStatusVariables, context) => {
       queryClient.invalidateQueries({
         queryKey: getStatusesQueryKey({
           workspaceId: variables.workspaceId,
@@ -52,11 +52,11 @@ type UpdateStatusVariables = StatusMutationParams & {
 };
 
 export const useUpdateStatus = (
-  options?: UseMutationOptions<TStatus, AxiosError, UpdateStatusVariables>
+  options?: UseMutationOptions<IStatusDefinition, AxiosError, UpdateStatusVariables>
 ) => {
   const queryClient = useQueryClient();
 
-  return useMutation<TStatus, AxiosError, UpdateStatusVariables>({
+  return useMutation<IStatusDefinition, AxiosError, UpdateStatusVariables>({
     mutationFn: ({
       workspaceId,
       spaceId,
@@ -66,7 +66,7 @@ export const useUpdateStatus = (
     }: UpdateStatusVariables) =>
       listService.updateStatus(workspaceId, spaceId, listId, statusId, data),
     ...options,
-    onSuccess: (data: TStatus, variables: UpdateStatusVariables, context) => {
+    onSuccess: (data: IStatusDefinition, variables: UpdateStatusVariables, context) => {
       queryClient.invalidateQueries({
         queryKey: getStatusesQueryKey({
           workspaceId: variables.workspaceId,
