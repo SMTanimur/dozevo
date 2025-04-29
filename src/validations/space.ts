@@ -5,13 +5,13 @@ import { z } from 'zod';
 export const statusTypeSchema = z.enum([
   'open',
   'custom',
+  'in_progress',
   'closed',
   'done',
 ]);
 
 // Schema for StatusDefinition subdocument
 export const statusDefinitionSchema = z.object({
-  clickUpId: z.string().optional(),
   status: z.string({ required_error: 'Status name is required' }),
   orderindex: z.number({ required_error: 'Status order is required' }),
   color: z.string({ required_error: 'Status color is required' }),
@@ -49,8 +49,6 @@ export const spaceSchema = z.object({
   members: z.array(z.string()).optional(), // Assuming array of User IDs
   statuses: z.array(statusDefinitionSchema).default([]),
   multiple_assignees: z.boolean().default(false),
-  features: spaceFeaturesConfigSchema.default({}),
-  // folders: z.array(z.string()).optional(), // Assuming array of Folder IDs
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });

@@ -9,8 +9,8 @@ import { IList } from '../list';
 
 // Represents a status definition in a response
 export interface IStatusDefinition {
-    id: string;
-    name: string;
+    _id: string;
+    status: string;
     color: string;
     order: number;
     type: string; // e.g., 'open', 'done'
@@ -38,9 +38,7 @@ export interface IStatusDefinition {
     private: boolean;
     archived: boolean;
     multiple_assignees: boolean;
-    
     lists?: IList[];
-    statuses: IStatusDefinition[]; // Array of status definitions
     features?: Record<string, boolean>; // Enabled features
     createdAt: string; // ISO Date string
     updatedAt: string; // ISO Date string
