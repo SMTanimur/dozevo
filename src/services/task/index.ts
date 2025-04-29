@@ -1,42 +1,29 @@
 import { api } from '@/api';
-import { Task, TaskListResponse } from '@/types'; // Assuming TaskListResponse exists or needs creation
+import { ITask, TaskListResponse } from '@/types'; // Use ITask for consistency
 import {
   createTaskSchema,
   updateTaskSchema,
-  GetTasksFilterDto, // Assuming this DTO/type is defined in validations/index
+  GetTasksFilterDto,
 } from '@/validations';
 import { z } from 'zod';
 
 // Define types for the input data based on Zod schemas
 type CreateTaskInput = z.infer<typeof createTaskSchema>;
 type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
-// Type for filter DTO
-type TaskFilters = z.infer<typeof GetTasksFilterDto>; // Make sure GetTasksFilterDto is a Zod schema
+type TaskFilters = z.infer<typeof GetTasksFilterDto>;
 
-// Define the base API paths (note the context)
-const getSpaceBasePath = (workspaceId: string, spaceId: string) =>
-  `/v1/spaces/${spaceId}`;
-
-const getListBasePath = (
-  workspaceId: string,
-  spaceId: string,
-  listId: string
-) => `${getSpaceBasePath(workspaceId, spaceId)}/lists/${listId}`;
-
+// --- Path Helper Functions ---
 // Path for tasks directly under a space
-const getSpaceTasksPath = (workspaceId: string, spaceId: string) =>
-  `${getSpaceBasePath(workspaceId, spaceId)}/tasks`;
+const getSpaceTasksPath = (spaceId: string) => `/v1/tasks/spaces/${spaceId}`;
 
 // Path for tasks under a list
-const getListTasksPath = (
-  workspaceId: string,
-  spaceId: string,
-  listId: string
-) => `${getListBasePath(workspaceId, spaceId, listId)}/tasks`;
+const getListTasksPath = (spaceId: string, listId: string) =>
+  `/v1/tasks/spaces/${spaceId}/lists/${listId}`;
 
-// Path for a specific task (requires context: workspace, space, list?)
+// Simplified path for single task operations
 const getTaskDetailPath = (taskId: string) => `/v1/tasks/${taskId}`;
 
+// --- TaskService Class ---
 export class TaskService {
   async getAllTasks(params: {
     spaceId: string;
@@ -44,13 +31,14 @@ export class TaskService {
     filters?: TaskFilters;
   }): Promise<TaskListResponse> {
     const { spaceId, listId, filters } = params;
+    // Construct path based on presence of listId
     const path = listId
-      ? getListTasksPath('-', spaceId, listId)
-      : getSpaceTasksPath('-', spaceId);
+      ? getListTasksPath(spaceId, listId)
+      : getSpaceTasksPath(spaceId);
 
     try {
       const response = await api.get<TaskListResponse>(path, {
-        params: filters, // Pass filters as query parameters
+        params: filters,
       });
       return response.data;
     } catch (error) {
@@ -59,11 +47,12 @@ export class TaskService {
     }
   }
 
-  async getTaskById(params: { taskId: string }): Promise<Task> {
+  // Uses simple /tasks/:taskId path
+  async getTaskById(params: { taskId: string }): Promise<ITask> {
     const { taskId } = params;
     const path = getTaskDetailPath(taskId);
     try {
-      const response = await api.get<Task>(path);
+      const response = await api.get<ITask>(path);
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch task ${taskId}:`, error);
@@ -71,21 +60,22 @@ export class TaskService {
     }
   }
 
+  // Path depends on listId
   async createTask(
     params: {
       spaceId: string;
       listId?: string;
     },
     data: CreateTaskInput
-  ): Promise<Task> {
+  ): Promise<ITask> {
     const { spaceId, listId } = params;
     const path = listId
-      ? getListTasksPath('-', spaceId, listId)
-      : getSpaceTasksPath('-', spaceId);
+      ? getListTasksPath(spaceId, listId)
+      : getSpaceTasksPath(spaceId);
 
     try {
-      createTaskSchema.parse(data);
-      const response = await api.post<Task>(path, data);
+      createTaskSchema.parse(data); // Validate before sending
+      const response = await api.post<ITask>(path, data);
       return response.data;
     } catch (error) {
       console.error('Failed to create task:', error);
@@ -93,15 +83,16 @@ export class TaskService {
     }
   }
 
+  // Uses simple /tasks/:taskId path
   async updateTask(
     params: { taskId: string },
     data: UpdateTaskInput
-  ): Promise<Task> {
+  ): Promise<ITask> {
     const { taskId } = params;
     const path = getTaskDetailPath(taskId);
     try {
-      updateTaskSchema.parse(data);
-      const response = await api.patch<Task>(path, data);
+      updateTaskSchema.parse(data); // Validate before sending
+      const response = await api.patch<ITask>(path, data);
       return response.data;
     } catch (error) {
       console.error(`Failed to update task ${taskId}:`, error);
@@ -109,6 +100,7 @@ export class TaskService {
     }
   }
 
+  // Uses simple /tasks/:taskId path
   async deleteTask(params: { taskId: string }): Promise<void> {
     const { taskId } = params;
     const path = getTaskDetailPath(taskId);

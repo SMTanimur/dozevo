@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/components';
+import { Button, TaskDetailView, TaskListView } from '@/components';
 import { GridLayout } from '@/components/home/GridLayout';
 import {
   DocsCard,
@@ -12,24 +12,35 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, MoreHorizontal } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import React, { useState } from 'react';
-import { BoardView, ListView } from '@/components/views';
-import { TaskDetailModal } from '@/components/tasks';
+
+import TaskBoardView from '@/components/tasks/task-board-view';
+import { useGetList } from '@/hooks/list';
+import { IList } from '@/types';
+import { useGetTasks } from '@/hooks';
 
 const ListScreen = () => {
-  const { list_id } = useParams();
+  const { list_id, w_id, space_id } = useParams();
   const [activeTab, setActiveTab] = useState('list');
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-
+  const { data: list } = useGetList(
+    w_id as string,
+    space_id as string,
+    list_id as string,
+    {
+      enabled: !!w_id && !!space_id && !!list_id,
+    }
+  );
+  const { data: tasks } = useGetTasks({
+    spaceId: space_id as string,
+    listId: list_id as string,
+    filters: {
+      limit: 10,
+    },
+    options: {
+      enabled: !!space_id && !!list_id,
+    },
+  });
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-  };
-
-  const handleTaskClick = (taskId: string) => {
-    setSelectedTaskId(taskId);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedTaskId(null);
   };
 
   const renderCard = (id: string) => {
@@ -252,10 +263,14 @@ const ListScreen = () => {
             </GridLayout>
           </TabsContent>
           <TabsContent value='list' className='flex-1 p-0 m-0 overflow-hidden'>
-            <ListView onTaskClick={handleTaskClick} />
+            <TaskListView list={list as IList} tasks={tasks?.data || []} />
           </TabsContent>
           <TabsContent value='board' className='flex-1 p-0 m-0 overflow-hidden'>
-            <BoardView onTaskClick={handleTaskClick} />
+            <TaskBoardView
+              workspaceId={w_id as string}
+              spaceId={space_id as string}
+              listId={list_id as string}
+            />
           </TabsContent>
           <TabsContent value='calendar' className='flex-1 p-4 m-0'>
             <div>Calendar View Coming Soon...</div>
@@ -263,11 +278,7 @@ const ListScreen = () => {
         </Tabs>
       </div>
 
-      <TaskDetailModal
-        taskId={selectedTaskId}
-        isOpen={!!selectedTaskId}
-        onClose={handleCloseModal}
-      />
+      <TaskDetailView />
     </>
   );
 };

@@ -19,9 +19,9 @@ type TaskListViewProps = {
 export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
   const { openTaskModal } = useGlobalStateStore();
   const { data: statuses = [], isLoading: isLoadingStatuses } = useGetStatuses({
-    workspaceId: list.workspace,
-    spaceId: list.space,
-    listId: list._id,
+    workspaceId: list?.workspace as string,
+    spaceId: list?.space as string,
+    listId: list?._id as string,
   });
 
   const { createTask } = useTaskMutations();
@@ -55,9 +55,8 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
     createTask({
       data: newTask,
       params: {
-       
-        spaceId: list.space,
-        
+        spaceId: list.space as string,
+        listId: list._id as string,
       },
     });
   };

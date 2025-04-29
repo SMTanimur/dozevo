@@ -1,5 +1,5 @@
 import { taskService } from "@/services";
-import { Task } from "@/types";
+import { ITask } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 /**
@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
  * @param options - Optional React Query query options.
  */
 export const useGetTask = (taskId: string, options?: { enabled?: boolean }) => {
-  return useQuery<Task, Error>({
+  return useQuery<ITask, Error>({
     // Use function name and ID for the query key
     queryKey: [taskService.getTaskById.name, taskId],
     queryFn: () => taskService.getTaskById({ taskId }), // Pass taskId as an object property

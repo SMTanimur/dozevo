@@ -68,7 +68,7 @@ export const SubtaskForm = ({
 
     createTask({
       data: newSubtask,
-      params: { spaceId },
+      params: { spaceId, listId },
     });
 
     onCancel();

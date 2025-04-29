@@ -51,7 +51,7 @@ export default function TaskBoardView({
     };
     createTask({
       data: newTask,
-      params: { spaceId },
+      params: { spaceId, listId },
     });
   };
   // Group tasks by status ID

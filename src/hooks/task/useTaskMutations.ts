@@ -1,13 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { taskService } from '@/services';
-import { Task } from '@/types';
 import { TCreateTask, TUpdateTask } from '@/validations'; // Assuming these types are exported
+import { ITask } from '@/types';
 
 // Define structure for createTask mutation input
 interface CreateTaskMutationInput {
   params: {
     spaceId: string;
+    listId: string
   };
   data: TCreateTask;
 }
@@ -39,7 +40,7 @@ export const useTaskMutations = () => {
 
   // --- Create Task Mutation ---
   const { mutate: createTask, isPending: isCreatingTask } = useMutation<
-    Task,
+    ITask,
     Error,
     CreateTaskMutationInput
   >({
@@ -57,7 +58,7 @@ export const useTaskMutations = () => {
 
   // --- Update Task Mutation ---
   const { mutate: updateTask, isPending: isUpdatingTask } = useMutation<
-    Task,
+    ITask,
     Error,
     UpdateTaskMutationInput
   >({

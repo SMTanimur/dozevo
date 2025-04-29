@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { statusSchema } from './status';
+import { Priority } from '@/types';
 
 // --- Sub-Schemas based on API structure ---
 
@@ -9,12 +10,6 @@ export const tagSchema = z.object({
   name: z.string(),
   color: z.string().optional(),
   // workspace: z.string(), // workspace ID if included
-});
-
-// Priority Value
-export const priorityValueSchema = z.object({
-  priority: z.string(),
-  color: z.string(),
 });
 
 // Checklist Item
@@ -79,7 +74,7 @@ export const taskSchema = z.object({
   text_content: z.string().optional(),
   description: z.string().optional(),
   status: statusSchema, // Embed status schema
-  priority: priorityValueSchema.nullable().optional(),
+  priority: z.nativeEnum(Priority),
   assignees: z.array(z.string()).default([]), // Array of populated users
   watchers: z.array(z.string()).default([]), // Array of populated users
   tags: z.array(tagSchema).default([]), // Array of populated tags (using simple schema above)
@@ -120,7 +115,8 @@ export const createTaskSchema = z.object({
   assignees: z.array(z.string()).optional(), // Array of User IDs
   watchers: z.array(z.string()).optional(), // Array of User IDs
   tags: z.array(z.string()).optional(), // Array of Tag IDs
-  priority: priorityValueSchema.nullable().optional(),
+
+  priority: z.nativeEnum(Priority).nullable().optional(),
   due_date: z
     .string()
     .datetime({ message: 'Invalid due date format' })
@@ -146,7 +142,7 @@ export const updateTaskSchema = z
     assignees: z.array(z.string()).optional(),
     watchers: z.array(z.string()).optional(),
     tags: z.array(z.string()).optional(),
-    priority: priorityValueSchema.nullable().optional(),
+    priority: z.nativeEnum(Priority).nullable().optional(),
     due_date: z
       .string()
       .datetime({ message: 'Invalid due date format' })

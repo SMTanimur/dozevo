@@ -3,7 +3,6 @@ import { z } from 'zod';
 import {
   taskSchema,
   tagSchema,
-  priorityValueSchema,
   checklistItemSchema,
   checklistSchema,
   customFieldValueDataSchema,
@@ -43,6 +42,13 @@ export interface ITaskUser {
   avatar?: string;
 }
 
+export enum Priority {
+  LOW = 'low',
+  NORMAL = 'normal',
+  HIGH = 'high',
+  CRITICAL = 'critical',
+}
+
 // Represents the data structure for a single task response
 export interface ITask {
   _id: string; // Or map to 'id'
@@ -51,7 +57,7 @@ export interface ITask {
   name: string;
   description?: string;
   status: IStatusDefinition; // Use the Status 
-  priority: ITaskPriority | null; // Use the Priority 
+  priority: Priority; // Use the Priority 
   assignees: ITaskUser[]; // Use updated TaskUser
   watchers: ITaskUser[]; // Use updated TaskUser
   tags: ITaskTag[]; // Use the Tag 
@@ -79,8 +85,6 @@ export interface ITaskListResponse {
 // Type derived from the Zod schema
 export type Tag = z.infer<typeof tagSchema>;
 
-// Type derived from the Zod schema
-export type PriorityValue = z.infer<typeof priorityValueSchema>;
 
 // Type derived from the Zod schema
 export type ChecklistItem = z.infer<typeof checklistItemSchema>;

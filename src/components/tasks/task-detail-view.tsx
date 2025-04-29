@@ -32,70 +32,68 @@ import {
   Plus,
   X,
   ChevronDown,
-  Flag,
 } from 'lucide-react';
-import { ITask, ITaskPriority } from '@/types';
+import {  ITaskUser, Priority } from '@/types';
 import { useGlobalStateStore } from '@/stores';
-import { useGetTasks, useTaskMutations } from '@/hooks';
+import { useGetTask, useGetTasks, useTaskMutations } from '@/hooks';
 import { useGetStatuses } from '@/hooks/list';
 import { useParams } from 'next/navigation';
 import { UserAvatar } from '../ui';
 import { SubtaskForm } from './subtask-form';
 import SubtaskItem from './subtask-item';
 import { CommentItem } from './comments';
+import {
+  PRIORITY_OPTIONS,
+  NO_PRIORITY,
+  PriorityId,
+  getPriorityDetails,
+  NO_PRIORITY_ID,
+} from '@/constants';
 
-type TaskDetailViewProps = {
-  task: ITask;
-};
-export const TaskDetailView = ({ task }: TaskDetailViewProps) => {
+
+
+export const TaskDetailView = () => {
+
+  const { closeTaskModal, isTaskModalOpen,selectedTaskId } = useGlobalStateStore();
   const [editingTitle, setEditingTitle] = useState(false);
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedPriority, setSelectedPriority] =
-    useState<ITaskPriority | null>(null);
+  const {data: task} = useGetTask(selectedTaskId as string)
+  const [title, setTitle] = useState(task?.name || '');
+  const [description, setDescription] = useState(task?.description || '');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    task?.dueDate ? new Date(task?.dueDate) : undefined
+  );
+  const [selectedPriorityId, setSelectedPriorityId] = useState<
+    PriorityId | typeof NO_PRIORITY_ID | null
+  >(task?.priority as PriorityId | null);
   const [commentText, setCommentText] = useState('');
   const [addingSubtask, setAddingSubtask] = useState(false);
-  const { selectedTaskId,closeTaskModal,isTaskModalOpen } = useGlobalStateStore();
+
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
-  const { data: tasks } = useGetTasks({ spaceId: task?.space });
-  const {w_id}=useParams()
+  const { data: spaceTasksData } = useGetTasks({ spaceId: task?.space as string });
+  const params = useParams();
+  const workspaceId = params.w_id as string;
+
   const { updateTask } = useTaskMutations();
 
-  
-  const { data: statuses } = useGetStatuses({
-    workspaceId: w_id as string,
-    spaceId: task.space,
-    listId: task.list as string,
+  const { data: statuses = [] } = useGetStatuses({
+    workspaceId,
+    spaceId: task?.space as string,
+    listId: task?.list as string,
   });
+
   useEffect(() => {
-    if (selectedTaskId) {
-      const selectedTask = tasks?.data?.find(t => t._id === selectedTaskId);
-      if (selectedTask) {
-        setTitle(selectedTask.name);
-        setDescription(selectedTask.description || '');
-        setSelectedPriority(selectedTask.priority);
-        setSelectedDate(
-          selectedTask.dueDate ? new Date(selectedTask.dueDate) : undefined
-        );
-      }
-    }
-  }, [selectedTaskId, tasks]);
+    setTitle(task?.name || '');
+    setDescription(task?.description || '');
+    setSelectedPriorityId(task?.priority as PriorityId | null);
+    setSelectedDate(task?.dueDate ? new Date(task?.dueDate) : undefined);
+  }, [task]);
 
   const handleTitleSave = () => {
     if (task && title.trim()) {
       updateTask({
-        data: {
-          ...task,
-          name: title,
-          description: description,
-          priority: selectedPriority,
-          dueDate: selectedDate,
-          status: task.status._id,
-          assignees: task.assignees.map(a => a._id),
-        },
         taskId: task._id,
+        data: { name: title },
       });
       setEditingTitle(false);
     }
@@ -104,71 +102,63 @@ export const TaskDetailView = ({ task }: TaskDetailViewProps) => {
   const handleDescriptionSave = () => {
     if (task) {
       updateTask({
-        data: {
-     
-          description: description,
-        },
         taskId: task._id,
+        data: { description },
       });
     }
   };
 
   const handleStatusChange = (statusId: string) => {
-    if (task) {
-      const newStatus = statuses?.find(s => s._id === statusId);
-      if (newStatus) {
-        updateTask({
-          data: {
-         
-            status: newStatus._id,
-          },
-          taskId: task._id,
-        });
-      }
+    if (task && task.status._id !== statusId) {
+      updateTask({
+        taskId: task._id,
+        data: { status: statusId },
+      });
     }
   };
 
-  const handlePriorityChange = (priorityId: string) => {
+  const handlePriorityChange = (
+    priorityId: PriorityId | typeof NO_PRIORITY_ID
+  ) => {
+    setSelectedPriorityId(priorityId === NO_PRIORITY_ID ? null : priorityId);
     if (task) {
-      const newPriority = priorities.find(p => p.id === priorityId) || null;
-      setSelectedPriority(newPriority);
       updateTask({
-        data: {
-          priority: newPriority,
-        },
         taskId: task._id,
+        data: {
+          priority:
+            priorityId === NO_PRIORITY_ID ? null : (priorityId as Priority),
+        },
       });
     }
   };
 
   const handleDateChange = (date: Date | undefined) => {
+    setSelectedDate(date);
     if (task) {
-      setSelectedDate(date);
       updateTask({
+        taskId: task._id,
         data: {
           due_date: date ? date.toISOString() : null,
         },
-        taskId: task._id,
       });
     }
   };
 
   const handleCommentSubmit = () => {
     if (task && commentText.trim()) {
-      // addComment(task._id, commentText);
+      console.log('Submitting comment:', commentText);
       setCommentText('');
     }
   };
 
-  // Get subtasks for the current task
   const subtasks = task
-    ? tasks?.data?.filter(t => t.parentTask && t.parentTask._id === task._id)
+    ? (spaceTasksData?.data || []).filter(t => t.parentTask?._id === task._id)
     : [];
 
-  // Get comments for the current task
-  // const taskComments = task ? comments[task._id] || [] : [];\
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const taskComments:any[] = [];
+  const taskComments: any[] = [];
+
+  const currentPriorityDetails = getPriorityDetails(selectedPriorityId);
 
   if (!task) return null;
 
@@ -181,9 +171,7 @@ export const TaskDetailView = ({ task }: TaskDetailViewProps) => {
               <span>Task</span>
               <ChevronDown className='h-3 w-3' />
             </Button>
-            <div className='text-sm text-gray-500'>
-             {task.space}
-            </div>
+            <div className='text-sm text-gray-500'>{task.space}</div>
           </div>
           <div className='flex items-center gap-2'>
             <Button variant='outline' size='sm'>
@@ -208,12 +196,17 @@ export const TaskDetailView = ({ task }: TaskDetailViewProps) => {
                   <Input
                     value={title}
                     onChange={e => setTitle(e.target.value)}
+                    onBlur={handleTitleSave}
+                    onKeyDown={e => e.key === 'Enter' && handleTitleSave()}
                     className='text-2xl font-semibold h-auto py-1'
                     autoFocus
                   />
-                  <Button onClick={handleTitleSave}>Save</Button>
+                  <Button onClick={handleTitleSave} size='sm'>
+                    Save
+                  </Button>
                   <Button
                     variant='ghost'
+                    size='sm'
                     onClick={() => {
                       setTitle(task.name);
                       setEditingTitle(false);
@@ -227,7 +220,7 @@ export const TaskDetailView = ({ task }: TaskDetailViewProps) => {
                   className='text-2xl font-semibold cursor-pointer hover:bg-gray-100 p-1 rounded'
                   onClick={() => setEditingTitle(true)}
                 >
-                  {task.name}
+                  {title || 'Untitled Task'}
                 </h1>
               )}
             </div>
@@ -236,7 +229,7 @@ export const TaskDetailView = ({ task }: TaskDetailViewProps) => {
               <div>
                 <Label className='text-sm text-gray-500 mb-1'>Status</Label>
                 <Select
-                  defaultValue={task.status.id}
+                  value={task.status._id}
                   onValueChange={handleStatusChange}
                 >
                   <SelectTrigger className='w-full'>
@@ -249,7 +242,7 @@ export const TaskDetailView = ({ task }: TaskDetailViewProps) => {
                     </div>
                   </SelectTrigger>
                   <SelectContent>
-                    {statuses?.map(status => (
+                    {(statuses || []).map(status => (
                       <SelectItem key={status._id} value={status._id}>
                         <div className='flex items-center gap-2'>
                           <div
@@ -267,26 +260,31 @@ export const TaskDetailView = ({ task }: TaskDetailViewProps) => {
               <div>
                 <Label className='text-sm text-gray-500 mb-1'>Priority</Label>
                 <Select
-                  defaultValue={task.priority?.id || 'none'}
+                  value={selectedPriorityId ?? NO_PRIORITY_ID}
                   onValueChange={handlePriorityChange}
                 >
                   <SelectTrigger className='w-full'>
                     <div className='flex items-center gap-2'>
-                      {selectedPriority && (
-                        <Flag
+                      {currentPriorityDetails && (
+                        <currentPriorityDetails.icon
                           className='h-4 w-4'
-                          style={{ color: selectedPriority.color }}
+                          style={{ color: currentPriorityDetails.color }}
                         />
                       )}
                       <SelectValue placeholder='Select priority' />
                     </div>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value='none'>No Priority</SelectItem>
-                    {priorities.map(priority => (
+                    <SelectItem value={NO_PRIORITY_ID}>
+                      <div className='flex items-center gap-2'>
+                        <NO_PRIORITY.icon className='h-4 w-4' />
+                        <span>{NO_PRIORITY.name}</span>
+                      </div>
+                    </SelectItem>
+                    {PRIORITY_OPTIONS.map(priority => (
                       <SelectItem key={priority.id} value={priority.id}>
                         <div className='flex items-center gap-2'>
-                          <Flag
+                          <priority.icon
                             className='h-4 w-4'
                             style={{ color: priority.color }}
                           />
@@ -304,7 +302,7 @@ export const TaskDetailView = ({ task }: TaskDetailViewProps) => {
                   {task.assignees.length > 0 ? (
                     <div className='flex -space-x-2'>
                       {task.assignees.map(assignee => (
-                        <UserAvatar key={assignee._id} user={assignee} />
+                        <UserAvatar key={assignee._id as string} user={assignee as ITaskUser} />
                       ))}
                       <Button
                         variant='outline'
@@ -427,12 +425,15 @@ export const TaskDetailView = ({ task }: TaskDetailViewProps) => {
               {addingSubtask && (
                 <SubtaskForm
                   parentTaskId={task._id}
+                  workspaceId={workspaceId}
+                  spaceId={task.space}
+                  listId={task.list as string}
                   onCancel={() => setAddingSubtask(false)}
                 />
               )}
 
               <div className='border rounded-md p-3'>
-                {subtasks?.length > 0 ? (
+                {subtasks.length > 0 ? (
                   <div className='space-y-1'>
                     {subtasks.map(subtask => (
                       <SubtaskItem key={subtask._id} task={subtask} />
@@ -486,7 +487,9 @@ export const TaskDetailView = ({ task }: TaskDetailViewProps) => {
                         </span>{' '}
                         changed status from{' '}
                         <span className='font-medium'>TO DO</span> to{' '}
-                        <span className='font-medium'>{task.status.name}</span>
+                        <span className='font-medium'>
+                          {task.status.status}
+                        </span>
                       </div>
                       <div className='text-xs text-gray-400'>
                         {new Date(task.updatedAt).toLocaleString()}
@@ -495,7 +498,6 @@ export const TaskDetailView = ({ task }: TaskDetailViewProps) => {
                   </div>
                 )}
 
-                {/* Display comments */}
                 {taskComments.map(comment => (
                   <CommentItem key={comment.id} comment={comment} />
                 ))}
@@ -525,7 +527,6 @@ export const TaskDetailView = ({ task }: TaskDetailViewProps) => {
                     </div>
                     <Button
                       size='sm'
-                  
                       onClick={handleCommentSubmit}
                       disabled={!commentText.trim()}
                     >
