@@ -10,23 +10,18 @@ interface UseGetStatusesParams {
   listId: string;
 }
 
-export const getStatusesQueryKey = (params: UseGetStatusesParams) => [
-  'workspaces',
-  params.workspaceId,
-  'spaces',
-  params.spaceId,
-  'lists',
-  params.listId,
-  'statuses',
-];
+
 
 export const useGetStatuses = (
   params: UseGetStatusesParams,
-  options?: Omit<UseQueryOptions<IStatusDefinition[], AxiosError>, 'queryKey' | 'queryFn'>
+  options?: Omit<
+    UseQueryOptions<IStatusDefinition[], AxiosError>,
+    'queryKey' | 'queryFn'
+  >
 ) => {
   const { workspaceId, spaceId, listId } = params;
   return useQuery<IStatusDefinition[], AxiosError>({
-    queryKey: getStatusesQueryKey(params),
+    queryKey: [listService.getStatuses.name, workspaceId, spaceId, listId],
     queryFn: async () => listService.getStatuses(workspaceId, spaceId, listId),
     enabled: !!workspaceId && !!spaceId && !!listId,
     staleTime: 5 * 60 * 1000, // 5 minutes

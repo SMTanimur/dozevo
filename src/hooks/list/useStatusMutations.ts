@@ -7,7 +7,6 @@ import { AxiosError } from 'axios';
 import { listService } from '@/services'; // Adjust path if needed
 import { TCreateStatus, TUpdateStatus } from '@/validations/status';
 import { IStatusDefinition } from '@/types/status';
-import { getStatusesQueryKey } from './useGetStatuses'; // Import query key generator
 
 interface StatusMutationParams {
   workspaceId: string;
@@ -19,7 +18,11 @@ interface StatusMutationParams {
 type CreateStatusVariables = StatusMutationParams & { data: TCreateStatus };
 
 export const useCreateStatus = (
-  options?: UseMutationOptions<IStatusDefinition, AxiosError, CreateStatusVariables>
+  options?: UseMutationOptions<
+    IStatusDefinition,
+    AxiosError,
+    CreateStatusVariables
+  >
 ) => {
   const queryClient = useQueryClient();
 
@@ -32,13 +35,18 @@ export const useCreateStatus = (
     }: CreateStatusVariables) =>
       listService.createStatus(workspaceId, spaceId, listId, data),
     ...options,
-    onSuccess: (data: IStatusDefinition, variables: CreateStatusVariables, context) => {
+    onSuccess: (
+      data: IStatusDefinition,
+      variables: CreateStatusVariables,
+      context
+    ) => {
       queryClient.invalidateQueries({
-        queryKey: getStatusesQueryKey({
-          workspaceId: variables.workspaceId,
-          spaceId: variables.spaceId,
-          listId: variables.listId,
-        }),
+        queryKey: [
+          listService.getStatuses.name,
+          variables.workspaceId,
+          variables.spaceId,
+          variables.listId,
+        ],
       });
       options?.onSuccess?.(data, variables, context);
     },
@@ -52,7 +60,11 @@ type UpdateStatusVariables = StatusMutationParams & {
 };
 
 export const useUpdateStatus = (
-  options?: UseMutationOptions<IStatusDefinition, AxiosError, UpdateStatusVariables>
+  options?: UseMutationOptions<
+    IStatusDefinition,
+    AxiosError,
+    UpdateStatusVariables
+  >
 ) => {
   const queryClient = useQueryClient();
 
@@ -66,13 +78,18 @@ export const useUpdateStatus = (
     }: UpdateStatusVariables) =>
       listService.updateStatus(workspaceId, spaceId, listId, statusId, data),
     ...options,
-    onSuccess: (data: IStatusDefinition, variables: UpdateStatusVariables, context) => {
+    onSuccess: (
+      data: IStatusDefinition,
+      variables: UpdateStatusVariables,
+      context
+    ) => {
       queryClient.invalidateQueries({
-        queryKey: getStatusesQueryKey({
-          workspaceId: variables.workspaceId,
-          spaceId: variables.spaceId,
-          listId: variables.listId,
-        }),
+        queryKey: [
+          listService.getStatuses.name,
+          variables.workspaceId,
+          variables.spaceId,
+          variables.listId,
+        ],
       });
       options?.onSuccess?.(data, variables, context);
     },
@@ -98,11 +115,12 @@ export const useDeleteStatus = (
     ...options,
     onSuccess: (data: void, variables: DeleteStatusVariables, context) => {
       queryClient.invalidateQueries({
-        queryKey: getStatusesQueryKey({
-          workspaceId: variables.workspaceId,
-          spaceId: variables.spaceId,
-          listId: variables.listId,
-        }),
+        queryKey: [
+          listService.getStatuses.name,
+          variables.workspaceId,
+          variables.spaceId,
+          variables.listId,
+        ],
       });
       options?.onSuccess?.(data, variables, context);
     },
