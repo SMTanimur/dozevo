@@ -5,3 +5,4 @@ export * from './list';
 export * from './task';
 export * from './comment';
 export * from './notification';
+export * from './status';

@@ -22,6 +22,7 @@ export * from "./icon"
 export * from "./tooltip"
 export * from "./sidebar"
 export * from "./popover"
+export * from "./user-avatar"
 
 
 

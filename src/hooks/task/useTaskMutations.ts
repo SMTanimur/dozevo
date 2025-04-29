@@ -12,7 +12,6 @@ interface CreateTaskMutationInput {
   params: {
     workspaceId: string;
     spaceId: string;
-    folderId?: string;
   };
   data: TCreateTask;
 }
@@ -35,7 +34,7 @@ export const useTaskMutations = () => {
     queryClient.invalidateQueries({
       queryKey: [
         taskService.getAllTasks.name,
-        { workspaceId: params.workspaceId, spaceId: params.spaceId, folderId: params.folderId },
+        { workspaceId: params.workspaceId, spaceId: params.spaceId },
         // We might need to invalidate across different filters, or just the default/no filter
       ],
       // Consider `refetchType: 'none'` if you only want to mark as stale

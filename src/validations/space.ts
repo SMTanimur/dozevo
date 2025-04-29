@@ -1,22 +1,7 @@
 import { z } from 'zod';
 
 
-// Enum matching API definition
-export const statusTypeSchema = z.enum([
-  'open',
-  'custom',
-  'in_progress',
-  'closed',
-  'done',
-]);
 
-// Schema for StatusDefinition subdocument
-export const statusDefinitionSchema = z.object({
-  status: z.string({ required_error: 'Status name is required' }),
-  orderindex: z.number({ required_error: 'Status order is required' }),
-  color: z.string({ required_error: 'Status color is required' }),
-  type: statusTypeSchema,
-});
 
 // Schema for SpaceFeaturesConfig subdocument
 export const spaceFeaturesConfigSchema = z.object({
@@ -47,7 +32,6 @@ export const spaceSchema = z.object({
   avatar: z.string().url('Invalid avatar URL').nullable().optional(),
   archived: z.boolean().default(false),
   members: z.array(z.string()).optional(), // Assuming array of User IDs
-  statuses: z.array(statusDefinitionSchema).default([]),
   multiple_assignees: z.boolean().default(false),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),

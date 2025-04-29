@@ -1,6 +1,5 @@
 import { z } from 'zod';
-
-import { statusDefinitionSchema } from './space'; // Import status schema
+import { statusSchema } from './status';
 
 // --- Sub-Schemas based on API structure ---
 
@@ -79,7 +78,7 @@ export const taskSchema = z.object({
     .min(1, 'Task name cannot be empty'),
   text_content: z.string().optional(),
   description: z.string().optional(),
-  status: statusDefinitionSchema, // Embed status schema
+  status: statusSchema, // Embed status schema
   priority: priorityValueSchema.nullable().optional(),
   assignees: z.array(z.string()).default([]), // Array of populated users
   watchers: z.array(z.string()).default([]), // Array of populated users
@@ -112,18 +111,11 @@ export const createTaskSchema = z.object({
     .min(1, 'Task name cannot be empty')
     .trim(),
   // workspace and space are typically path parameters, not in body
-  folderId: z.string().optional(), // Folder ID is optional
+  listId: z.string().optional(), // Folder ID is optional
   parentTask: z.string().nullable().optional(), // Optional parent task ID
-  status: statusDefinitionSchema
-    .pick({
-      // Require necessary fields for status subdoc
-      status: true,
-      orderindex: true,
-      color: true,
-      type: true,
-    })
-    .extend({ clickUpId: z.string().optional() })
-    .optional(),
+  status: z
+    .string({ required_error: 'Status is required' })
+    .min(1, 'Status is required'),
   description: z.string().optional(),
   assignees: z.array(z.string()).optional(), // Array of User IDs
   watchers: z.array(z.string()).optional(), // Array of User IDs
@@ -149,16 +141,7 @@ export const updateTaskSchema = z
     name: z.string().min(1, 'Task name cannot be empty').trim().optional(),
     listId: z.string().nullable().optional(), // Allow moving or removing from folder
     parentTask: z.string().nullable().optional(),
-    status: statusDefinitionSchema
-      .pick({
-        // Allow updating status fields
-        status: true,
-        orderindex: true,
-        color: true,
-        type: true,
-      })
-      .extend({ clickUpId: z.string().optional() })
-      .optional(),
+    status: z.string().optional(),
     description: z.string().nullable().optional(),
     assignees: z.array(z.string()).optional(),
     watchers: z.array(z.string()).optional(),

@@ -1,4 +1,4 @@
-import { IStatusDefinition } from "../space";
+
 import { z } from 'zod';
 import {
   taskSchema,
@@ -10,6 +10,7 @@ import {
   taskRelationTypeSchema,
   taskRelationSchema,
 } from '@/validations/task';
+import { IStatusDefinition } from '../status';
 
 //  for Task Priority (matches schema)
 export interface ITaskPriority {
@@ -102,6 +103,6 @@ export type Task = z.infer<typeof taskSchema>;
 
 // Type for the list response structure
 export type TaskListResponse = {
-  data: Task[];
+  data: ITask[];
   total: number;
 };
