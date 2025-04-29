@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { updateStatusSchema } from './status';
+
 
 // Basic schema for Folder object returned by the API
 export const listSchema = z.object({
@@ -37,6 +39,7 @@ export const updatelistSchema = z
     icon: z.string().optional(),
     hidden: z.boolean().optional(),
     orderindex: z.number().optional(),
+    statuses: z.array(updateStatusSchema).optional(),
     // Add other fields like color, orderindex if updatable
   })
   .refine((data) => Object.keys(data).length > 0, {

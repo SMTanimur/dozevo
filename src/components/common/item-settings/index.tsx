@@ -27,12 +27,13 @@ import { useListMutations } from '@/hooks/list';
 import { useParams } from 'next/navigation';
 import { CreateItemOptions } from '../create-item-options';
 import { DeleteConfirmationDialog } from '@/components/modals';
+import { EditState } from '@/components/layouts/workspace/sidebar-space-item';
 
 interface ItemSettingsProps {
   itemType: 'space' | 'list';
   spaceId?: string;
   listId?: string;
-  setEditListOpen?: React.Dispatch<React.SetStateAction<string | null>>;
+  setEditListOpen?: React.Dispatch<React.SetStateAction<EditState | null>>;
   item: ISpace | IList;
 }
 
@@ -134,7 +135,11 @@ export const ItemSettings = ({
                 label='Rename'
                 onClick={() => {
                   console.log('clicked');
-                  setEditListOpen?.(item._id);
+                  if (itemType === 'space') {
+                    setEditListOpen?.({ id: item._id, isOpen: true });
+                  } else if (itemType === 'list') {
+                    setEditListOpen?.({ id: listId as string, isOpen: true });
+                  }
                 }}
               />
             </div>

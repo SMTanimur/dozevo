@@ -1,6 +1,7 @@
-import { IStatusDefinition } from "../space";
+
 import { z } from 'zod';
 import { listSchema } from '@/validations/list';
+import { IStatusDefinition } from '../status';
 
 // Type derived from the Zod schema
 export type List = z.infer<typeof listSchema>;

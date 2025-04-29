@@ -4,9 +4,8 @@ import { TGetTasksFilter } from "@/validations"; // Assuming TGetTasksFilter is 
 import { useQuery } from "@tanstack/react-query";
 
 interface UseGetTasksParams {
-  workspaceId: string;
   spaceId: string;
-  folderId?: string;
+  listId?: string;
   filters?: TGetTasksFilter;
   options?: { enabled?: boolean };
 }
@@ -17,12 +16,12 @@ interface UseGetTasksParams {
  * @param params - Context IDs (workspaceId, spaceId, folderId?), filters, and options.
  */
 export const useGetTasks = (params: UseGetTasksParams) => {
-  const { workspaceId, spaceId, folderId, filters, options } = params;
+  const {spaceId, listId, filters, options } = params;
 
   // Construct query key including all relevant identifiers and filters
   const queryKey = [
     taskService.getAllTasks.name,
-    { workspaceId, spaceId, folderId },
+    {  spaceId, listId },
     filters ?? {},
   ];
 
@@ -30,14 +29,14 @@ export const useGetTasks = (params: UseGetTasksParams) => {
     queryKey,
     queryFn: () =>
       taskService.getAllTasks({
-        workspaceId,
+   
         spaceId,
-        folderId,
+        listId,
         filters,
       }),
     // Ensure context IDs are provided and respect enabled option
     enabled:
-      !!workspaceId &&
+   
       !!spaceId &&
       (options?.enabled !== undefined ? options.enabled : true),
   });

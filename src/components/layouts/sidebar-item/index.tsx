@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import {
   Tooltip,
@@ -12,13 +12,16 @@ import {
 import { Icon, Input } from '@/components/ui';
 import { icons } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useSpaceMutations } from '@/hooks';
+import { ISpace } from '@/types';
+import { EditState } from '@/components/layouts/workspace/sidebar-space-item';
 
-interface SidebarItemProps {
+export interface SidebarItemProps {
   href: string;
   icon: keyof typeof icons;
-  label: string;
-  color: string;
-  editListOpen?: string | null;
+  space: ISpace;
+  editListOpen?: EditState | null;
+  setEditListOpen?: React.Dispatch<React.SetStateAction<EditState | null>>;
   isActive?: boolean;
   isCollapsed?: boolean;
   onExpand?: () => void;
@@ -30,9 +33,9 @@ interface SidebarItemProps {
 export function SidebarItem({
   href,
   icon,
-  label,
-  color,
+  space,
   editListOpen,
+  setEditListOpen,
   isActive = false,
   isCollapsed = false,
   indent = false,
@@ -42,7 +45,57 @@ export function SidebarItem({
 }: SidebarItemProps) {
   const [isHovering, setIsHovering] = useState(false);
   const router = useRouter();
-  console.log({ editListOpen });
+  const [editedName, setEditedName] = useState(space.name);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const { updateSpace } = useSpaceMutations();
+
+  const handleUpdateAndClose = useCallback(() => {
+    if (
+      setEditListOpen &&
+      editedName.trim() !== space.name &&
+      editedName.trim() !== ''
+    ) {
+      updateSpace({
+        data: { name: editedName.trim() },
+        workspaceId: space.workspace,
+        spaceId: space._id,
+      });
+    } else {
+      setEditedName(space.name);
+    }
+    if (setEditListOpen) {
+      setEditListOpen(null);
+    }
+  }, [
+    editedName,
+    space.name,
+    space._id,
+    space.workspace,
+    setEditListOpen,
+    updateSpace,
+  ]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        editListOpen?.id === space._id &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        handleUpdateAndClose();
+      }
+    };
+
+    if (editListOpen?.id === space._id) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [editListOpen, space._id, inputRef, handleUpdateAndClose]);
+
   const IconComponent = () => {
     if (icon) {
       return (
@@ -54,7 +107,7 @@ export function SidebarItem({
     }
     return (
       <span className='text-xs text-white'>
-        {label.charAt(0).toUpperCase()}
+        {space.name.charAt(0).toUpperCase()}
       </span>
     );
   };
@@ -68,7 +121,7 @@ export function SidebarItem({
           variant === 'accent' &&
           'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300',
         indent && !isCollapsed && 'ml-4',
-        editListOpen && 'bg-transparent border border-border'
+        editListOpen?.id === space._id && 'bg-transparent border border-border'
       )}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
@@ -80,7 +133,7 @@ export function SidebarItem({
       }}
     >
       <div className='flex items-center gap-2 shrink-0 group  justify-center'>
-        {!editListOpen && isHovering ? (
+        {editListOpen?.id !== space._id && isHovering ? (
           <Icon
             name='ChevronDown'
             className='h-6 w-6'
@@ -92,24 +145,44 @@ export function SidebarItem({
         ) : (
           <div
             className='flex h-6 w-6   items-center justify-center rounded-sm'
-            style={{ backgroundColor: color ? color : '#ec4899' }}
+            style={{ backgroundColor: space.color ? space.color : '#ec4899' }}
           >
             <IconComponent />
           </div>
         )}
-        {!editListOpen && <span className='truncate'>{label}</span>}
+        {editListOpen?.id !== space._id && (
+          <span className='truncate'>{space.name}</span>
+        )}
       </div>
 
-      {!isCollapsed && !editListOpen && (
+      {!isCollapsed && editListOpen?.id !== space._id && (
         <>
           {actions && (
             <div className='ml-auto flex items-center gap-1'>{actions}</div>
           )}
         </>
       )}
-      {editListOpen && (
-        <div className='ml-auto flex items-center gap-1'>
-          <Input type='text' value={label} className='w-full' />
+      {editListOpen?.id === space._id && (
+        <div className='ml-auto flex w-full items-center gap-1'>
+          <Input
+            ref={inputRef}
+            type='text'
+            value={editedName}
+            className='w-full h-8'
+            onChange={e => setEditedName(e.target.value)}
+            onBlur={handleUpdateAndClose}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                handleUpdateAndClose();
+              }
+              if (e.key === 'Escape') {
+                setEditedName(space.name);
+                if (setEditListOpen)
+                  setEditListOpen({ id: null, isOpen: false });
+              }
+            }}
+            autoFocus
+          />
         </div>
       )}
     </div>
@@ -125,7 +198,7 @@ export function SidebarItem({
             align='start'
             className='flex items-center gap-2'
           >
-            {label}
+            {space.name}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

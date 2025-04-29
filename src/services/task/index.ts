@@ -1,43 +1,44 @@
 import { api } from '@/api';
-import { Task, TaskListResponse } from '@/types'; // Assuming TaskListResponse exists or needs creation
+import { ITask, TaskListResponse } from '@/types'; // Use ITask for consistency
 import {
   createTaskSchema,
   updateTaskSchema,
-  GetTasksFilterDto, // Assuming this DTO/type is defined in validations/index
+  GetTasksFilterDto,
 } from '@/validations';
 import { z } from 'zod';
 
 // Define types for the input data based on Zod schemas
 type CreateTaskInput = z.infer<typeof createTaskSchema>;
 type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
-// Type for filter DTO
-type TaskFilters = z.infer<typeof GetTasksFilterDto>; // Make sure GetTasksFilterDto is a Zod schema
+type TaskFilters = z.infer<typeof GetTasksFilterDto>;
 
-// Define the base API paths (note the context)
-const getSpaceTasksPath = (workspaceId: string, spaceId: string) =>
-  `/v1/workspaces/${workspaceId}/spaces/${spaceId}/tasks`;
-const getFolderTasksPath = (
-  workspaceId: string,
-  spaceId: string,
-  folderId: string,
-) => `/v1/workspaces/${workspaceId}/spaces/${spaceId}/folders/${folderId}/tasks`;
-const getTaskDetailPath = (taskId: string) => `/v1/tasks/${taskId}`; // Simpler path assuming service handles context
+// --- Path Helper Functions ---
+// Path for tasks directly under a space
+const getSpaceTasksPath = (spaceId: string) => `/v1/tasks/spaces/${spaceId}`;
 
+// Path for tasks under a list
+const getListTasksPath = (spaceId: string, listId: string) =>
+  `/v1/tasks/spaces/${spaceId}/lists/${listId}`;
+
+// Simplified path for single task operations
+const getTaskDetailPath = (taskId: string) => `/v1/tasks/${taskId}`;
+
+// --- TaskService Class ---
 export class TaskService {
   async getAllTasks(params: {
-    workspaceId: string;
     spaceId: string;
-    folderId?: string;
+    listId?: string;
     filters?: TaskFilters;
   }): Promise<TaskListResponse> {
-    const { workspaceId, spaceId, folderId, filters } = params;
-    const path = folderId
-      ? getFolderTasksPath(workspaceId, spaceId, folderId)
-      : getSpaceTasksPath(workspaceId, spaceId);
+    const { spaceId, listId, filters } = params;
+    // Construct path based on presence of listId
+    const path = listId
+      ? getListTasksPath(spaceId, listId)
+      : getSpaceTasksPath(spaceId);
 
     try {
       const response = await api.get<TaskListResponse>(path, {
-        params: filters, // Pass filters as query parameters
+        params: filters,
       });
       return response.data;
     } catch (error) {
@@ -46,14 +47,12 @@ export class TaskService {
     }
   }
 
-  async getTaskById(taskId: string): Promise<Task> {
-    // The API controller has context in the path, but the service likely just needs the ID.
-    // We'll use a simplified path here, assuming the backend service handles verification.
-    // If specific context paths are needed, this method might need adjustment.
+  // Uses simple /tasks/:taskId path
+  async getTaskById(params: { taskId: string }): Promise<ITask> {
+    const { taskId } = params;
+    const path = getTaskDetailPath(taskId);
     try {
-      // TODO: Verify if `/v1/tasks/:taskId` exists or if context path is needed.
-      // Assuming a direct task endpoint exists for simplicity for now.
-      const response = await api.get<Task>(getTaskDetailPath(taskId));
+      const response = await api.get<ITask>(path);
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch task ${taskId}:`, error);
@@ -61,22 +60,22 @@ export class TaskService {
     }
   }
 
+  // Path depends on listId
   async createTask(
     params: {
-      workspaceId: string;
       spaceId: string;
-      folderId?: string;
+      listId?: string;
     },
-    data: CreateTaskInput,
-  ): Promise<Task> {
-    const { workspaceId, spaceId, folderId } = params;
-    const path = folderId
-      ? getFolderTasksPath(workspaceId, spaceId, folderId)
-      : getSpaceTasksPath(workspaceId, spaceId);
+    data: CreateTaskInput
+  ): Promise<ITask> {
+    const { spaceId, listId } = params;
+    const path = listId
+      ? getListTasksPath(spaceId, listId)
+      : getSpaceTasksPath(spaceId);
 
     try {
-      createTaskSchema.parse(data);
-      const response = await api.post<Task>(path, data);
+      createTaskSchema.parse(data); // Validate before sending
+      const response = await api.post<ITask>(path, data);
       return response.data;
     } catch (error) {
       console.error('Failed to create task:', error);
@@ -84,12 +83,16 @@ export class TaskService {
     }
   }
 
-  async updateTask(taskId: string, data: UpdateTaskInput): Promise<Task> {
-    // Like getTaskById, assuming a simplified path. Adjust if needed.
+  // Uses simple /tasks/:taskId path
+  async updateTask(
+    params: { taskId: string },
+    data: UpdateTaskInput
+  ): Promise<ITask> {
+    const { taskId } = params;
+    const path = getTaskDetailPath(taskId);
     try {
-      updateTaskSchema.parse(data);
-      // TODO: Verify if `/v1/tasks/:taskId` exists or if context path is needed.
-      const response = await api.patch<Task>(getTaskDetailPath(taskId), data);
+      updateTaskSchema.parse(data); // Validate before sending
+      const response = await api.patch<ITask>(path, data);
       return response.data;
     } catch (error) {
       console.error(`Failed to update task ${taskId}:`, error);
@@ -97,11 +100,12 @@ export class TaskService {
     }
   }
 
-  async deleteTask(taskId: string): Promise<void> {
-    // Like getTaskById, assuming a simplified path. Adjust if needed.
+  // Uses simple /tasks/:taskId path
+  async deleteTask(params: { taskId: string }): Promise<void> {
+    const { taskId } = params;
+    const path = getTaskDetailPath(taskId);
     try {
-      // TODO: Verify if `/v1/tasks/:taskId` exists or if context path is needed.
-      await api.delete(getTaskDetailPath(taskId));
+      await api.delete(path);
     } catch (error) {
       console.error(`Failed to delete task ${taskId}:`, error);
       throw error;
@@ -110,4 +114,4 @@ export class TaskService {
 }
 
 // Export a singleton instance
-export const taskService = new TaskService(); 
+export const taskService = new TaskService();

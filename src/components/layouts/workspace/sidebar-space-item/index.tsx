@@ -18,6 +18,8 @@ interface SidebarSpaceItemProps {
   isCollapsed?: boolean;
 }
 
+export type EditState = { id: string | null; isOpen: boolean };
+
 export function SidebarSpaceItem({
   space,
   isActive = false,
@@ -26,7 +28,7 @@ export function SidebarSpaceItem({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCreateListModal, setShowCreateListModal] = useState(false);
   const hasLists = space.lists && space.lists.length > 0;
-  const [editListOpen, setEditListOpen] = useState<string | null>(null);
+  const [editState, setEditState] = useState<EditState | null>(null);
   const handleExpand = () => {
     if (isCollapsed) {
       setIsExpanded(true);
@@ -40,11 +42,11 @@ export function SidebarSpaceItem({
       <div className='group w-full  relative flex items-center'>
         <SidebarItem
           href={`/${space.workspace}/s/${space._id}`}
-          color={space.color}
+          space={space as ISpace}
           icon={space.avatar as keyof typeof icons}
-          label={space.name}
           isActive={isActive}
-          editListOpen={editListOpen}
+          editListOpen={editState}
+          setEditListOpen={setEditState}
           onExpand={handleExpand}
           isCollapsed={isCollapsed}
           actions={
@@ -53,7 +55,7 @@ export function SidebarSpaceItem({
                 <ItemSettings
                   itemType='space'
                   item={space}
-                  setEditListOpen={setEditListOpen}
+                  setEditListOpen={setEditState}
                   spaceId={space._id}
                 />
                 <ListItemPlus itemPlusType='space' space={space} />
@@ -69,17 +71,20 @@ export function SidebarSpaceItem({
             space.lists?.map(list => (
               <ListItem
                 key={list._id}
+                list={list}
                 href={`/${space.workspace}/s/${space._id}/l/${list._id}`}
                 color={list.color}
                 icon={list.icon as keyof typeof icons}
                 label={list.name}
                 isCollapsed={isCollapsed}
+                editState={editState}
+                setEditState={setEditState}
                 actions={
                   <>
                     <ItemSettings
                       itemType='list'
                       item={list}
-                      setEditListOpen={setEditListOpen}
+                      setEditListOpen={setEditState}
                       spaceId={space._id}
                       listId={list._id}
                     />

@@ -1,22 +1,32 @@
 import { api } from '@/api';
-import { IList, ListListResponse } from '@/types';
+import { IList, IStatusDefinition, ListListResponse } from '@/types';
 import {
   createlistSchema,
   TCreateList,
   TUpdateList,
   updatelistSchema,
 } from '@/validations';
+// Import status types
 
-// Define the base API path function
-const getBasePath = (workspaceId: string, spaceId: string) =>
+import { TCreateStatus, TUpdateStatus } from '@/validations/status'; // Assuming these are defined in validations/status
+
+// Define the base API path function for lists
+const getListBasePath = (workspaceId: string, spaceId: string) =>
   `/v1/workspaces/${workspaceId}/spaces/${spaceId}/lists`;
+
+// Define the base API path function for statuses within a list
+const getStatusBasePath = (
+  workspaceId: string,
+  spaceId: string,
+  listId: string
+) => `${getListBasePath(workspaceId, spaceId)}/${listId}/statuses`;
 
 export class ListService {
   async getAllLists(workspaceId: string, spaceId: string): Promise<IList[]> {
     try {
       // API returns FolderListResponseDto { data: Folder[], total: number }
       const response = await api.get<ListListResponse>(
-        getBasePath(workspaceId, spaceId)
+        getListBasePath(workspaceId, spaceId)
       );
       return response.data.data; // Return the array of folders
     } catch (error) {
@@ -32,7 +42,7 @@ export class ListService {
   ): Promise<IList> {
     try {
       const response = await api.get<IList>(
-        `${getBasePath(workspaceId, spaceId)}/${listId}`
+        `${getListBasePath(workspaceId, spaceId)}/${listId}`
       );
       return response.data;
     } catch (error) {
@@ -56,7 +66,7 @@ export class ListService {
     try {
       createlistSchema.parse(data); // Validate original data
       const response = await api.post<IList>(
-        getBasePath(workspaceId, spaceId),
+        getListBasePath(workspaceId, spaceId),
         payload
       );
       return response.data;
@@ -75,7 +85,7 @@ export class ListService {
     try {
       updatelistSchema.parse(data);
       const response = await api.patch<IList>(
-        `${getBasePath(workspaceId, spaceId)}/${listId}`,
+        `${getListBasePath(workspaceId, spaceId)}/${listId}`,
         data
       );
       return response.data;
@@ -91,9 +101,88 @@ export class ListService {
     listId: string
   ): Promise<void> {
     try {
-      await api.delete(`${getBasePath(workspaceId, spaceId)}/${listId}`);
+      await api.delete(`${getListBasePath(workspaceId, spaceId)}/${listId}`);
     } catch (error) {
       console.error(`Failed to delete list ${listId}:`, error);
+      throw error;
+    }
+  }
+
+  // --- Status Methods ---
+
+  async getStatuses(
+    workspaceId: string,
+    spaceId: string,
+    listId: string
+  ): Promise<IStatusDefinition[]> {
+    try {
+      const response = await api.get<IStatusDefinition[]>(
+        getStatusBasePath(workspaceId, spaceId, listId)
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch statuses for list ${listId}:`, error);
+      throw error;
+    }
+  }
+
+  async createStatus(
+    workspaceId: string,
+    spaceId: string,
+    listId: string,
+    data: TCreateStatus
+  ): Promise<IStatusDefinition> {
+    try {
+      // TODO: Add validation using createStatusSchema if needed
+      const response = await api.post<IStatusDefinition>(
+        getStatusBasePath(workspaceId, spaceId, listId),
+        data
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to create status for list ${listId}:`, error);
+      throw error;
+    }
+  }
+
+  async updateStatus(
+    workspaceId: string,
+    spaceId: string,
+    listId: string,
+    statusId: string,
+    data: Partial<TUpdateStatus> // Allow partial updates
+  ): Promise<IStatusDefinition> {
+    try {
+      // TODO: Add validation using updateStatusSchema if needed (careful with partials)
+      const response = await api.patch<IStatusDefinition>(
+        `${getStatusBasePath(workspaceId, spaceId, listId)}/${statusId}`,
+        data
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        `Failed to update status ${statusId} in list ${listId}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  async deleteStatus(
+    workspaceId: string,
+    spaceId: string,
+    listId: string,
+    statusId: string
+  ): Promise<void> {
+    try {
+      await api.delete(
+        `${getStatusBasePath(workspaceId, spaceId, listId)}/${statusId}`
+      );
+    } catch (error) {
+      console.error(
+        `Failed to delete status ${statusId} from list ${listId}:`,
+        error
+      );
       throw error;
     }
   }
