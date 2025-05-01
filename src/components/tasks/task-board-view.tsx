@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, Plus, MoreHorizontal } from 'lucide-react';
 import {
@@ -22,6 +23,9 @@ interface TaskBoardViewProps {
   listId: string;
 }
 
+// Define type for the local state
+type TasksByStatusMap = Record<string, ITask[]>;
+
 export default function TaskBoardView({
   workspaceId,
   spaceId,
@@ -30,11 +34,11 @@ export default function TaskBoardView({
   const { openTaskModal } = useGlobalStateStore();
 
   // Fetch tasks and statuses
-  const { data, isLoading: isLoadingTasks } = useGetTasks({
+  const { data: tasksResponse, isLoading: isLoadingTasks } = useGetTasks({
     listId: listId,
     spaceId: spaceId,
   });
-
+  const tasks = tasksResponse?.data || [];
 
   const { data: statuses = [], isLoading: isLoadingStatuses } = useGetStatuses({
     workspaceId,
@@ -43,28 +47,34 @@ export default function TaskBoardView({
   });
   const { updateTask, createTask } = useTaskMutations();
 
+  // Local state for tasks grouped by status
+  const [localTasksByStatus, setLocalTasksByStatus] =
+    useState<TasksByStatusMap>({});
+
+  // Effect to initialize and sync local state with fetched data
+  useEffect(() => {
+    if (tasks && statuses.length > 0) {
+      const newTasksByStatus = statuses.reduce((acc, status) => {
+        const statusId = status._id as string;
+        acc[statusId] = tasks.filter(task => task.status?._id === statusId);
+        return acc;
+      }, {} as TasksByStatusMap);
+      setLocalTasksByStatus(newTasksByStatus);
+    }
+  }, [tasks, statuses]); // Depend on tasks and statuses
+
   const handleAddTask = (status: IStatusDefinition) => {
     const newTask: TCreateTask = {
       name: 'New Task',
-      status: status._id as string, // Pass status ID
+      status: status._id as string,
       listId: listId,
     };
+    // Note: Creating tasks might require refreshing local state too, or relying on invalidation
     createTask({
       data: newTask,
       params: { spaceId, listId },
     });
   };
-  // Group tasks by status ID
-  const tasksByStatus = statuses.reduce(
-    (acc, status) => { // Let TS infer types from initial value and statuses array
-      // Assuming status._id will always be defined here based on context,
-      // but added optional chaining for safety if needed in the future.
-      // Type inference should resolve the overload mismatch.
-      acc[status._id as string] = data?.data?.filter(task => task.status?._id === status._id) || [];
-      return acc;
-    },
-    {} as Record<string, ITask[]>
-  );
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -76,16 +86,49 @@ export default function TaskBoardView({
     )
       return;
 
-    const task = data?.data?.find(t => t._id === draggableId);
-    if (!task) return;
+    // Find task and new status details
+    const taskToMove = tasks.find(t => t._id === draggableId);
+    if (!taskToMove) return;
 
     const newStatus = statuses.find(s => s._id === destination.droppableId);
     if (!newStatus) return;
 
-    // Update the task with the new status ID
+    const sourceStatusId = source.droppableId;
+    const destinationStatusId = destination.droppableId;
+
+    // --- Calculate new local state manually ---
+    setLocalTasksByStatus(currentTasksByStatus => {
+      const sourceColumn = [...(currentTasksByStatus[sourceStatusId] || [])];
+      const destinationColumn = [
+        ...(currentTasksByStatus[destinationStatusId] || []),
+      ];
+
+      // Remove task from source column
+      const [removedTask] = sourceColumn.splice(source.index, 1);
+
+      if (!removedTask) {
+        console.error('Could not find task to remove locally');
+        return currentTasksByStatus; // Return current state if error
+      }
+
+      // Add task to destination column at the correct index
+      // Update the task object with the new status
+      const updatedTask = { ...removedTask, status: newStatus };
+      destinationColumn.splice(destination.index, 0, updatedTask);
+
+      // Return the new state map
+      return {
+        ...currentTasksByStatus,
+        [sourceStatusId]: sourceColumn,
+        [destinationStatusId]: destinationColumn,
+      };
+    });
+
+    // --- Trigger the backend update --- (Optimistic logic in hook should be removed later)
     updateTask({
-      taskId: task._id,
-      data: { status: newStatus._id },
+      taskId: taskToMove._id,
+      data: { status: newStatus._id as string },
+      params: { workspaceId, spaceId, listId },
     });
   };
 
@@ -162,14 +205,14 @@ export default function TaskBoardView({
 
       <div className='flex-1 overflow-auto p-4'>
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className='flex gap-4 h-full'>
+          <div className='flex items-start gap-4 h-full'>
             {statuses.map(status => (
               <Droppable key={status._id} droppableId={status._id as string}>
                 {provided => (
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className='flex-1 min-w-[300px] max-w-[350px] flex flex-col bg-gray-50 rounded-md'
+                    className='min-w-[300px] max-w-[350px] flex flex-col bg-gray-50 rounded-md'
                   >
                     <div className='flex items-center justify-between p-3 border-b bg-white rounded-t-md'>
                       <div className='flex items-center'>
@@ -198,7 +241,8 @@ export default function TaskBoardView({
                         </div>
                         <span className='font-medium'>{status.status}</span>
                         <span className='ml-2 text-gray-500 text-sm'>
-                          {tasksByStatus[status._id as string]?.length || 0}
+                          {localTasksByStatus[status._id as string]?.length ||
+                            0}
                         </span>
                       </div>
                       <div className='flex items-center'>
@@ -209,30 +253,32 @@ export default function TaskBoardView({
                     </div>
 
                     <div className='flex-1 overflow-auto p-2 space-y-2'>
-                      {(tasksByStatus[status._id as string] || []).map((task, index) => (
-                        <Draggable
-                          key={task._id}
-                          draggableId={task._id}
-                          index={index}
-                        >
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              style={{
-                                ...provided.draggableProps.style,
-                                opacity: snapshot.isDragging ? 0.8 : 1,
-                              }}
-                            >
-                              <TaskCard
-                                task={task}
-                                onClick={() => openTaskModal(task._id)}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
+                      {(localTasksByStatus[status._id as string] || []).map(
+                        (task, index) => (
+                          <Draggable
+                            key={task._id}
+                            draggableId={task._id}
+                            index={index}
+                          >
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                style={{
+                                  ...provided.draggableProps.style,
+                                  opacity: snapshot.isDragging ? 0.8 : 1,
+                                }}
+                              >
+                                <TaskCard
+                                  task={task}
+                                  onClick={() => openTaskModal(task._id)}
+                                />
+                              </div>
+                            )}
+                          </Draggable>
+                        )
+                      )}
                       {provided.placeholder}
                     </div>
 
@@ -241,7 +287,9 @@ export default function TaskBoardView({
                         variant='ghost'
                         size='sm'
                         className='w-full justify-start text-gray-500'
-                        onClick={() => handleAddTask(status as IStatusDefinition)}
+                        onClick={() =>
+                          handleAddTask(status as IStatusDefinition)
+                        }
                       >
                         <Plus className='h-4 w-4 mr-1' />
                         Add Task
