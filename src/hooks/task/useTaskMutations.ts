@@ -2,21 +2,33 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { taskService } from '@/services';
 import { TCreateTask, TUpdateTask } from '@/validations'; // Assuming these types are exported
-import { ITask } from '@/types';
+import { ITask, TaskListResponse } from '@/types'; // Removed IStatusDefinition
+import { getTasksQueryKey } from './useGetTasks'; // Import task list query key generator
+import { getStatusesQueryKey } from '../list/useGetStatuses'; // Import status list query key generator
 
 // Define structure for createTask mutation input
+interface BaseParams {
+  workspaceId: string; // Needed for status cache key
+  spaceId: string;
+  listId: string;
+}
+
 interface CreateTaskMutationInput {
-  params: {
-    spaceId: string;
-    listId: string
-  };
+  params: Pick<BaseParams, 'spaceId' | 'listId'>; // Only need space/list for create path
   data: TCreateTask;
 }
 
-// Define structure for updateTask mutation input
 interface UpdateTaskMutationInput {
   taskId: string;
   data: TUpdateTask;
+  // Add context params needed for cache invalidation/optimistic update
+  params: BaseParams;
+}
+
+interface DeleteTaskMutationInput {
+  taskId: string;
+  // Add context params needed for cache invalidation
+  params: BaseParams;
 }
 
 // Hook for Task Mutations (Create, Update, Delete)
@@ -24,18 +36,24 @@ export const useTaskMutations = () => {
   const queryClient = useQueryClient();
 
   // Helper to invalidate relevant task list queries
-  const invalidateTaskListQueries = (
-    params: CreateTaskMutationInput['params'] // Use the same params structure
-  ) => {
-    // Invalidate the specific list query where the task was added/modified/deleted
+  const invalidateRelevantQueries = (params: BaseParams, taskId?: string) => {
+    // Invalidate the task list query for the specific context
     queryClient.invalidateQueries({
-      queryKey: [
-        taskService.getAllTasks.name,
-        { spaceId: params.spaceId },
-        // We might need to invalidate across different filters, or just the default/no filter
-      ],
-      // Consider `refetchType: 'none'` if you only want to mark as stale
+      queryKey: getTasksQueryKey({
+        spaceId: params.spaceId,
+        listId: params.listId,
+      }),
     });
+    // Invalidate the status query for potential count updates
+    queryClient.invalidateQueries({
+      queryKey: getStatusesQueryKey(params),
+    });
+    // Invalidate the specific task query if ID provided
+    if (taskId) {
+      queryClient.invalidateQueries({
+        queryKey: [taskService.getTaskById.name, taskId],
+      });
+    }
   };
 
   // --- Create Task Mutation ---
@@ -48,43 +66,91 @@ export const useTaskMutations = () => {
     mutationFn: ({ params, data }) => taskService.createTask(params, data),
     onSuccess: (newTask, variables) => {
       toast.success(`Task "${newTask.name}" created successfully!`);
-      invalidateTaskListQueries(variables.params);
-      // Optionally, update the specific task list cache if needed
+      // Invalidate task list and statuses for the context
+      queryClient.invalidateQueries({
+        queryKey: getTasksQueryKey({
+          spaceId: variables.params.spaceId,
+          listId: variables.params.listId,
+        }),
+      });
+      // We might need workspaceId for status invalidation if getStatusesQueryKey needs it
+      // queryClient.invalidateQueries({ queryKey: getStatusesQueryKey(...) });
     },
     onError: error => {
-      toast.error(error.message || 'Failed to create task.');
+      toast.error(`Failed to create task: ${(error as Error).message}`);
     },
   });
 
-  // --- Update Task Mutation ---
+  // --- Update Task Mutation (with Optimistic Update - Invalidate on Settled Strategy) ---
   const { mutate: updateTask, isPending: isUpdatingTask } = useMutation<
-    ITask,
-    Error,
-    UpdateTaskMutationInput
+    ITask, // Return type
+    Error, // Error type
+    UpdateTaskMutationInput, // Variables type
+    { previousTasksResponse?: TaskListResponse } // Context type from onMutate
   >({
     mutationKey: [taskService.updateTask.name],
     mutationFn: ({ taskId, data }) => taskService.updateTask({ taskId }, data),
-    onSuccess: (updatedTask, variables) => {
-      toast.success(`Task "${updatedTask.name}" updated successfully!`);
 
-      // Invalidate the specific task query
-      queryClient.invalidateQueries({
-        queryKey: [taskService.getTaskById.name, variables.taskId],
+    onMutate: async (variables: UpdateTaskMutationInput) => {
+      // Destructure only necessary variables
+      const { params } = variables;
+      const taskListQueryKey = getTasksQueryKey({
+        spaceId: params.spaceId,
+        listId: params.listId,
       });
-      // Update the specific task query data in the cache
-      queryClient.setQueryData(
-        [taskService.getTaskById.name, variables.taskId],
-        updatedTask
-      );
+      const specificTaskQueryKey = [
+        taskService.getTaskById.name,
+        variables.taskId,
+      ];
+      const statusQueryKey = getStatusesQueryKey(params);
 
-      // Invalidate relevant task list queries (need context like workspace/space ID)
-      // This part is tricky without knowing the context where update is called.
-      // We might need to pass context to the mutation call or have a broader invalidation.
-      // Example: queryClient.invalidateQueries({ queryKey: [taskService.getAllTasks.name] }); // Broad invalidation
-      // OR pass context: invalidateTaskListQueries({ workspaceId: ..., spaceId: ... });
+      // Cancel any outgoing refetches (still useful)
+      await queryClient.cancelQueries({ queryKey: taskListQueryKey });
+      await queryClient.cancelQueries({ queryKey: specificTaskQueryKey });
+      await queryClient.cancelQueries({ queryKey: statusQueryKey });
+
+      // Snapshot previous task list value for potential rollback
+      const previousTasksResponse =
+        queryClient.getQueryData<TaskListResponse>(taskListQueryKey);
+
+      // --- REMOVED OPTIMISTIC UPDATE LOGIC ---
+      // The component now handles the immediate UI update via local state.
+
+      // Return snapshot for potential rollback on error
+      return { previousTasksResponse };
     },
-    onError: error => {
-      toast.error(error.message || 'Failed to update task.');
+
+    onError: (err, variables, context) => {
+      toast.error(`Update failed: ${(err as Error).message}`);
+      // Rollback task list cache if snapshot exists
+      // We still need rollback in case the local state update succeeded
+      // but the API call failed.
+      if (context?.previousTasksResponse) {
+        const taskListQueryKey = getTasksQueryKey({
+          spaceId: variables.params.spaceId,
+          listId: variables.params.listId,
+        });
+        queryClient.setQueryData(
+          taskListQueryKey,
+          context.previousTasksResponse
+        );
+        // Note: This rollback might cause a flicker if the API fails,
+        // as the UI reverts from the temporary local state back to the
+        // previous server state. This is a tradeoff of the manual local state approach.
+      }
+      // onSettled will still invalidate to be sure.
+    },
+
+    onSuccess: updatedTaskData => {
+      toast.success(`Task "${updatedTaskData.name}" update confirmed.`);
+      // No need to manually update cache here, invalidation in onSettled handles it.
+    },
+
+    onSettled: (data, error, variables) => {
+      console.log(
+        'Invalidating queries in onSettled (after local state update)'
+      );
+      invalidateRelevantQueries(variables.params, variables.taskId);
     },
   });
 
@@ -92,23 +158,21 @@ export const useTaskMutations = () => {
   const { mutate: deleteTask, isPending: isDeletingTask } = useMutation<
     void,
     Error,
-    string // Expects taskId
+    DeleteTaskMutationInput
   >({
     mutationKey: [taskService.deleteTask.name],
-    mutationFn: taskId => taskService.deleteTask({ taskId }), // Correctly accept the string variable
-    onSuccess: (_, taskId) => {
+    mutationFn: ({ taskId }) => taskService.deleteTask({ taskId }), // API call only needs taskId
+    onSuccess: (_, variables) => {
       toast.success('Task deleted successfully!');
-
       // Remove the specific task query from cache
       queryClient.removeQueries({
-        queryKey: [taskService.getTaskById.name, taskId],
+        queryKey: [taskService.getTaskById.name, variables.taskId],
       });
-
-      // Invalidate relevant task list queries (same challenge as update)
-      // Example: queryClient.invalidateQueries({ queryKey: [taskService.getAllTasks.name] }); // Broad invalidation
+      // Invalidate task list and statuses
+      invalidateRelevantQueries(variables.params);
     },
     onError: error => {
-      toast.error(error.message || 'Failed to delete task.');
+      toast.error(`Failed to delete task: ${(error as Error).message}`);
     },
   });
 

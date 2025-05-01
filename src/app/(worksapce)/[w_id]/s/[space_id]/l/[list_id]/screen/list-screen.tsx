@@ -35,9 +35,7 @@ const ListScreen = () => {
     filters: {
       limit: 10,
     },
-    options: {
-      enabled: !!space_id && !!list_id,
-    },
+  
   });
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -77,65 +75,16 @@ const ListScreen = () => {
           className='flex-1 flex flex-col'
         >
           <div className='flex items-center border-b px-4'>
-            <TabsList className='h-12 bg-transparent border-b-0 p-0'>
+            <TabsList className='h-12 bg-transparent border-b-0 p-0 ml-4'>
               <TabsTrigger
                 value='overview'
-                className='data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none h-12 px-4 text-muted-foreground'
+                className='data-[state=active]:border-b-2  data-[state=active]:border-l-0 data-[state=active]:border-t-0 data-[state=active]:border-r-0 data-[state=active]:border-gray-900 data-[state=active]:shadow-none rounded-none h-12 px-4'
               >
                 <FileText className='h-4 w-4 mr-2' /> Overview
               </TabsTrigger>
               <TabsTrigger
-                value='list'
-                className='data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none h-12 px-4 text-muted-foreground'
-              >
-                <svg
-                  className='h-4 w-4 mr-2'
-                  viewBox='0 0 24 24'
-                  fill='none'
-                  xmlns='http://www.w3.org/2000/svg'
-                >
-                  <path
-                    d='M8 6H21'
-                    stroke='currentColor'
-                    strokeWidth='2'
-                    strokeLinecap='round'
-                  />
-                  <path
-                    d='M8 12H21'
-                    stroke='currentColor'
-                    strokeWidth='2'
-                    strokeLinecap='round'
-                  />
-                  <path
-                    d='M8 18H21'
-                    stroke='currentColor'
-                    strokeWidth='2'
-                    strokeLinecap='round'
-                  />
-                  <path
-                    d='M3 6H3.01'
-                    stroke='currentColor'
-                    strokeWidth='2'
-                    strokeLinecap='round'
-                  />
-                  <path
-                    d='M3 12H3.01'
-                    stroke='currentColor'
-                    strokeWidth='2'
-                    strokeLinecap='round'
-                  />
-                  <path
-                    d='M3 18H3.01'
-                    stroke='currentColor'
-                    strokeWidth='2'
-                    strokeLinecap='round'
-                  />
-                </svg>
-                List
-              </TabsTrigger>
-              <TabsTrigger
                 value='board'
-                className='data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none h-12 px-4 text-muted-foreground'
+                className='data-[state=active]:border-b-2  data-[state=active]:border-l-0 data-[state=active]:border-t-0 data-[state=active]:border-r-0 data-[state=active]:border-gray-900 data-[state=active]:shadow-none rounded-none h-12 px-4'
               >
                 <svg
                   className='h-4 w-4 mr-2'
@@ -183,8 +132,57 @@ const ListScreen = () => {
                 Board
               </TabsTrigger>
               <TabsTrigger
+                value='list'
+                className='data-[state=active]:border-b-2  data-[state=active]:border-l-0 data-[state=active]:border-t-0 data-[state=active]:border-r-0 data-[state=active]:border-gray-900 data-[state=active]:shadow-none rounded-none h-12 px-4'
+              >
+                <svg
+                  className='h-4 w-4 mr-2'
+                  viewBox='0 0 24 24'
+                  fill='none'
+                  xmlns='http://www.w3.org/2000/svg'
+                >
+                  <path
+                    d='M8 6H21'
+                    stroke='currentColor'
+                    strokeWidth='2'
+                    strokeLinecap='round'
+                  />
+                  <path
+                    d='M8 12H21'
+                    stroke='currentColor'
+                    strokeWidth='2'
+                    strokeLinecap='round'
+                  />
+                  <path
+                    d='M8 18H21'
+                    stroke='currentColor'
+                    strokeWidth='2'
+                    strokeLinecap='round'
+                  />
+                  <path
+                    d='M3 6H3.01'
+                    stroke='currentColor'
+                    strokeWidth='2'
+                    strokeLinecap='round'
+                  />
+                  <path
+                    d='M3 12H3.01'
+                    stroke='currentColor'
+                    strokeWidth='2'
+                    strokeLinecap='round'
+                  />
+                  <path
+                    d='M3 18H3.01'
+                    stroke='currentColor'
+                    strokeWidth='2'
+                    strokeLinecap='round'
+                  />
+                </svg>
+                List
+              </TabsTrigger>
+              <TabsTrigger
                 value='calendar'
-                className='data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none h-12 px-4 text-muted-foreground'
+                className='data-[state=active]:border-b-2  data-[state=active]:border-l-0 data-[state=active]:border-t-0 data-[state=active]:border-r-0 data-[state=active]:border-gray-900 data-[state=active]:shadow-none rounded-none h-12 px-4'
               >
                 <svg
                   className='h-4 w-4 mr-2'
