@@ -94,6 +94,11 @@ export const TaskDetailView = () => {
       updateTask({
         taskId: task._id,
         data: { name: title },
+        params:{
+          spaceId: task.space,
+          listId: task.list as string,
+          workspaceId: workspaceId,
+        }
       });
       setEditingTitle(false);
     }
@@ -104,6 +109,11 @@ export const TaskDetailView = () => {
       updateTask({
         taskId: task._id,
         data: { description },
+        params:{
+          spaceId: task.space,
+          listId: task.list as string,
+          workspaceId: workspaceId,
+        }
       });
     }
   };
@@ -113,6 +123,11 @@ export const TaskDetailView = () => {
       updateTask({
         taskId: task._id,
         data: { status: statusId },
+        params:{
+          spaceId: task.space,
+          listId: task.list as string,
+          workspaceId: workspaceId,
+        }
       });
     }
   };
@@ -128,6 +143,11 @@ export const TaskDetailView = () => {
           priority:
             priorityId === NO_PRIORITY_ID ? null : (priorityId as Priority),
         },
+        params:{
+          spaceId: task.space,
+          listId: task.list as string,
+          workspaceId: workspaceId,
+        }
       });
     }
   };
@@ -140,6 +160,11 @@ export const TaskDetailView = () => {
         data: {
           due_date: date ? date.toISOString() : null,
         },
+        params:{
+          spaceId: task.space,
+          listId: task.list as string,
+          workspaceId: workspaceId,
+        }
       });
     }
   };
