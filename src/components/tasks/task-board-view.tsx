@@ -205,14 +205,14 @@ export default function TaskBoardView({
 
       <div className='flex-1 overflow-auto p-4'>
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className='flex gap-4 h-full'>
+          <div className='flex items-start gap-4 h-full'>
             {statuses.map(status => (
               <Droppable key={status._id} droppableId={status._id as string}>
                 {provided => (
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className='flex-1 min-w-[300px] max-w-[350px] flex flex-col bg-gray-50 rounded-md'
+                    className='min-w-[300px] max-w-[350px] flex flex-col bg-gray-50 rounded-md'
                   >
                     <div className='flex items-center justify-between p-3 border-b bg-white rounded-t-md'>
                       <div className='flex items-center'>
