@@ -30,10 +30,9 @@ import {
   Link,
   Paperclip,
   Plus,
-  X,
   ChevronDown,
 } from 'lucide-react';
-import {  ITaskUser, Priority } from '@/types';
+import { ITaskUser, Priority } from '@/types';
 import { useGlobalStateStore } from '@/stores';
 import { useGetTask, useGetTasks, useTaskMutations } from '@/hooks';
 import { useGetStatuses } from '@/hooks/list';
@@ -46,18 +45,15 @@ import {
   PRIORITY_OPTIONS,
   NO_PRIORITY,
   PriorityId,
-  getPriorityDetails,
   NO_PRIORITY_ID,
 } from '@/constants';
 
-
-
 export const TaskDetailView = () => {
-
-  const { closeTaskModal, isTaskModalOpen,selectedTaskId } = useGlobalStateStore();
+  const { closeTaskModal, isTaskModalOpen, selectedTaskId } =
+    useGlobalStateStore();
   const [editingTitle, setEditingTitle] = useState(false);
 
-  const {data: task} = useGetTask(selectedTaskId as string)
+  const { data: task } = useGetTask(selectedTaskId as string);
   const [title, setTitle] = useState(task?.name || '');
   const [description, setDescription] = useState(task?.description || '');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
@@ -70,7 +66,9 @@ export const TaskDetailView = () => {
   const [addingSubtask, setAddingSubtask] = useState(false);
 
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
-  const { data: spaceTasksData } = useGetTasks({ spaceId: task?.space as string });
+  const { data: spaceTasksData } = useGetTasks({
+    spaceId: task?.space as string,
+  });
   const params = useParams();
   const workspaceId = params.w_id as string;
 
@@ -94,11 +92,11 @@ export const TaskDetailView = () => {
       updateTask({
         taskId: task._id,
         data: { name: title },
-        params:{
+        params: {
           spaceId: task.space,
           listId: task.list as string,
           workspaceId: workspaceId,
-        }
+        },
       });
       setEditingTitle(false);
     }
@@ -109,11 +107,11 @@ export const TaskDetailView = () => {
       updateTask({
         taskId: task._id,
         data: { description },
-        params:{
+        params: {
           spaceId: task.space,
           listId: task.list as string,
           workspaceId: workspaceId,
-        }
+        },
       });
     }
   };
@@ -123,11 +121,11 @@ export const TaskDetailView = () => {
       updateTask({
         taskId: task._id,
         data: { status: statusId },
-        params:{
+        params: {
           spaceId: task.space,
           listId: task.list as string,
           workspaceId: workspaceId,
-        }
+        },
       });
     }
   };
@@ -143,11 +141,11 @@ export const TaskDetailView = () => {
           priority:
             priorityId === NO_PRIORITY_ID ? null : (priorityId as Priority),
         },
-        params:{
+        params: {
           spaceId: task.space,
           listId: task.list as string,
           workspaceId: workspaceId,
-        }
+        },
       });
     }
   };
@@ -160,11 +158,11 @@ export const TaskDetailView = () => {
         data: {
           due_date: date ? date.toISOString() : null,
         },
-        params:{
+        params: {
           spaceId: task.space,
           listId: task.list as string,
           workspaceId: workspaceId,
-        }
+        },
       });
     }
   };
@@ -183,13 +181,13 @@ export const TaskDetailView = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const taskComments: any[] = [];
 
-  const currentPriorityDetails = getPriorityDetails(selectedPriorityId);
+  // const currentPriorityDetails = getPriorityDetails(selectedPriorityId);
 
   if (!task) return null;
 
   return (
     <Dialog open={isTaskModalOpen} onOpenChange={closeTaskModal}>
-      <DialogContent className='max-w-4xl p-0 h-[90vh] flex flex-col overflow-hidden'>
+      <DialogContent className='max-w-6xl p-0 h-[90vh] flex flex-col overflow-hidden'>
         <div className='flex items-center justify-between p-4 border-b'>
           <div className='flex items-center gap-2'>
             <Button variant='outline' size='sm' className='gap-1'>
@@ -198,17 +196,9 @@ export const TaskDetailView = () => {
             </Button>
             <div className='text-sm text-gray-500'>{task.space}</div>
           </div>
-          <div className='flex items-center gap-2'>
+          <div className='flex items-center pr-16 gap-2'>
             <Button variant='outline' size='sm'>
               Share
-            </Button>
-            <Button
-              variant='ghost'
-              size='icon'
-              className='h-8 w-8'
-              onClick={closeTaskModal}
-            >
-              <X className='h-4 w-4' />
             </Button>
           </div>
         </div>
@@ -259,10 +249,6 @@ export const TaskDetailView = () => {
                 >
                   <SelectTrigger className='w-full'>
                     <div className='flex items-center gap-2'>
-                      <div
-                        className='w-3 h-3 rounded-full'
-                        style={{ backgroundColor: task.status.color }}
-                      />
                       <SelectValue placeholder='Select status' />
                     </div>
                   </SelectTrigger>
@@ -290,12 +276,6 @@ export const TaskDetailView = () => {
                 >
                   <SelectTrigger className='w-full'>
                     <div className='flex items-center gap-2'>
-                      {currentPriorityDetails && (
-                        <currentPriorityDetails.icon
-                          className='h-4 w-4'
-                          style={{ color: currentPriorityDetails.color }}
-                        />
-                      )}
                       <SelectValue placeholder='Select priority' />
                     </div>
                   </SelectTrigger>
@@ -327,7 +307,10 @@ export const TaskDetailView = () => {
                   {task.assignees.length > 0 ? (
                     <div className='flex -space-x-2'>
                       {task.assignees.map(assignee => (
-                        <UserAvatar key={assignee._id as string} user={assignee as ITaskUser} />
+                        <UserAvatar
+                          key={assignee._id as string}
+                          user={assignee as ITaskUser}
+                        />
                       ))}
                       <Button
                         variant='outline'
