@@ -17,11 +17,13 @@ const API_PATHS = {
 };
 
 const COOKIE_NAME = 'Authentication';
+const WORKSPACE_COOKIE_NAME = 'Workspace';
 const COOKIE_EXPIRATION_DAYS = 7;
 
 export class AuthService {
   private readonly cookieName = COOKIE_NAME;
   private readonly expirationDays = COOKIE_EXPIRATION_DAYS;
+  private readonly workspaceCookieName = WORKSPACE_COOKIE_NAME;
 
   setToken = (token: string) => {
     try {
@@ -36,6 +38,14 @@ export class AuthService {
       console.error('Failed to decode token:', error);
       throw new Error('Invalid token format');
     }
+  };
+
+  setWorkspaceToken = (token: string) => {
+    Cookies.set(this.workspaceCookieName, token, {
+      expires: this.expirationDays,
+      secure: true,
+      sameSite: 'strict',
+    });
   };
 
   getToken = (): string | null => {
@@ -74,6 +84,9 @@ export class AuthService {
       const { data } = await api.post<AuthResponse>(API_PATHS.LOGIN, payload);
       if (data?.token) {
         this.setToken(data.token);
+      }
+      if (data?.user.activeWorkspace) {
+        this.setWorkspaceToken(data.user.activeWorkspace);
       }
       return data;
     } catch (error: Error | unknown) {
