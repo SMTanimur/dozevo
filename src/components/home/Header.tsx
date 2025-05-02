@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ShimmerButton } from '@/components/magicui/shimmer-button';
+import Image from 'next/image';
 
 export const Header = () => {
   const router = useRouter();
@@ -14,7 +15,12 @@ export const Header = () => {
       <div className='flex items-center gap-3'>
         {/* Updated Logo Placeholder */}
         <Link href='/' className='flex items-center gap-3'>
-          <div className='w-7 h-7 bg-purple-200 rounded-full'></div>{' '}
+          <Image
+            src='/images/logo-color.svg'
+            alt='TaskZen Logo'
+            width={36}
+            height={36}
+          />
           {/* Slightly smaller */}
           <span className='font-semibold text-xl text-gray-800'>TaskZen</span>
         </Link>
