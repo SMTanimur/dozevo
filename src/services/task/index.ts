@@ -12,6 +12,12 @@ type CreateTaskInput = z.infer<typeof createTaskSchema>;
 type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 type TaskFilters = z.infer<typeof GetTasksFilterDto>;
 
+// Type for the reorder input data
+interface ReorderTasksInput {
+  listId: string;
+  orderedTaskIds: string[];
+}
+
 // --- Path Helper Functions ---
 // Path for tasks directly under a space
 const getSpaceTasksPath = (spaceId: string) => `/v1/tasks/spaces/${spaceId}`;
@@ -22,6 +28,9 @@ const getListTasksPath = (spaceId: string, listId: string) =>
 
 // Simplified path for single task operations
 const getTaskDetailPath = (taskId: string) => `/v1/tasks/${taskId}`;
+
+// Path for reordering tasks
+const getReorderTasksPath = () => '/v1/tasks/reorder/list';
 
 // --- TaskService Class ---
 export class TaskService {
@@ -108,6 +117,19 @@ export class TaskService {
       await api.delete(path);
     } catch (error) {
       console.error(`Failed to delete task ${taskId}:`, error);
+      throw error;
+    }
+  }
+
+  // New method to reorder tasks
+  async reorderTasks(data: ReorderTasksInput): Promise<{ message: string }> {
+    const path = getReorderTasksPath();
+    try {
+      // Optional: Add Zod validation for ReorderTasksInput if desired
+      const response = await api.patch<{ message: string }>(path, data);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to reorder tasks for list ${data.listId}:`, error);
       throw error;
     }
   }

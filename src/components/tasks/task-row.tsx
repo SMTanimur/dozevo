@@ -1,7 +1,7 @@
 'use client';
 
 import { formatDate } from '@/lib/utils';
-import { MoreHorizontal, Calendar, Flag } from 'lucide-react';
+import { MoreHorizontal, Calendar, Flag, CornerDownRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ITask } from '@/types';
 import { UserAvatar } from '../ui';
@@ -17,14 +17,21 @@ export const TaskRow = ({ task, onClick }: TaskRowProps) => {
     task.priority as PriorityId | null | undefined
   );
 
+  const isSubtask = !!task.parentTask;
+
   return (
     <div
-      className='grid grid-cols-[1fr,200px,120px,100px,40px] px-4 py-2 hover:bg-gray-50 cursor-pointer border-b'
+      className={`grid grid-cols-[1fr,200px,120px,100px,40px] px-4 py-2 hover:bg-gray-50 cursor-pointer border-b ${
+        isSubtask ? 'pl-8' : ''
+      }`}
       onClick={onClick}
     >
       <div className='flex items-center gap-2'>
+        {isSubtask && (
+          <CornerDownRight className='h-4 w-4 text-gray-400 mr-1' />
+        )}
         <div
-          className='w-4 h-4 rounded-full flex items-center justify-center'
+          className='w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center'
           style={{ backgroundColor: task.status.color }}
         >
           {task.status.type === 'in_progress' && (

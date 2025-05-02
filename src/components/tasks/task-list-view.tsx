@@ -1,6 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from '@hello-pangea/dnd';
 
 import { Button } from '@/components/ui/button';
 import { ChevronDown, Plus, MoreHorizontal } from 'lucide-react';
@@ -24,7 +30,7 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
     listId: list?._id as string,
   });
 
-  const { createTask } = useTaskMutations();
+  const { createTask, reorderTasks } = useTaskMutations();
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
     {}
   );
@@ -49,7 +55,6 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
       name: 'New Task',
       status: status._id,
       listId: list._id,
-      
     };
 
     createTask({
@@ -65,6 +70,42 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
     acc[status._id] = tasks.filter(task => task.status?._id === status._id);
     return acc;
   }, {} as Record<string, ITask[]>);
+
+  const handleDragEnd = (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    if (
+      !destination ||
+      destination.droppableId !== source.droppableId ||
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    const statusId = source.droppableId;
+    const tasksInGroup: ITask[] = tasksByStatus[statusId] || [];
+    const taskToMove = tasksInGroup.find(t => t._id === draggableId);
+
+    if (!taskToMove) {
+      console.error('Could not find task to move in group for reordering');
+      return;
+    }
+
+    const currentIds = tasksInGroup.map(t => t._id);
+    const [movedId] = currentIds.splice(source.index, 1);
+    currentIds.splice(destination.index, 0, movedId);
+    const orderedTaskIds = currentIds;
+
+    reorderTasks({
+      listId: list._id as string,
+      orderedTaskIds: orderedTaskIds,
+      params: {
+        workspaceId: list.workspace as string,
+        spaceId: list.space as string,
+        listId: list._id as string,
+      },
+    });
+  };
 
   if (isLoadingStatuses) {
     return <div>Loading statuses...</div>;
@@ -145,96 +186,122 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
         </div>
       </div>
 
-      <div className='flex-1 overflow-auto'>
-        {statuses.map(status => (
-          <div key={status._id} className='border-b'>
-            <div
-              className='flex items-center px-4 py-2 cursor-pointer hover:bg-gray-50'
-              onClick={() => toggleGroup(status._id)}
-            >
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className='flex-1 overflow-auto'>
+          {statuses.map(status => (
+            <div key={status._id} className='border-b'>
               <div
-                className='w-5 h-5 rounded-full mr-2 flex items-center justify-center'
-                style={{ backgroundColor: status.color }}
+                className='flex items-center px-4 py-2 cursor-pointer hover:bg-gray-50'
+                onClick={() => toggleGroup(status._id)}
               >
-                {status.type === 'in_progress' && (
-                  <div className='w-2 h-2 rounded-full bg-white' />
-                )}
-                {status.type === 'done' && (
-                  <svg
-                    className='w-3 h-3 text-white'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                    stroke='currentColor'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M5 13l4 4L19 7'
-                    />
-                  </svg>
-                )}
+                <div
+                  className='w-5 h-5 rounded-full mr-2 flex items-center justify-center'
+                  style={{ backgroundColor: status.color }}
+                >
+                  {status.type === 'in_progress' && (
+                    <div className='w-2 h-2 rounded-full bg-white' />
+                  )}
+                  {status.type === 'done' && (
+                    <svg
+                      className='w-3 h-3 text-white'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M5 13l4 4L19 7'
+                      />
+                    </svg>
+                  )}
+                </div>
+                <span className='font-medium'>{status.status}</span>
+                <span className='ml-2 text-gray-500 text-sm'>
+                  {tasksByStatus[status._id]?.length || 0}
+                </span>
+                <ChevronDown
+                  className={`ml-2 h-4 w-4 transition-transform ${
+                    expandedGroups[status._id] ? 'rotate-180' : ''
+                  }`}
+                />
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  className='ml-auto'
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleAddTask(status);
+                  }}
+                >
+                  <Plus className='h-4 w-4' />
+                  <span className='ml-1'>Add Task</span>
+                </Button>
+                <Button variant='ghost' size='icon' className='ml-2 h-8 w-8'>
+                  <MoreHorizontal className='h-4 w-4' />
+                </Button>
               </div>
-              <span className='font-medium'>{status.status}</span>
-              <span className='ml-2 text-gray-500 text-sm'>
-                {tasksByStatus[status._id]?.length || 0}
-              </span>
-              <ChevronDown
-                className={`ml-2 h-4 w-4 transition-transform ${
-                  expandedGroups[status._id] ? 'rotate-180' : ''
-                }`}
-              />
-              <Button
-                variant='ghost'
-                size='sm'
-                className='ml-auto'
-                onClick={e => {
-                  e.stopPropagation();
-                  handleAddTask(status);
-                }}
-              >
-                <Plus className='h-4 w-4' />
-                <span className='ml-1'>Add Task</span>
-              </Button>
-              <Button variant='ghost' size='icon' className='ml-2 h-8 w-8'>
-                <MoreHorizontal className='h-4 w-4' />
-              </Button>
+
+              {expandedGroups[status._id] && (
+                <Droppable droppableId={status._id} type='TASK'>
+                  {provided => (
+                    <div ref={provided.innerRef} {...provided.droppableProps}>
+                      <div className='grid grid-cols-[1fr,200px,120px,100px,40px] px-4 py-2 text-sm text-gray-500 border-y'>
+                        <div>Name</div>
+                        <div>Assignee</div>
+                        <div>Due date</div>
+                        <div>Priority</div>
+                        <div></div>
+                      </div>
+
+                      {(tasksByStatus[status._id] || []).map((task, index) => (
+                        <Draggable
+                          key={task._id}
+                          draggableId={task._id}
+                          index={index}
+                        >
+                          {(providedDraggable, snapshot) => (
+                            <div
+                              ref={providedDraggable.innerRef}
+                              {...providedDraggable.draggableProps}
+                              {...providedDraggable.dragHandleProps}
+                              style={{
+                                ...providedDraggable.draggableProps.style,
+                                opacity: snapshot.isDragging ? 0.8 : 1,
+                                backgroundColor: snapshot.isDragging
+                                  ? '#eef2ff'
+                                  : 'transparent',
+                              }}
+                            >
+                              <TaskRow
+                                task={task}
+                                onClick={() => openTaskModal(task._id)}
+                              />
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                      <div className='px-4 py-2'>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          className='text-gray-500'
+                          onClick={() => handleAddTask(status)}
+                        >
+                          <Plus className='h-4 w-4 mr-1' />
+                          Add Task
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </Droppable>
+              )}
             </div>
-
-            {expandedGroups[status._id] && (
-              <div>
-                <div className='grid grid-cols-[1fr,200px,120px,100px,40px] px-4 py-2 text-sm text-gray-500 border-y'>
-                  <div>Name</div>
-                  <div>Assignee</div>
-                  <div>Due date</div>
-                  <div>Priority</div>
-                  <div></div>
-                </div>
-
-                {(tasksByStatus[status._id] || []).map(task => (
-                  <TaskRow
-                    key={task._id}
-                    task={task}
-                    onClick={() => openTaskModal(task._id)}
-                  />
-                ))}
-
-                <div className='px-4 py-2'>
-                  <Button
-                    variant='ghost'
-                    size='sm'
-                    className='text-gray-500'
-                    onClick={() => handleAddTask(status)}
-                  >
-                    <Plus className='h-4 w-4 mr-1' />
-                    Add Task
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </DragDropContext>
     </div>
   );
 };

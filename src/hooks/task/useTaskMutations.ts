@@ -31,7 +31,19 @@ interface DeleteTaskMutationInput {
   params: BaseParams;
 }
 
-// Hook for Task Mutations (Create, Update, Delete)
+// Define structure for input data
+// Type for the reorder input data (can be defined here or imported)
+interface ReorderTasksInput {
+  listId: string;
+  orderedTaskIds: string[];
+}
+
+// Type for reorder mutation variables (includes context for invalidation)
+interface ReorderTasksMutationInput extends ReorderTasksInput {
+  params: BaseParams; // Pass workspaceId, spaceId, listId for invalidation
+}
+
+// Hook for Task Mutations (Create, Update, Delete, Reorder)
 export const useTaskMutations = () => {
   const queryClient = useQueryClient();
 
@@ -176,6 +188,30 @@ export const useTaskMutations = () => {
     },
   });
 
+  // --- Reorder Tasks Mutation ---
+  const { mutate: reorderTasks, isPending: isReorderingTasks } = useMutation<
+    { message: string }, // Success response type
+    Error, // Error type
+    ReorderTasksMutationInput // Variables type
+  >({
+    mutationKey: [taskService.reorderTasks.name],
+    mutationFn: data => taskService.reorderTasks(data), // Pass data directly
+    onSuccess: (data, variables) => {
+      toast.success(data.message);
+      // Invalidate the task list for the specific context
+      // We only need listId and spaceId for task invalidation
+      invalidateRelevantQueries({
+        workspaceId: variables.params.workspaceId,
+        spaceId: variables.params.spaceId,
+        listId: variables.params.listId,
+      });
+    },
+    onError: error => {
+      toast.error(`Failed to reorder tasks: ${(error as Error).message}`);
+      // Consider if rollback is needed/possible for reordering
+    },
+  });
+
   return {
     createTask,
     isCreatingTask,
@@ -183,5 +219,7 @@ export const useTaskMutations = () => {
     isUpdatingTask,
     deleteTask,
     isDeletingTask,
+    reorderTasks, // Expose the new mutation
+    isReorderingTasks,
   };
 };
