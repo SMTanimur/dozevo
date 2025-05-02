@@ -156,6 +156,7 @@ export const updateTaskSchema = z
     time_estimate: z.number().int().positive().nullable().optional(),
     time_spent: z.number().int().nonnegative().optional(),
     archived: z.boolean().optional(),
+    orderIndex: z.number().optional(),
     // points, custom_fields, checklists updates if supported
   })
   .refine(data => Object.keys(data).length > 0, {

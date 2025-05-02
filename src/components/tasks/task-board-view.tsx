@@ -12,7 +12,6 @@ import {
 import { ITask, IStatusDefinition } from '@/types'; // Assuming IList might be needed for context
 import { useGetTasks, useTaskMutations } from '@/hooks/task';
 import { useGetStatuses } from '@/hooks/list';
-import { useGlobalStateStore } from '@/stores';
 import TaskCard from './task-card'; // Import TaskCard
 import { TCreateTask } from '@/validations';
 
@@ -31,7 +30,8 @@ export default function TaskBoardView({
   spaceId,
   listId,
 }: TaskBoardViewProps) {
-  const { openTaskModal } = useGlobalStateStore();
+  // Removed unused openTaskModal
+  // const { openTaskModal } = useGlobalStateStore();
 
   // Fetch tasks and statuses
   const { data: tasksResponse, isLoading: isLoadingTasks } = useGetTasks({
@@ -45,7 +45,7 @@ export default function TaskBoardView({
     spaceId,
     listId,
   });
-  const { updateTask, createTask } = useTaskMutations();
+  const { updateTask, createTask, reorderTasks } = useTaskMutations();
 
   // Local state for tasks grouped by status
   const [localTasksByStatus, setLocalTasksByStatus] =
@@ -79,6 +79,7 @@ export default function TaskBoardView({
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
 
+    // 1. Basic validation and exit conditions
     if (!destination) return;
     if (
       destination.droppableId === source.droppableId &&
@@ -86,50 +87,92 @@ export default function TaskBoardView({
     )
       return;
 
-    // Find task and new status details
+    // Find the globally sourced task (from original 'tasks' array for correct data)
     const taskToMove = tasks.find(t => t._id === draggableId);
-    if (!taskToMove) return;
-
-    const newStatus = statuses.find(s => s._id === destination.droppableId);
-    if (!newStatus) return;
+    if (!taskToMove) {
+      console.error('Draggable task not found in original tasks array');
+      return;
+    }
 
     const sourceStatusId = source.droppableId;
     const destinationStatusId = destination.droppableId;
+    const destinationIndex = destination.index;
 
-    // --- Calculate new local state manually ---
+    // 2. Prepare data for local state update (using simplified type for mutation)
+    let finalTasksByStatus: TasksByStatusMap | null = null;
     setLocalTasksByStatus(currentTasksByStatus => {
       const sourceColumn = [...(currentTasksByStatus[sourceStatusId] || [])];
-      const destinationColumn = [
-        ...(currentTasksByStatus[destinationStatusId] || []),
-      ];
+      const destinationColumn =
+        sourceStatusId === destinationStatusId
+          ? sourceColumn
+          : [...(currentTasksByStatus[destinationStatusId] || [])];
 
-      // Remove task from source column
-      const [removedTask] = sourceColumn.splice(source.index, 1);
+      const taskIndexInSource = sourceColumn.findIndex(
+        t => t._id === draggableId
+      );
+      if (taskIndexInSource === -1) {
+        console.error('Task not found in local source column for removal');
+        return currentTasksByStatus;
+      }
+      const [removedTaskLocally] = sourceColumn.splice(taskIndexInSource, 1);
 
-      if (!removedTask) {
-        console.error('Could not find task to remove locally');
-        return currentTasksByStatus; // Return current state if error
+      const taskForInsertion = { ...removedTaskLocally };
+
+      // Handle status change if columns differ
+      if (sourceStatusId !== destinationStatusId) {
+        const newStatus = statuses.find(s => s._id === destinationStatusId);
+        if (!newStatus) {
+          console.error('Destination status not found');
+          return currentTasksByStatus;
+        }
+        taskForInsertion.status = newStatus; // Update status for insertion
+        // We still need to update the individual task's status if it moves column
+        updateTask({
+          taskId: taskToMove._id,
+          data: { status: newStatus._id as string }, // Only update status
+          params: { workspaceId, spaceId, listId },
+        });
       }
 
-      // Add task to destination column at the correct index
-      // Update the task object with the new status
-      const updatedTask = { ...removedTask, status: newStatus };
-      destinationColumn.splice(destination.index, 0, updatedTask);
+      // Insert the task into the destination column at the correct index
+      destinationColumn.splice(destinationIndex, 0, taskForInsertion);
 
-      // Return the new state map
-      return {
+      // Create the final state map
+      finalTasksByStatus = {
         ...currentTasksByStatus,
         [sourceStatusId]: sourceColumn,
         [destinationStatusId]: destinationColumn,
       };
+      return finalTasksByStatus; // Return the new state
     });
 
-    // --- Trigger the backend update --- (Optimistic logic in hook should be removed later)
-    updateTask({
-      taskId: taskToMove._id,
-      data: { status: newStatus._id as string },
-      params: { workspaceId, spaceId, listId },
-    });
+    // 3. Trigger the backend mutation if local state update was successful
+    if (finalTasksByStatus) {
+      // Get the final ordered list of task IDs from the updated state
+      const destinationTasks: ITask[] =
+        finalTasksByStatus[destinationStatusId] || [];
+      const orderedTaskIds = destinationTasks.map(task => task._id);
+
+      // Call the bulk reorder mutation
+      reorderTasks({
+        listId: listId, // Assuming tasks in board view belong to the main listId prop
+        orderedTaskIds: orderedTaskIds,
+        params: { workspaceId, spaceId, listId }, // Pass context for invalidation
+      });
+
+      // If the task moved between columns, we also need to reorder the source column
+      if (sourceStatusId !== destinationStatusId) {
+        const sourceTasks: ITask[] = finalTasksByStatus[sourceStatusId] || [];
+        const sourceOrderedTaskIds = sourceTasks.map(task => task._id);
+        reorderTasks({
+          listId: listId,
+          orderedTaskIds: sourceOrderedTaskIds,
+          params: { workspaceId, spaceId, listId },
+        });
+      }
+    } else {
+      console.error('Local state update failed, mutation skipped.');
+    }
   };
 
   if (isLoadingTasks || isLoadingStatuses) {
@@ -272,7 +315,11 @@ export default function TaskBoardView({
                               >
                                 <TaskCard
                                   task={task}
-                                  onClick={() => openTaskModal(task._id)}
+                                  mutationParams={{
+                                    workspaceId,
+                                    spaceId,
+                                    listId,
+                                  }}
                                 />
                               </div>
                             )}
