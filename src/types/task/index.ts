@@ -60,8 +60,12 @@ export interface ITask {
   assignees: ITaskUser[]; // Use updated TaskUser
   watchers: ITaskUser[]; // Use updated TaskUser
   tags: ITaskTag[]; // Use the Tag
-  dueDate: string | null; // ISO Date string or null
-  startDate: string | null; // ISO Date string or null
+
+  due_date: string | null;
+  due_date_time: boolean;
+  start_date: string | null;
+  start_date_time: boolean;
+
   timeEstimate: number | null;
   timeSpent: number | null;
   parentTask: string | null; // CORRECTED: Should be string ID or null, not ITask

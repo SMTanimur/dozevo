@@ -12,7 +12,6 @@ import {
 import { ITask, IStatusDefinition } from '@/types'; // Assuming IList might be needed for context
 import { useGetTasks, useTaskMutations } from '@/hooks/task';
 import { useGetStatuses } from '@/hooks/list';
-import { useGlobalStateStore } from '@/stores';
 import TaskCard from './task-card'; // Import TaskCard
 import { TCreateTask } from '@/validations';
 
@@ -31,7 +30,8 @@ export default function TaskBoardView({
   spaceId,
   listId,
 }: TaskBoardViewProps) {
-  const { openTaskModal } = useGlobalStateStore();
+  // Removed unused openTaskModal
+  // const { openTaskModal } = useGlobalStateStore();
 
   // Fetch tasks and statuses
   const { data: tasksResponse, isLoading: isLoadingTasks } = useGetTasks({
@@ -315,7 +315,11 @@ export default function TaskBoardView({
                               >
                                 <TaskCard
                                   task={task}
-                                  onClick={() => openTaskModal(task._id)}
+                                  mutationParams={{
+                                    workspaceId,
+                                    spaceId,
+                                    listId,
+                                  }}
                                 />
                               </div>
                             )}

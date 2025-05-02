@@ -105,10 +105,10 @@ export const TaskRow = ({ task, onClick, level = 0 }: TaskRowProps) => {
         </div>
 
         <div className='flex items-center'>
-          {task.dueDate ? (
+          {task.due_date ? (
             <div className='flex items-center text-sm'>
               <Calendar className='h-3.5 w-3.5 mr-1 text-gray-500' />
-              <span>{formatDate(task.dueDate)}</span>
+              <span>{formatDate(task.due_date)}</span>
             </div>
           ) : (
             <Button variant='ghost' size='sm' className='text-gray-400'>
