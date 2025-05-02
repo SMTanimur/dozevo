@@ -30,7 +30,7 @@ export const Header = () => {
           borderRadius='8px'
           background='transparent'
           shimmerColor='#e5e7eb'
-          className='border  border-black hover:border-gray-200 transition-colors duration-300 text-sm font-medium text-gray-500 hover:text-gray-900 px-3 py-1'
+          className='border  border-black hover:border-gray-200 transition-colors duration-300 text-sm font-medium text-gray-500 hover:text-gray-900  py-1.5'
           onClick={() => router.push('/login')}
         >
           Log in
@@ -40,13 +40,9 @@ export const Header = () => {
           background='#8B5CF6'
           shimmerColor='#ffffff'
           className='shadow-sm py-1.5'
+          onClick={() => router.push('/signup')}
         >
-          <Link
-            href='/signup'
-            className='block  text-sm font-semibold text-white px-4 py-1 '
-          >
-            Sign Up
-          </Link>
+          Sign Up
         </ShimmerButton>
       </div>
       {/* Mobile Menu Button Placeholder (Keep basic structure) */}
