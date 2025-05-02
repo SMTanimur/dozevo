@@ -44,15 +44,17 @@ export function middleware(request: NextRequest) {
     }
   } else {
     // --- Unauthenticated User Logic ---
-    // If the route is not public and there's no token, redirect to login
-    if (!isPublicPath(path) && path !== '/') {
-      // Allow access to root for unauthenticated
-      console.log(
-        '[Middleware] No Auth + Protected Route -> Redirecting to /login'
-      );
-      const loginUrl = new URL('/login', request.url);
-      return NextResponse.redirect(loginUrl);
+    // Allow access to public routes (including /login, /signup, etc.) and the root path
+    if (isPublicPath(path) || path === '/') {
+      return NextResponse.next();
     }
+
+    // For all other paths, redirect unauthenticated users to the login page
+    console.log(
+      '[Middleware] No Auth + Protected Route -> Redirecting to /login'
+    );
+    const loginUrl = new URL('/login', request.url);
+    return NextResponse.redirect(loginUrl);
   }
 
   // Allow the request to proceed if none of the above conditions caused a redirect
