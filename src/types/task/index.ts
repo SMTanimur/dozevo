@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 import {
   taskSchema,
@@ -56,17 +55,18 @@ export interface ITask {
   list: string | null; // Optional Folder ID as string
   name: string;
   description?: string;
-  status: IStatusDefinition; // Use the Status 
-  priority: Priority; // Use the Priority 
+  status: IStatusDefinition; // Use the Status
+  priority: Priority; // Use the Priority
   assignees: ITaskUser[]; // Use updated TaskUser
   watchers: ITaskUser[]; // Use updated TaskUser
-  tags: ITaskTag[]; // Use the Tag 
+  tags: ITaskTag[]; // Use the Tag
   dueDate: string | null; // ISO Date string or null
   startDate: string | null; // ISO Date string or null
   timeEstimate: number | null;
   timeSpent: number | null;
-  parentTask: ITask | null; // Parent Task ID as string or null
-  customFields: ICustomFieldValue[]; // Use the Custom Field 
+  parentTask: string | null; // CORRECTED: Should be string ID or null, not ITask
+  subtasks?: ITask[]; // ADDED: Optional array of subtasks
+  customFields: ICustomFieldValue[]; // Use the Custom Field
   creator: ITaskUser; // Use updated TaskUser
   orderIndex?: number;
   completedAt: string | null; // ISO Date string or null
@@ -84,7 +84,6 @@ export interface ITaskListResponse {
 
 // Type derived from the Zod schema
 export type Tag = z.infer<typeof tagSchema>;
-
 
 // Type derived from the Zod schema
 export type ChecklistItem = z.infer<typeof checklistItemSchema>;
