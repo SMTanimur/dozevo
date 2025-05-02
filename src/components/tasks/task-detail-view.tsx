@@ -57,7 +57,7 @@ export const TaskDetailView = () => {
   const [title, setTitle] = useState(task?.name || '');
   const [description, setDescription] = useState(task?.description || '');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    task?.dueDate ? new Date(task?.dueDate) : undefined
+    task?.due_date ? new Date(task?.due_date) : undefined
   );
   const [selectedPriorityId, setSelectedPriorityId] = useState<
     PriorityId | typeof NO_PRIORITY_ID | null
@@ -84,7 +84,7 @@ export const TaskDetailView = () => {
     setTitle(task?.name || '');
     setDescription(task?.description || '');
     setSelectedPriorityId(task?.priority as PriorityId | null);
-    setSelectedDate(task?.dueDate ? new Date(task?.dueDate) : undefined);
+    setSelectedDate(task?.due_date ? new Date(task?.due_date) : undefined);
   }, [task]);
 
   const handleTitleSave = () => {
