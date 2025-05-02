@@ -175,7 +175,7 @@ export const TaskDetailView = () => {
   };
 
   const subtasks = task
-    ? (spaceTasksData?.data || []).filter(t => t.parentTask?._id === task._id)
+    ? (spaceTasksData?.data || []).filter(t => t.parentTask === task._id)
     : [];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
