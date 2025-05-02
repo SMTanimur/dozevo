@@ -149,7 +149,7 @@ export const TaskRow = ({ task, onClick, level = 0 }: TaskRowProps) => {
         </div>
       </div>
       {hasSubtasks && isExpanded && task.subtasks && (
-        <div className='subtask-container'>
+        <div className='subtask-container ml-8'>
           {task.subtasks.map(subtask => (
             <TaskRow
               key={subtask._id}
