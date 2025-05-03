@@ -326,7 +326,7 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
                                 'border-t border-gray-200',
                                 snapshotDraggable.isDragging
                                   ? 'bg-indigo-100 shadow-md'
-                                  : 'hover:bg-gray-50'
+                                  : ''
                               )}
                             >
                               <TaskRow
