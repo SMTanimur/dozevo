@@ -9,7 +9,14 @@ import {
 } from '@hello-pangea/dnd';
 
 import { Button } from '@/components/ui/button';
-import { ChevronDown, Plus, MoreHorizontal } from 'lucide-react';
+import {
+  ChevronDown,
+  Plus,
+  MoreHorizontal,
+  Circle,
+  CircleCheck,
+  CircleX,
+} from 'lucide-react';
 
 import { TaskRow } from '@/components/tasks/task-row';
 import { IList, IStatusDefinition, ITask } from '@/types';
@@ -17,6 +24,8 @@ import { useGetStatuses } from '@/hooks/list';
 import { useTaskMutations } from '@/hooks/task';
 import { useGlobalStateStore } from '@/stores';
 import { TCreateTask } from '@/validations';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 type TaskListViewProps = {
   list: IList;
@@ -34,14 +43,24 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
     {}
   );
+  const [tasksByStatus, setTasksByStatus] = useState<Record<string, ITask[]>>(
+    {}
+  );
 
   useEffect(() => {
     if (statuses.length > 0) {
-      setExpandedGroups(
-        Object.fromEntries(statuses.map(status => [status._id, true]))
+      const initialExpanded = Object.fromEntries(
+        statuses.map(status => [status._id, true])
       );
+      setExpandedGroups(initialExpanded);
+
+      const initialTasksByStatus = statuses.reduce((acc, status) => {
+        acc[status._id] = tasks.filter(task => task.status?._id === status._id);
+        return acc;
+      }, {} as Record<string, ITask[]>);
+      setTasksByStatus(initialTasksByStatus);
     }
-  }, [statuses]);
+  }, [statuses, tasks]);
 
   const toggleGroup = (statusId: string) => {
     setExpandedGroups(prev => ({
@@ -57,54 +76,61 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
       listId: list._id,
     };
 
-    createTask({
-      data: newTask,
-      params: {
-        spaceId: list.space as string,
-        listId: list._id as string,
+    createTask(
+      {
+        data: newTask,
+        params: {
+          spaceId: list.space as string,
+          listId: list._id as string,
+        },
       },
-    });
+      {
+        onSuccess: newTask => {
+          setTasksByStatus(prev => ({
+            ...prev,
+            [status._id]: [...(prev[status._id] || []), newTask],
+          }));
+        },
+      }
+    );
   };
 
-  const tasksByStatus = statuses.reduce((acc, status) => {
-    acc[status._id] = tasks.filter(task => task.status?._id === status._id);
-    return acc;
-  }, {} as Record<string, ITask[]>);
-
   const handleDragEnd = (result: DropResult) => {
-    const { destination, source, draggableId } = result;
+    const { destination, source } = result;
 
-    if (
-      !destination ||
-      destination.droppableId !== source.droppableId ||
-      destination.index === source.index
-    ) {
+    if (!destination) {
       return;
     }
 
-    const statusId = source.droppableId;
-    const tasksInGroup: ITask[] = tasksByStatus[statusId] || [];
-    const taskToMove = tasksInGroup.find(t => t._id === draggableId);
+    if (destination.droppableId === source.droppableId) {
+      if (destination.index === source.index) {
+        return;
+      }
 
-    if (!taskToMove) {
-      console.error('Could not find task to move in group for reordering');
-      return;
-    }
+      const statusId = source.droppableId;
+      const tasksInGroup: ITask[] = Array.from(tasksByStatus[statusId] || []);
+      const [movedTask] = tasksInGroup.splice(source.index, 1);
+      tasksInGroup.splice(destination.index, 0, movedTask);
 
-    const currentIds = tasksInGroup.map(t => t._id);
-    const [movedId] = currentIds.splice(source.index, 1);
-    currentIds.splice(destination.index, 0, movedId);
-    const orderedTaskIds = currentIds;
+      setTasksByStatus(prev => ({
+        ...prev,
+        [statusId]: tasksInGroup,
+      }));
 
-    reorderTasks({
-      listId: list._id as string,
-      orderedTaskIds: orderedTaskIds,
-      params: {
-        workspaceId: list.workspace as string,
-        spaceId: list.space as string,
+      const orderedTaskIds = tasksInGroup.map(t => t._id);
+
+      reorderTasks({
         listId: list._id as string,
-      },
-    });
+        orderedTaskIds: orderedTaskIds,
+        params: {
+          workspaceId: list.workspace as string,
+          spaceId: list.space as string,
+          listId: list._id as string,
+        },
+      });
+    } else {
+      console.log('Moving between groups not implemented in list view yet');
+    }
   };
 
   if (isLoadingStatuses) {
@@ -112,8 +138,8 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
   }
 
   return (
-    <div className='flex flex-col h-full'>
-      <div className='flex items-center justify-between p-4 border-b'>
+    <div className='flex flex-col h-full text-sm'>
+      <div className='flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10'>
         <div className='flex items-center gap-4'>
           <Button
             variant='outline'
@@ -149,14 +175,7 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
             <span>Filter</span>
             <ChevronDown className='h-4 w-4' />
           </Button>
-          <Button
-            variant='outline'
-            size='sm'
-            className='flex items-center gap-2'
-          >
-            <span>Sort</span>
-            <ChevronDown className='h-4 w-4' />
-          </Button>
+
           <Button
             variant='outline'
             size='sm'
@@ -174,10 +193,10 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
             <ChevronDown className='h-4 w-4' />
           </Button>
           <div className='relative'>
-            <input
+            <Input
               type='text'
               placeholder='Search...'
-              className='h-9 px-3 py-1 rounded-md border border-input bg-background text-sm'
+              className='h-9 px-3 py-1 rounded-md border border-input bg-background text-sm w-40'
             />
           </div>
           <Button variant='ghost' size='icon' className='h-9 w-9'>
@@ -187,72 +206,108 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className='flex-1 overflow-auto'>
+        <div className='flex flex-col gap-4  overflow-auto'>
           {statuses.map(status => (
-            <div key={status._id} className='border-b'>
+            <div key={status._id} className=' px-4 '>
               <div
-                className='flex items-center px-4 py-2 cursor-pointer hover:bg-gray-50'
+                className='flex items-center px-4 py-1.5 cursor-pointer  group'
                 onClick={() => toggleGroup(status._id)}
               >
+                <ChevronDown
+                  className={cn(
+                    'h-4 w-4 mr-1 text-gray-400 transition-transform group-hover:text-gray-600',
+                    expandedGroups[status._id] ? 'rotate-0' : '-rotate-90'
+                  )}
+                />
+
                 <div
-                  className='w-5 h-5 rounded-full mr-2 flex items-center justify-center'
-                  style={{ backgroundColor: status.color }}
+                  className={cn(
+                    'flex items-center gap-2 px-2 py-1 rounded-md',
+                    status.type === 'in_progress' && 'bg-indigo-500 text-white',
+                    status.type === 'done' && 'bg-green-500 text-white',
+                    status.type === 'review' && 'bg-blue-500 text-white',
+                    status.type === 'custom' && 'bg-gray-500 text-white',
+                    status.type === 'closed' && 'bg-red-500 text-white',
+                    status.type === 'open' && 'bg-gray-500 text-white'
+                  )}
                 >
-                  {status.type === 'in_progress' && (
-                    <div className='w-2 h-2 rounded-full bg-white' />
-                  )}
-                  {status.type === 'done' && (
-                    <svg
-                      className='w-3 h-3 text-white'
-                      fill='none'
-                      viewBox='0 0 24 24'
-                      stroke='currentColor'
-                    >
-                      <path
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth={2}
-                        d='M5 13l4 4L19 7'
-                      />
-                    </svg>
-                  )}
+                  <div>
+                    {status.type === 'in_progress' && (
+                      <Circle className='h-4 w-4 text-white' />
+                    )}
+                    {status.type === 'done' && (
+                      <CircleCheck className='h-4 w-4 text-white' />
+                    )}
+                    {status.type === 'review' && (
+                      <CircleCheck className='h-4 w-4 text-white  ' />
+                    )}
+                    {status.type === 'custom' && (
+                      <Circle className='h-4 w-4 text-white' />
+                    )}
+                    {status.type === 'closed' && (
+                      <CircleX className='h-4 w-4 text-white' />
+                    )}
+                    {status.type === 'open' && (
+                      <Circle className='h-4 w-4 text-white' />
+                    )}
+                  </div>
+                  <span className='font-medium text-white flex-grow truncate mr-2'>
+                    {status.status}
+                  </span>
                 </div>
-                <span className='font-medium'>{status.status}</span>
+
                 <span className='ml-2 text-gray-500 text-sm'>
                   {tasksByStatus[status._id]?.length || 0}
                 </span>
-                <ChevronDown
-                  className={`ml-2 h-4 w-4 transition-transform ${
-                    expandedGroups[status._id] ? 'rotate-180' : ''
-                  }`}
-                />
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='ml-2 h-8 w-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  onClick={e => {
+                    e.stopPropagation();
+                    console.log('Status options clicked for:', status._id);
+                  }}
+                >
+                  <MoreHorizontal className='h-4 w-4' />
+                </Button>
                 <Button
                   variant='ghost'
                   size='sm'
-                  className='ml-auto'
+                  className='ml-auto h-8 px-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                   onClick={e => {
                     e.stopPropagation();
                     handleAddTask(status);
                   }}
                 >
-                  <Plus className='h-4 w-4' />
-                  <span className='ml-1'>Add Task</span>
-                </Button>
-                <Button variant='ghost' size='icon' className='ml-2 h-8 w-8'>
-                  <MoreHorizontal className='h-4 w-4' />
+                  Add Task
                 </Button>
               </div>
 
               {expandedGroups[status._id] && (
                 <Droppable droppableId={status._id} type='TASK'>
-                  {provided => (
-                    <div ref={provided.innerRef} {...provided.droppableProps}>
-                      <div className='grid grid-cols-[1fr,200px,120px,100px,40px] px-4 py-2 text-sm text-gray-500 border-y'>
-                        <div>Name</div>
-                        <div>Assignee</div>
-                        <div>Due date</div>
-                        <div>Priority</div>
-                        <div></div>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className={cn(
+                        'transition-colors',
+                        snapshot.isDraggingOver ? 'bg-indigo-50' : 'bg-white'
+                      )}
+                    >
+                      <div className='flex items-center px-4 py-2 text-sm text-gray-500 border-t border-gray-200 bg-white'>
+                        <div className='flex-1'>Name</div>
+                        <div className='w-[200px] flex-shrink-0'>Assignee</div>
+                        <div className='w-[120px] flex-shrink-0'>Due date</div>
+                        <div className='w-[100px] flex-shrink-0'>Priority</div>
+                        <div className='w-[40px] flex justify-end flex-shrink-0'>
+                          <Button
+                            variant='ghost'
+                            size='icon'
+                            className='h-8 w-8'
+                          >
+                            <Plus className='h-4 w-4' />
+                          </Button>
+                        </div>
                       </div>
 
                       {(tasksByStatus[status._id] || []).map((task, index) => (
@@ -261,33 +316,34 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
                           draggableId={task._id}
                           index={index}
                         >
-                          {(providedDraggable, snapshot) => (
+                          {(providedDraggable, snapshotDraggable) => (
                             <div
                               ref={providedDraggable.innerRef}
                               {...providedDraggable.draggableProps}
                               {...providedDraggable.dragHandleProps}
-                              style={{
-                                ...providedDraggable.draggableProps.style,
-                                opacity: snapshot.isDragging ? 0.8 : 1,
-                                backgroundColor: snapshot.isDragging
-                                  ? '#eef2ff'
-                                  : 'transparent',
-                              }}
+                              style={providedDraggable.draggableProps.style}
+                              className={cn(
+                                'border-t border-gray-200',
+                                snapshotDraggable.isDragging
+                                  ? 'bg-indigo-100 shadow-md'
+                                  : ''
+                              )}
                             >
                               <TaskRow
                                 task={task}
                                 onClick={() => openTaskModal(task._id)}
+                                className='flex items-center px-4'
                               />
                             </div>
                           )}
                         </Draggable>
                       ))}
                       {provided.placeholder}
-                      <div className='px-4 py-2'>
+                      <div className='px-4 py-1.5 border-t border-gray-200'>
                         <Button
                           variant='ghost'
                           size='sm'
-                          className='text-gray-500'
+                          className='h-7 px-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                           onClick={() => handleAddTask(status)}
                         >
                           <Plus className='h-4 w-4 mr-1' />
@@ -300,6 +356,18 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
               )}
             </div>
           ))}
+
+          <div className='px-4 py-2 border-t border-gray-200'>
+            <Button
+              variant='ghost'
+              size='sm'
+              className='h-7 px-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              onClick={() => console.log('New Status clicked')}
+            >
+              <Plus className='h-4 w-4 mr-1' />
+              New Status
+            </Button>
+          </div>
         </div>
       </DragDropContext>
     </div>

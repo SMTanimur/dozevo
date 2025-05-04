@@ -6,7 +6,16 @@ export interface IStatusDefinition {
   color: string;
   listId: string;
   orderindex: number;
-  type: string;
+  type: StatusType;
 }
 
 
+
+export enum StatusType {
+  OPEN = 'open',
+  CUSTOM = 'custom',
+  IN_PROGRESS = 'in_progress',
+  REVIEW = 'review',
+  CLOSED = 'closed',
+  DONE = 'done',
+}
