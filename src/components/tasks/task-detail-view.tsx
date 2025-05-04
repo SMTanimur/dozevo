@@ -187,7 +187,7 @@ export const TaskDetailView = () => {
 
   return (
     <Dialog open={isTaskModalOpen} onOpenChange={closeTaskModal}>
-      <DialogContent className='max-w-6xl p-0 h-[90vh] flex flex-col overflow-hidden'>
+      <DialogContent className='max-w-7xl p-0 h-[90vh] flex flex-col overflow-hidden'>
         <div className='flex items-center justify-between p-4 border-b'>
           <div className='flex items-center gap-2'>
             <Button variant='outline' size='sm' className='gap-1'>
