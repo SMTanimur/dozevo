@@ -9,11 +9,12 @@ import {
   Draggable,
   DropResult,
 } from '@hello-pangea/dnd';
-import { ITask, IStatusDefinition } from '@/types'; // Assuming IList might be needed for context
+import { ITask, IStatusDefinition, StatusType } from '@/types'; // Assuming IList might be needed for context
 import { useGetTasks, useTaskMutations } from '@/hooks/task';
 import { useGetStatuses } from '@/hooks/list';
 import TaskCard from './task-card'; // Import TaskCard
 import { TCreateTask } from '@/validations';
+import { cn } from '@/lib';
 
 // Assume workspaceId, spaceId, and listId are passed as props or derived from context
 interface TaskBoardViewProps {
@@ -255,9 +256,16 @@ export default function TaskBoardView({
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className='min-w-[300px] max-w-[350px] flex flex-col bg-gray-50 rounded-md'
+                    className={cn(
+                      'min-w-[300px] max-w-[350px] flex flex-col  rounded-lg',
+                      status.type === StatusType.DONE && 'bg-green-100',
+                      status.type === StatusType.IN_PROGRESS && 'bg-blue-100',
+                      status.type === StatusType.OPEN && 'bg-gray-100',
+                      status.type === StatusType.CLOSED && 'bg-red-100',
+                      status.type === StatusType.REVIEW && 'bg-yellow-100'
+                    )}
                   >
-                    <div className='flex items-center justify-between p-3 border-b bg-white rounded-t-md'>
+                    <div className='flex items-center justify-between p-3 border-b bg-white rounded-lg'>
                       <div className='flex items-center'>
                         <div
                           className='w-5 h-5 rounded-full mr-2 flex items-center justify-center'

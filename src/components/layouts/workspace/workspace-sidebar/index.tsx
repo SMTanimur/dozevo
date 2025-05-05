@@ -31,7 +31,12 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
-import { useGetSpaces, useGetWorkspace, useGetWorkspaces } from '@/hooks';
+import {
+  useGetSpaces,
+  useGetWorkspace,
+  useGetWorkspaces,
+  useUserMutations,
+} from '@/hooks';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib';
 import { SidebarSection } from '../../sidebar-section';
@@ -64,9 +69,16 @@ export function WorkspaceSidebar() {
   const { data: workspaces } = useGetWorkspaces();
   const { open } = useSidebar();
   const otherWorkspaces = workspaces?.filter(ws => ws._id !== w_id);
-
+  const { updateActiveWorkspace } = useUserMutations();
   // State for controlling the Create Space modal
   const [isCreateSpaceModalOpen, setIsCreateSpaceModalOpen] = useState(false);
+
+  const handleSwitchWorkspace = (workspaceId: string) => {
+    updateActiveWorkspace({
+      workspaceId,
+    });
+    router.replace(`/${workspaceId}/home`);
+  };
 
   return (
     <>
@@ -171,6 +183,7 @@ export function WorkspaceSidebar() {
                           key={ws._id}
                           variant='ghost'
                           className='flex h-auto w-full items-center justify-start gap-2 px-2 py-1.5'
+                          onClick={() => handleSwitchWorkspace(ws._id)}
                         >
                           <div
                             className='flex h-6 w-6   items-center justify-center rounded-sm'
@@ -316,7 +329,7 @@ export function WorkspaceSidebar() {
                   className='w-full cursor-pointer justify-start gap-2'
                   onClick={() => setIsCreateSpaceModalOpen(true)}
                 >
-                  <Plus className='h-4 w-4' />  Create Space
+                  <Plus className='h-4 w-4' /> Create Space
                 </Button>
               </div>
             </SidebarSection>
