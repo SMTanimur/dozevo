@@ -1,6 +1,7 @@
 import { api } from '@/api';
 import { IUser, UpdateActiveWorkspaceDto } from '@/types';
 import { updateUserSchema } from '@/validations';
+import Cookies from 'js-cookie';
 import { z } from 'zod';
 
 // Define types for the input data based on Zod schemas
@@ -38,7 +39,10 @@ export class UserService {
       // updateUserSchema might need refinement based on API requirements
       updateUserSchema.parse(data);
       // The API uses PATCH /users with userId implicitly from token
-      const response = await api.patch<{ message: string }>(`${BASE_PATH}`, data);
+      const response = await api.patch<{ message: string }>(
+        `${BASE_PATH}`,
+        data
+      );
       return response.data;
     } catch (error) {
       console.error('Failed to update user profile:', error);
@@ -47,14 +51,19 @@ export class UserService {
   }
 
   async updateActiveWorkspace(
-    data: UpdateActiveWorkspaceInput,
+    data: UpdateActiveWorkspaceInput
   ): Promise<IUser> {
     try {
       // Assuming validation schema exists or validation happens elsewhere
       const response = await api.patch<IUser>(
         `${BASE_PATH}/me/active-workspace`,
-        data,
+        data
       );
+      Cookies.set('Workspace', data.workspaceId as string, {
+        expires: 7,
+        secure: true,
+        sameSite: 'strict',
+      });
       return response.data;
     } catch (error) {
       console.error('Failed to update active workspace:', error);
