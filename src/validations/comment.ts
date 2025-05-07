@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { userSchema } from './user'; // Import user schema
+import { userSchema } from './user'
 
 // Schema for Reaction subdocument (matching ReactionResponseDto)
 export const reactionSchema = z.object({
@@ -59,7 +59,7 @@ export const addReactionSchema = z.object({
   emoji: z
     .string({ required_error: 'Emoji is required for reaction' })
     .min(1, 'Emoji cannot be empty'),
-    // Add specific emoji validation if desired
+  
 }); 
 
 export type TAddReaction = z.infer<typeof addReactionSchema>;
