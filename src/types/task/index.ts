@@ -7,6 +7,7 @@ import {
   customFieldValueDataSchema,
   taskRelationTypeSchema,
   taskRelationSchema,
+  taskAttachmentSchema,
 } from '@/validations/task';
 import { IStatusDefinition } from '../status';
 
@@ -75,6 +76,7 @@ export interface ITask {
   orderIndex?: number;
   completedAt: string | null; // ISO Date string or null
   archived: boolean;
+  attachments?: TTaskAttachment[]; // Added attachments
   createdAt: string; // ISO Date string
   updatedAt: string; // ISO Date string
 }
@@ -103,6 +105,9 @@ export type TaskRelationType = z.infer<typeof taskRelationTypeSchema>;
 
 // Type derived from the Zod schema
 export type TaskRelation = z.infer<typeof taskRelationSchema>;
+
+// Type derived from Zod schema for Task Attachments
+export type TTaskAttachment = z.infer<typeof taskAttachmentSchema>;
 
 // Type derived from the Zod schema
 export type Task = z.infer<typeof taskSchema>;

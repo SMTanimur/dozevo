@@ -59,6 +59,18 @@ export const taskRelationSchema = z.object({
   dateAdded: z.string().datetime(),
 });
 
+// --- Task Attachment Schema (Matches API Response DTO) ---
+export const taskAttachmentSchema = z.object({
+  _id: z.string().optional(), // Optional if not always present (e.g. before save)
+  public_id: z.string(),
+  url: z.string().url(),
+  filename: z.string(),
+  format: z.string(),
+  bytes: z.number().positive(),
+  uploadedBy: z.string(), // Assuming PopulatedUserDto maps to a string ID on frontend for simplicity, or use a user schema
+  createdAt: z.string().datetime(),
+});
+
 // --- Main Task Schema ---
 
 export const taskSchema = z.object({
@@ -89,6 +101,7 @@ export const taskSchema = z.object({
   parentTask: z.string().nullable().optional(), // Parent Task ID
   custom_fields: z.array(customFieldValueDataSchema).default([]),
   relations: z.array(taskRelationSchema).default([]),
+  attachments: z.array(taskAttachmentSchema).optional().default([]),
   creator: z.string().optional(), // Embed populated creator user
   orderindex: z.string().optional(), // ClickUp uses string here
   archived: z.boolean().default(false),
@@ -115,6 +128,7 @@ export const createTaskSchema = z.object({
   assignees: z.array(z.string()).optional(), // Array of User IDs
   watchers: z.array(z.string()).optional(), // Array of User IDs
   tags: z.array(z.string()).optional(), // Array of Tag IDs
+  attachments: z.array(taskAttachmentSchema).optional(),
 
   priority: z.nativeEnum(Priority).nullable().optional(),
   due_date: z
@@ -142,6 +156,7 @@ export const updateTaskSchema = z
     assignees: z.array(z.string()).optional(),
     watchers: z.array(z.string()).optional(),
     tags: z.array(z.string()).optional(),
+    attachments: z.array(taskAttachmentSchema).optional(),
     priority: z.nativeEnum(Priority).nullable().optional(),
     due_date: z
       .string()
