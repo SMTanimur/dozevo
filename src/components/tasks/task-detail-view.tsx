@@ -31,6 +31,8 @@ import {
   Paperclip,
   Plus,
   ChevronDown,
+
+  FileText,
 } from 'lucide-react';
 import { ITaskUser, Priority } from '@/types';
 import { useGlobalStateStore } from '@/stores';
@@ -64,8 +66,10 @@ export const TaskDetailView = () => {
   >(task?.priority as PriorityId | null);
   const [commentText, setCommentText] = useState('');
   const [addingSubtask, setAddingSubtask] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: spaceTasksData } = useGetTasks({
     spaceId: task?.space as string,
   });
@@ -73,6 +77,9 @@ export const TaskDetailView = () => {
   const workspaceId = params.w_id as string;
 
   const { updateTask } = useTaskMutations();
+  const uploadAttachment = (data: unknown) =>
+    console.log('Attempting to upload attachment:', data);
+  const isUploadingAttachment = false;
 
   const { data: statuses = [] } = useGetStatuses({
     workspaceId,
@@ -164,6 +171,29 @@ export const TaskDetailView = () => {
           workspaceId: workspaceId,
         },
       });
+    }
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setSelectedFile(event.target.files[0]);
+    } else {
+      setSelectedFile(null);
+    }
+  };
+
+  const handleUploadAttachment = () => {
+    if (task && selectedFile) {
+      uploadAttachment({
+        taskId: task._id,
+        file: selectedFile,
+        params: {
+          workspaceId,
+          spaceId: task.space,
+          listId: task.list as string,
+        },
+      });
+      setSelectedFile(null);
     }
   };
 
@@ -407,6 +437,82 @@ export const TaskDetailView = () => {
                 className='min-h-[150px]'
                 onBlur={handleDescriptionSave}
               />
+            </div>
+
+            <div className='mb-6'>
+              <div className='flex items-center justify-between mb-2'>
+                <Label className='text-sm text-gray-500'>Attachments</Label>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingAttachment}
+                >
+                  <Paperclip className='h-4 w-4 mr-2' />
+                  Add Attachment
+                </Button>
+                <input
+                  type='file'
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  className='hidden'
+                />
+              </div>
+
+              {selectedFile && (
+                <div className='mb-2 flex items-center gap-2 p-2 border rounded-md bg-gray-50'>
+                  <FileText className='h-5 w-5 text-gray-500 flex-shrink-0' />
+                  <span
+                    className='text-sm flex-1 truncate'
+                    title={selectedFile.name}
+                  >
+                    {selectedFile.name}
+                  </span>
+                  <Button
+                    size='sm'
+                    onClick={handleUploadAttachment}
+                    disabled={isUploadingAttachment}
+                  >
+                    {isUploadingAttachment ? 'Uploading...' : 'Upload'}
+                  </Button>
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    onClick={() => setSelectedFile(null)}
+                    disabled={isUploadingAttachment}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              )}
+
+              {task.attachments && task.attachments.length > 0 ? (
+                <div className='space-y-2'>
+                  {task.attachments.map(attachment => (
+                    <div
+                      key={attachment.public_id || attachment._id}
+                      className='flex items-center gap-3 p-2 border rounded-md hover:bg-gray-50'
+                    >
+                      <FileText className='h-5 w-5 text-gray-500 flex-shrink-0' />
+                      <a
+                        href={attachment.url}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='text-sm text-blue-600 hover:underline flex-1 truncate'
+                        title={attachment.filename}
+                      >
+                        {attachment.filename}
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                !selectedFile && (
+                  <div className='text-sm text-gray-400 py-2'>
+                    No attachments yet.
+                  </div>
+                )
+              )}
             </div>
 
             <div className='mb-6'>
