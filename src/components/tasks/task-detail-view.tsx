@@ -24,7 +24,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import {
   CalendarIcon,
-  Clock,
   User,
   Tag,
   MessageSquare,
@@ -32,7 +31,6 @@ import {
   Paperclip,
   Plus,
   ChevronDown,
-  FileText,
 } from 'lucide-react';
 import { ITaskUser, Priority } from '@/types';
 import { useGlobalStateStore } from '@/stores';
@@ -49,11 +47,8 @@ import {
   PriorityId,
   NO_PRIORITY_ID,
 } from '@/constants';
-import { AttachmentDialog } from './attachment-dialog';
 import { DocumentViewer } from './document-viewer';
-import Image from 'next/image';
-import Lightbox from 'react-image-lightbox';
-import 'react-image-lightbox/style.css';
+import { TaskAttachments } from './task-attachments';
 
 export const TaskDetailView = () => {
   const { closeTaskModal, isTaskModalOpen, selectedTaskId } =
@@ -71,9 +66,6 @@ export const TaskDetailView = () => {
   >(task?.priority as PriorityId | null);
   const [commentText, setCommentText] = useState('');
   const [addingSubtask, setAddingSubtask] = useState(false);
-
-  // State for managing the attachment dialog
-  const [isAttachmentDialogOpen, setIsAttachmentDialogOpen] = useState(false);
 
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const { data: spaceTasksData } = useGetTasks({
@@ -95,29 +87,6 @@ export const TaskDetailView = () => {
     url: string;
     filename: string;
   } | null>(null);
-
-  // State for lightbox image viewer
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const [lightboxImageUrl, setLightboxImageUrl] = useState('');
-  const [lightboxImageTitle, setLightboxImageTitle] = useState('');
-
-  const isImageFile = (filename: string) => {
-    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
-    const extension = filename.split('.').pop()?.toLowerCase();
-    return extension ? imageExtensions.includes(extension) : false;
-  };
-
-  const isDocumentFile = (filename: string) => {
-    const documentExtensions = ['pdf', 'doc', 'docx'];
-    const extension = filename.split('.').pop()?.toLowerCase();
-    return extension ? documentExtensions.includes(extension) : false;
-  };
-
-  const openLightbox = (url: string, filename: string) => {
-    setLightboxImageUrl(url);
-    setLightboxImageTitle(filename);
-    setIsLightboxOpen(true);
-  };
 
   useEffect(() => {
     setTitle(task?.name || '');
@@ -206,14 +175,13 @@ export const TaskDetailView = () => {
     }
   };
 
-  // This function will be passed to AttachmentDialog as onUpload
   const handleFileUpload = async (filesToUpload: File[]) => {
     if (task && filesToUpload.length > 0) {
       console.log('Uploading files from dialog:', filesToUpload);
-      uploadAttachment(
+      await uploadAttachment(
         {
           taskId: task._id,
-          files: filesToUpload, // Pass the array of files
+          files: filesToUpload,
           params: {
             workspaceId,
             spaceId: task.space,
@@ -222,9 +190,8 @@ export const TaskDetailView = () => {
         },
         {
           onSuccess: () => {
-            setIsAttachmentDialogOpen(false); // Close dialog on success
+            // Success is handled by the mutation hook
           },
-          // onError can be handled by the mutation hook's global onError
         }
       );
     }
@@ -421,9 +388,6 @@ export const TaskDetailView = () => {
                       />
                     </PopoverContent>
                   </Popover>
-                  <Button variant='outline' size='icon' className='h-9 w-9'>
-                    <Clock className='h-4 w-4' />
-                  </Button>
                 </div>
               </div>
 
@@ -473,96 +437,11 @@ export const TaskDetailView = () => {
             </div>
 
             <div className='mb-6'>
-              <div className='flex items-center justify-between mb-2'>
-                <Label className='text-sm text-gray-500'>Attachments</Label>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={() => setIsAttachmentDialogOpen(true)}
-                  disabled={isUploadingAttachment}
-                >
-                  <Paperclip className='h-4 w-4 mr-2' />
-                  Add Attachments
-                </Button>
-              </div>
-
-              {task.attachments && task.attachments.length > 0 ? (
-                <div className='grid grid-cols-2 gap-4'>
-                  {task.attachments.map(attachment => (
-                    <div
-                      key={attachment.public_id || attachment._id}
-                      className='flex flex-col gap-2 p-3 border rounded-md hover:bg-gray-50'
-                    >
-                      {isImageFile(attachment.filename) ? (
-                        <div
-                          className='relative aspect-video w-full overflow-hidden rounded-md cursor-pointer'
-                          onClick={() =>
-                            openLightbox(attachment.url, attachment.filename)
-                          }
-                        >
-                          <Image
-                            src={attachment.url}
-                            alt={attachment.filename}
-                            fill
-                            className='object-cover'
-                          />
-                        </div>
-                      ) : (
-                        <div className='flex items-center gap-2 p-2 bg-gray-50 rounded-md'>
-                          <FileText className='h-5 w-5 text-gray-500 flex-shrink-0' />
-                          <span className='text-sm text-gray-700 truncate'>
-                            {attachment.filename}
-                          </span>
-                        </div>
-                      )}
-                      <div className='flex flex-col gap-1'>
-                        <div className='flex items-center justify-between'>
-                          <div className='text-xs text-gray-500 flex items-center gap-1'>
-                            <span>Added by</span>
-                            <span className='font-medium'>
-                              {attachment.uploadedBy?.firstName || 'Unknown'}
-                            </span>
-                          </div>
-                          <span className='text-xs text-gray-500'>
-                            {new Date(
-                              attachment.createdAt
-                            ).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <div className='flex justify-end'>
-                          {isDocumentFile(attachment.filename) ? (
-                            <Button
-                              variant='ghost'
-                              size='sm'
-                              onClick={() =>
-                                setSelectedDocument({
-                                  url: attachment.url,
-                                  filename: attachment.filename,
-                                })
-                              }
-                            >
-                              View
-                            </Button>
-                          ) : (
-                            <a
-                              href={attachment.url}
-                              target='_blank'
-                              rel='noopener noreferrer'
-                              className='text-xs text-blue-600 hover:underline'
-                            >
-                              Open
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className='text-sm text-gray-400 py-2'>
-                  No attachments yet.
-                </div>
-              )}
+              <TaskAttachments
+                attachments={task?.attachments || []}
+                onUpload={handleFileUpload}
+                isUploading={isUploadingAttachment}
+              />
             </div>
 
             <div className='mb-6'>
@@ -703,29 +582,12 @@ export const TaskDetailView = () => {
           </div>
         </div>
 
-        <AttachmentDialog
-          isOpen={isAttachmentDialogOpen}
-          onClose={() => setIsAttachmentDialogOpen(false)}
-          onUpload={handleFileUpload}
-          isUploading={isUploadingAttachment}
-        />
-
         <DocumentViewer
           isOpen={!!selectedDocument}
           onClose={() => setSelectedDocument(null)}
           fileUrl={selectedDocument?.url || ''}
           fileName={selectedDocument?.filename || ''}
         />
-
-        {/* React Image Lightbox */}
-        {isLightboxOpen && (
-          <Lightbox
-            mainSrc={lightboxImageUrl}
-            onCloseRequest={() => setIsLightboxOpen(false)}
-            imageTitle={lightboxImageTitle}
-            reactModalStyle={{ overlay: { zIndex: 9999 } }}
-          />
-        )}
       </DialogContent>
     </Dialog>
   );
