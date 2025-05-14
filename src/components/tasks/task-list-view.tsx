@@ -9,12 +9,7 @@ import {
 } from '@hello-pangea/dnd';
 
 import { Button } from '@/components/ui/button';
-import {
-  ChevronDown,
-  Plus,
-  MoreHorizontal,
-
-} from 'lucide-react';
+import { ChevronDown, Plus, MoreHorizontal } from 'lucide-react';
 
 import { TaskRow } from '@/components/tasks/task-row';
 import { IList, IStatusDefinition, ITask } from '@/types';
@@ -225,12 +220,11 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
                       'rounded-b-2xl'
                     )}
                   >
-                    <div className='flex items-center px-6 py-2 text-xs text-gray-500 border-b bg-white rounded-t-2xl'>
-                      <div className='flex-1'>Name</div>
-                      <div className='w-[200px] flex-shrink-0'>Assignee</div>
-                      <div className='w-[120px] flex-shrink-0'>Due date</div>
-                      <div className='w-[100px] flex-shrink-0'>Priority</div>
-                      <div className='w-[40px] flex justify-end flex-shrink-0'></div>
+                    <div className='grid grid-cols-[minmax(0,1fr)_200px_120px_100px] items-center px-6 py-2 text-xs text-gray-500 border-b bg-white rounded-t-2xl'>
+                      <div>Name</div>
+                      <div>Assignee</div>
+                      <div>Due date</div>
+                      <div>Priority</div>
                     </div>
                     {(tasksByStatus[status._id] || []).map((task, index) => (
                       <Draggable
@@ -254,7 +248,7 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
                             <TaskRow
                               task={task}
                               onClick={() => openTaskModal(task._id)}
-                              className='flex items-center px-6'
+                              className='group py-2 hover:bg-gray-50 cursor-pointer relative grid grid-cols-[minmax(0,1fr)_200px_120px_100px] items-center px-6'
                             />
                           </div>
                         )}
