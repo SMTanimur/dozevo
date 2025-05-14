@@ -174,7 +174,7 @@ export const TaskDetailView = () => {
   };
 
   // This function will be passed to AttachmentDialog as onUpload
-  const handleFileUploadFromDialog = async (filesToUpload: File[]) => {
+  const handleFileUpload = async (filesToUpload: File[]) => {
     if (task && filesToUpload.length > 0) {
       console.log('Uploading files from dialog:', filesToUpload);
       uploadAttachment(
@@ -621,7 +621,7 @@ export const TaskDetailView = () => {
         <AttachmentDialog
           isOpen={isAttachmentDialogOpen}
           onClose={() => setIsAttachmentDialogOpen(false)}
-          onUpload={handleFileUploadFromDialog}
+          onUpload={handleFileUpload}
           isUploading={isUploadingAttachment}
         />
       </DialogContent>
