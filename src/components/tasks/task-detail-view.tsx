@@ -52,6 +52,8 @@ import {
 import { AttachmentDialog } from './attachment-dialog';
 import { DocumentViewer } from './document-viewer';
 import Image from 'next/image';
+import Lightbox from 'react-image-lightbox';
+import 'react-image-lightbox/style.css';
 
 export const TaskDetailView = () => {
   const { closeTaskModal, isTaskModalOpen, selectedTaskId } =
@@ -94,10 +96,10 @@ export const TaskDetailView = () => {
     filename: string;
   } | null>(null);
 
-  const [selectedImage, setSelectedImage] = useState<{
-    url: string;
-    filename: string;
-  } | null>(null);
+  // State for lightbox image viewer
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxImageUrl, setLightboxImageUrl] = useState('');
+  const [lightboxImageTitle, setLightboxImageTitle] = useState('');
 
   const isImageFile = (filename: string) => {
     const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
@@ -109,6 +111,12 @@ export const TaskDetailView = () => {
     const documentExtensions = ['pdf', 'doc', 'docx'];
     const extension = filename.split('.').pop()?.toLowerCase();
     return extension ? documentExtensions.includes(extension) : false;
+  };
+
+  const openLightbox = (url: string, filename: string) => {
+    setLightboxImageUrl(url);
+    setLightboxImageTitle(filename);
+    setIsLightboxOpen(true);
   };
 
   useEffect(() => {
@@ -489,10 +497,7 @@ export const TaskDetailView = () => {
                         <div
                           className='relative aspect-video w-full overflow-hidden rounded-md cursor-pointer'
                           onClick={() =>
-                            setSelectedImage({
-                              url: attachment.url,
-                              filename: attachment.filename,
-                            })
+                            openLightbox(attachment.url, attachment.filename)
                           }
                         >
                           <Image
@@ -712,37 +717,15 @@ export const TaskDetailView = () => {
           fileName={selectedDocument?.filename || ''}
         />
 
-        {/* Image Viewer Dialog */}
-        <Dialog
-          open={!!selectedImage}
-          onOpenChange={() => setSelectedImage(null)}
-        >
-          <DialogContent className='max-w-6xl max-h-[90vh] p-0 flex flex-col'>
-            <div className='p-4 flex items-center justify-between border-b'>
-              <h2 className='text-lg font-medium truncate'>
-                {selectedImage?.filename}
-              </h2>
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={() => setSelectedImage(null)}
-              >
-                Close
-              </Button>
-            </div>
-            <div className='flex-1 overflow-auto flex items-center justify-center p-6 bg-black/5'>
-              {selectedImage && (
-                <div className='relative max-w-full max-h-[70vh]'>
-                  <img
-                    src={selectedImage.url}
-                    alt={selectedImage.filename}
-                    className='max-w-full max-h-[70vh] object-contain'
-                  />
-                </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* React Image Lightbox */}
+        {isLightboxOpen && (
+          <Lightbox
+            mainSrc={lightboxImageUrl}
+            onCloseRequest={() => setIsLightboxOpen(false)}
+            imageTitle={lightboxImageTitle}
+            reactModalStyle={{ overlay: { zIndex: 9999 } }}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
