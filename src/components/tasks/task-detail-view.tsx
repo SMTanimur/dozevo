@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 // Import the new components
@@ -49,6 +50,8 @@ import {
   NO_PRIORITY_ID,
 } from '@/constants';
 import { AttachmentDialog } from './attachment-dialog';
+import { DocumentViewer } from './document-viewer';
+import Image from 'next/image';
 
 export const TaskDetailView = () => {
   const { closeTaskModal, isTaskModalOpen, selectedTaskId } =
@@ -85,6 +88,28 @@ export const TaskDetailView = () => {
     spaceId: task?.space as string,
     listId: task?.list as string,
   });
+
+  const [selectedDocument, setSelectedDocument] = useState<{
+    url: string;
+    filename: string;
+  } | null>(null);
+
+  const [selectedImage, setSelectedImage] = useState<{
+    url: string;
+    filename: string;
+  } | null>(null);
+
+  const isImageFile = (filename: string) => {
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+    const extension = filename.split('.').pop()?.toLowerCase();
+    return extension ? imageExtensions.includes(extension) : false;
+  };
+
+  const isDocumentFile = (filename: string) => {
+    const documentExtensions = ['pdf', 'doc', 'docx'];
+    const extension = filename.split('.').pop()?.toLowerCase();
+    return extension ? documentExtensions.includes(extension) : false;
+  };
 
   useEffect(() => {
     setTitle(task?.name || '');
@@ -454,22 +479,77 @@ export const TaskDetailView = () => {
               </div>
 
               {task.attachments && task.attachments.length > 0 ? (
-                <div className='space-y-2'>
+                <div className='grid grid-cols-2 gap-4'>
                   {task.attachments.map(attachment => (
                     <div
                       key={attachment.public_id || attachment._id}
-                      className='flex items-center gap-3 p-2 border rounded-md hover:bg-gray-50'
+                      className='flex flex-col gap-2 p-3 border rounded-md hover:bg-gray-50'
                     >
-                      <FileText className='h-5 w-5 text-gray-500 flex-shrink-0' />
-                      <a
-                        href={attachment.url}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        className='text-sm text-blue-600 hover:underline flex-1 truncate'
-                        title={attachment.filename}
-                      >
-                        {attachment.filename}
-                      </a>
+                      {isImageFile(attachment.filename) ? (
+                        <div
+                          className='relative aspect-video w-full overflow-hidden rounded-md cursor-pointer'
+                          onClick={() =>
+                            setSelectedImage({
+                              url: attachment.url,
+                              filename: attachment.filename,
+                            })
+                          }
+                        >
+                          <Image
+                            src={attachment.url}
+                            alt={attachment.filename}
+                            fill
+                            className='object-cover'
+                          />
+                        </div>
+                      ) : (
+                        <div className='flex items-center gap-2 p-2 bg-gray-50 rounded-md'>
+                          <FileText className='h-5 w-5 text-gray-500 flex-shrink-0' />
+                          <span className='text-sm text-gray-700 truncate'>
+                            {attachment.filename}
+                          </span>
+                        </div>
+                      )}
+                      <div className='flex flex-col gap-1'>
+                        <div className='flex items-center justify-between'>
+                          <div className='text-xs text-gray-500 flex items-center gap-1'>
+                            <span>Added by</span>
+                            <span className='font-medium'>
+                              {attachment.uploadedBy?.firstName || 'Unknown'}
+                            </span>
+                          </div>
+                          <span className='text-xs text-gray-500'>
+                            {new Date(
+                              attachment.createdAt
+                            ).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className='flex justify-end'>
+                          {isDocumentFile(attachment.filename) ? (
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() =>
+                                setSelectedDocument({
+                                  url: attachment.url,
+                                  filename: attachment.filename,
+                                })
+                              }
+                            >
+                              View
+                            </Button>
+                          ) : (
+                            <a
+                              href={attachment.url}
+                              target='_blank'
+                              rel='noopener noreferrer'
+                              className='text-xs text-blue-600 hover:underline'
+                            >
+                              Open
+                            </a>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -624,6 +704,45 @@ export const TaskDetailView = () => {
           onUpload={handleFileUpload}
           isUploading={isUploadingAttachment}
         />
+
+        <DocumentViewer
+          isOpen={!!selectedDocument}
+          onClose={() => setSelectedDocument(null)}
+          fileUrl={selectedDocument?.url || ''}
+          fileName={selectedDocument?.filename || ''}
+        />
+
+        {/* Image Viewer Dialog */}
+        <Dialog
+          open={!!selectedImage}
+          onOpenChange={() => setSelectedImage(null)}
+        >
+          <DialogContent className='max-w-6xl max-h-[90vh] p-0 flex flex-col'>
+            <div className='p-4 flex items-center justify-between border-b'>
+              <h2 className='text-lg font-medium truncate'>
+                {selectedImage?.filename}
+              </h2>
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={() => setSelectedImage(null)}
+              >
+                Close
+              </Button>
+            </div>
+            <div className='flex-1 overflow-auto flex items-center justify-center p-6 bg-black/5'>
+              {selectedImage && (
+                <div className='relative max-w-full max-h-[70vh]'>
+                  <img
+                    src={selectedImage.url}
+                    alt={selectedImage.filename}
+                    className='max-w-full max-h-[70vh] object-contain'
+                  />
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );
