@@ -27,14 +27,13 @@ interface UpdateTaskMutationInput {
 
 interface DeleteTaskMutationInput {
   taskId: string;
-  // Add context params needed for cache invalidation
   params: BaseParams;
 }
 
 interface UploadAttachmentMutationInput {
   taskId: string;
-  file: File;
-  params: BaseParams; // For cache invalidation
+  files: File[]; // Changed from file: File to files: File[]
+  params: BaseParams;
 }
 
 // Define structure for input data
@@ -222,14 +221,14 @@ export const useTaskMutations = () => {
   const { mutate: uploadAttachment, isPending: isUploadingAttachment } =
     useMutation<ITask, Error, UploadAttachmentMutationInput>({
       mutationKey: [taskService.uploadAttachment.name],
-      mutationFn: ({ taskId, file }) =>
-        taskService.uploadAttachment({ taskId, file }),
+      mutationFn: (
+        { taskId, files } // Destructure files (array)
+      ) => taskService.uploadAttachment({ taskId, files }), // Pass files array
       onSuccess: (updatedTask, variables) => {
         toast.success(
-          `Attachment uploaded successfully for task "${updatedTask.name}"!`
+          `Attachment(s) uploaded successfully for task "${updatedTask.name}"!` // Updated message
         );
         invalidateRelevantQueries(variables.params, variables.taskId);
-        // Optionally update the specific task query cache directly
         queryClient.setQueryData(
           [taskService.getTaskById.name, variables.taskId],
           updatedTask
@@ -237,7 +236,8 @@ export const useTaskMutations = () => {
       },
       onError: (error, variables) => {
         toast.error(
-          `Failed to upload attachment for task ${variables.taskId}: ${
+          `Failed to upload attachment(s) for task ${variables.taskId}: ${
+            // Updated message
             (error as Error).message
           }`
         );
@@ -253,7 +253,7 @@ export const useTaskMutations = () => {
     isDeletingTask,
     reorderTasks, // Expose the new mutation
     isReorderingTasks,
-    uploadAttachment, // Expose attachment mutation
+    uploadAttachment,
     isUploadingAttachment,
   };
 };

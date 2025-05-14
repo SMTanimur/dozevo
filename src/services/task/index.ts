@@ -113,30 +113,6 @@ export class TaskService {
     }
   }
 
-  async uploadAttachment(params: {
-    taskId: string;
-    file: File;
-  }): Promise<ITask> {
-    // Assuming the updated task is returned
-    const { taskId, file } = params;
-    const path = getTaskAttachmentsPath(taskId);
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const response = await api.post<ITask>(path, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.error(`Failed to upload attachment for task ${taskId}:`, error);
-      throw error;
-    }
-  }
-
   // Uses simple /tasks/:taskId path
   async deleteTask(params: { taskId: string }): Promise<void> {
     const { taskId } = params;
@@ -158,6 +134,30 @@ export class TaskService {
       return response.data;
     } catch (error) {
       console.error(`Failed to reorder tasks for list ${data.listId}:`, error);
+      throw error;
+    }
+  }
+
+  async uploadAttachment(params: {
+    taskId: string;
+    files: File[]; // Changed from file: File to files: File[]
+  }): Promise<ITask> {
+    // Backend now returns a single ITask (the updated task)
+    const { taskId, files } = params;
+    const path = getTaskAttachmentsPath(taskId);
+
+    const formData = new FormData();
+    // Append multiple files. Backend expects them under the field name 'files'
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+
+    try {
+      // The backend controller for attachments now returns the updated task directly
+      const response = await api.post<ITask>(path, formData);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to upload attachments for task ${taskId}:`, error);
       throw error;
     }
   }

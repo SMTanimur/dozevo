@@ -31,7 +31,6 @@ import {
   Paperclip,
   Plus,
   ChevronDown,
-
   FileText,
 } from 'lucide-react';
 import { ITaskUser, Priority } from '@/types';
@@ -49,6 +48,7 @@ import {
   PriorityId,
   NO_PRIORITY_ID,
 } from '@/constants';
+import { AttachmentDialog } from './attachment-dialog';
 
 export const TaskDetailView = () => {
   const { closeTaskModal, isTaskModalOpen, selectedTaskId } =
@@ -66,20 +66,19 @@ export const TaskDetailView = () => {
   >(task?.priority as PriorityId | null);
   const [commentText, setCommentText] = useState('');
   const [addingSubtask, setAddingSubtask] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // State for managing the attachment dialog
+  const [isAttachmentDialogOpen, setIsAttachmentDialogOpen] = useState(false);
 
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: spaceTasksData } = useGetTasks({
     spaceId: task?.space as string,
   });
   const params = useParams();
   const workspaceId = params.w_id as string;
 
-  const { updateTask } = useTaskMutations();
-  const uploadAttachment = (data: unknown) =>
-    console.log('Attempting to upload attachment:', data);
-  const isUploadingAttachment = false;
+  const { updateTask, uploadAttachment, isUploadingAttachment } =
+    useTaskMutations();
 
   const { data: statuses = [] } = useGetStatuses({
     workspaceId,
@@ -174,26 +173,27 @@ export const TaskDetailView = () => {
     }
   };
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setSelectedFile(event.target.files[0]);
-    } else {
-      setSelectedFile(null);
-    }
-  };
-
-  const handleUploadAttachment = () => {
-    if (task && selectedFile) {
-      uploadAttachment({
-        taskId: task._id,
-        file: selectedFile,
-        params: {
-          workspaceId,
-          spaceId: task.space,
-          listId: task.list as string,
+  // This function will be passed to AttachmentDialog as onUpload
+  const handleFileUploadFromDialog = async (filesToUpload: File[]) => {
+    if (task && filesToUpload.length > 0) {
+      console.log('Uploading files from dialog:', filesToUpload);
+      uploadAttachment(
+        {
+          taskId: task._id,
+          files: filesToUpload, // Pass the array of files
+          params: {
+            workspaceId,
+            spaceId: task.space,
+            listId: task.list as string,
+          },
         },
-      });
-      setSelectedFile(null);
+        {
+          onSuccess: () => {
+            setIsAttachmentDialogOpen(false); // Close dialog on success
+          },
+          // onError can be handled by the mutation hook's global onError
+        }
+      );
     }
   };
 
@@ -445,46 +445,13 @@ export const TaskDetailView = () => {
                 <Button
                   variant='outline'
                   size='sm'
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => setIsAttachmentDialogOpen(true)}
                   disabled={isUploadingAttachment}
                 >
                   <Paperclip className='h-4 w-4 mr-2' />
-                  Add Attachment
+                  Add Attachments
                 </Button>
-                <input
-                  type='file'
-                  ref={fileInputRef}
-                  onChange={handleFileSelect}
-                  className='hidden'
-                />
               </div>
-
-              {selectedFile && (
-                <div className='mb-2 flex items-center gap-2 p-2 border rounded-md bg-gray-50'>
-                  <FileText className='h-5 w-5 text-gray-500 flex-shrink-0' />
-                  <span
-                    className='text-sm flex-1 truncate'
-                    title={selectedFile.name}
-                  >
-                    {selectedFile.name}
-                  </span>
-                  <Button
-                    size='sm'
-                    onClick={handleUploadAttachment}
-                    disabled={isUploadingAttachment}
-                  >
-                    {isUploadingAttachment ? 'Uploading...' : 'Upload'}
-                  </Button>
-                  <Button
-                    variant='ghost'
-                    size='sm'
-                    onClick={() => setSelectedFile(null)}
-                    disabled={isUploadingAttachment}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              )}
 
               {task.attachments && task.attachments.length > 0 ? (
                 <div className='space-y-2'>
@@ -507,11 +474,9 @@ export const TaskDetailView = () => {
                   ))}
                 </div>
               ) : (
-                !selectedFile && (
-                  <div className='text-sm text-gray-400 py-2'>
-                    No attachments yet.
-                  </div>
-                )
+                <div className='text-sm text-gray-400 py-2'>
+                  No attachments yet.
+                </div>
               )}
             </div>
 
@@ -652,6 +617,13 @@ export const TaskDetailView = () => {
             </div>
           </div>
         </div>
+
+        <AttachmentDialog
+          isOpen={isAttachmentDialogOpen}
+          onClose={() => setIsAttachmentDialogOpen(false)}
+          onUpload={handleFileUploadFromDialog}
+          isUploading={isUploadingAttachment}
+        />
       </DialogContent>
     </Dialog>
   );

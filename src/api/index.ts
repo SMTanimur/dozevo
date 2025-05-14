@@ -1,14 +1,17 @@
-import axios, { AxiosResponse } from 'axios';
+import axios, {
+  InternalAxiosRequestConfig,
+  AxiosRequestHeaders,
+  AxiosResponse,
+} from 'axios';
 
 import Cookies from 'js-cookie';
 import { toast } from 'sonner';
 
-
-export const baseURL = process.env.NEXT_PUBLIC_API_URL + '/';
-
+export const baseURL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333';
 
 const api = axios.create({
-  baseURL,
+  baseURL: baseURL,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
@@ -16,19 +19,29 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Add token to requests
+// Request Interceptor
 api.interceptors.request.use(
-  config => {
+  (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
+    config.headers = config.headers || ({} as AxiosRequestHeaders);
+
     const token = Cookies.get('Authentication');
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`;
     }
+
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+
     return config;
   },
-  error => Promise.reject(error)
+  error => {
+    console.error('Request Interceptor Error:', error);
+    return Promise.reject(error);
+  }
 );
 
-// Handle responses
+// Response Interceptor
 api.interceptors.response.use(
   (response: AxiosResponse) => {
     return response;
@@ -36,18 +49,19 @@ api.interceptors.response.use(
   error => {
     if (error.response?.data) {
       if (typeof error.response.data === 'string') {
-        // Show error message if data is a string
         toast.error(error.response.data);
       } else if (error.response.data.message) {
-        // Show error message if data has a message property
         toast.error(error.response.data.message);
+      } else {
+        toast.error('An unexpected error occurred.');
       }
+    } else if (error.message) {
+      toast.error(error.message);
     }
 
-    // Handle authentication errors
     if (error.response?.status === 401) {
       Cookies.remove('Authentication');
-      // window.location.href = '/auth/login';
+      toast.error('Session expired. Please log in again.');
     }
 
     return Promise.reject(error.response?.data || error);
