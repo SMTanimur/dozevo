@@ -3,14 +3,12 @@
 import React, { useState } from 'react';
 import { formatDate } from '@/lib/utils';
 import {
-  MoreHorizontal,
   Calendar,
   Flag,
   CornerDownRight,
   ChevronDown,
   ChevronRight,
   UserPlus,
-  PlusCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ITask } from '@/types';
@@ -50,12 +48,13 @@ export const TaskRow = ({
     <React.Fragment>
       <div
         className={cn(
-          'group py-2 hover:bg-gray-50 cursor-pointer relative',
+          'group py-2 hover:bg-gray-50 cursor-pointer relative grid grid-cols-[minmax(0,1fr)_200px_120px_100px] items-center px-6',
           className
         )}
         onClick={onClick}
       >
-        <div className='flex flex-1 items-center gap-2 min-w-0 pl-4'>
+        {/* Name column */}
+        <div className='flex items-center gap-2 min-w-0'>
           {isSubtask && (
             <CornerDownRight className='h-4 w-4 text-gray-400 mr-1 flex-shrink-0' />
           )}
@@ -100,129 +99,45 @@ export const TaskRow = ({
             {task.name}
           </span>
         </div>
-
-        <div className='relative flex items-center justify-start w-[200px] flex-shrink-0'>
-          <div className='transition-opacity opacity-100 group-hover:opacity-0'>
-            {task.assignees.length > 0 ? (
-              <div className='flex -space-x-2'>
-                {task.assignees.map(assignee => (
-                  <UserAvatar key={assignee._id} user={assignee} size='sm' />
-                ))}
-              </div>
-            ) : (
-              <Button
-                variant='ghost'
-                size='sm'
-                className='text-gray-400 px-2 h-7'
-              >
-                <UserPlus className='h-3.5 w-3.5 mr-1' />
-                <span>Assign</span>
-              </Button>
-            )}
-          </div>
-          <Button
-            variant='ghost'
-            size='icon'
-            className='absolute inset-0 m-auto h-7 w-7 transition-opacity opacity-0 group-hover:opacity-100'
-            onClick={e => {
-              e.stopPropagation();
-              console.log('Assign clicked');
-            }}
-          >
-            <UserPlus className='h-4 w-4' />
-          </Button>
+        {/* Assignee column */}
+        <div className='flex items-center'>
+          {task.assignees.length > 0 ? (
+            <div className='flex -space-x-2'>
+              {task.assignees.map(assignee => (
+                <UserAvatar key={assignee._id} user={assignee} size='sm' />
+              ))}
+            </div>
+          ) : (
+            <Button
+              variant='ghost'
+              size='sm'
+              className='text-gray-400 px-2 h-7'
+            >
+              <UserPlus className='h-3.5 w-3.5 mr-1' />
+              <span>Assign</span>
+            </Button>
+          )}
         </div>
-
-        <div className='relative flex items-center justify-start w-[120px] flex-shrink-0'>
-          <div className='transition-opacity opacity-100 group-hover:opacity-0'>
-            {task.due_date ? (
-              <div className='flex items-center text-sm'>
-                <Calendar className='h-3.5 w-3.5 mr-1 text-gray-500' />
-                <span>{formatDate(task.due_date)}</span>
-              </div>
-            ) : (
-              <Button
-                variant='ghost'
-                size='sm'
-                className='text-gray-400 px-2 h-7'
-              >
-                <Calendar className='h-3.5 w-3.5 mr-1' />
-                <span>Set date</span>
-              </Button>
-            )}
-          </div>
-          <Button
-            variant='ghost'
-            size='icon'
-            className='absolute inset-0 m-auto h-7 w-7 transition-opacity opacity-0 group-hover:opacity-100'
-            onClick={e => {
-              e.stopPropagation();
-              console.log('Set Date clicked');
-            }}
-          >
-            <Calendar className='h-4 w-4' />
-          </Button>
+        {/* Due date column */}
+        <div className='flex items-center text-xs text-gray-500 gap-1'>
+          <Calendar className='h-4 w-4' />
+          {task.due_date ? formatDate(task.due_date) : 'Set date'}
         </div>
-
-        <div className='relative flex items-center justify-start w-[100px] flex-shrink-0'>
-          <div className='transition-opacity opacity-100 group-hover:opacity-0'>
-            {priorityDetails ? (
-              <div
-                className='flex items-center text-sm'
+        {/* Priority column */}
+        <div className='flex items-center text-xs gap-1'>
+          {priorityDetails ? (
+            <>
+              <priorityDetails.icon
+                className='h-4 w-4'
                 style={{ color: priorityDetails.color }}
-              >
-                <priorityDetails.icon className='h-3.5 w-3.5 mr-1' />
-                <span>{priorityDetails.name}</span>
-              </div>
-            ) : (
-              <Button
-                variant='ghost'
-                size='sm'
-                className='text-gray-400 px-2 h-7'
-              >
-                <Flag className='h-3.5 w-3.5 mr-1' />
-                <span>Set Priority</span>
-              </Button>
-            )}
-          </div>
-          <Button
-            variant='ghost'
-            size='icon'
-            className='absolute inset-0 m-auto h-7 w-7 transition-opacity opacity-0 group-hover:opacity-100'
-            onClick={e => {
-              e.stopPropagation();
-              console.log('Set Priority clicked');
-            }}
-          >
-            <Flag className='h-4 w-4' />
-          </Button>
-        </div>
-
-        <div className='relative flex items-center justify-end w-[40px] flex-shrink-0 pr-4'>
-          <Button
-            variant='ghost'
-            size='icon'
-            className='absolute left-0 h-7 w-7 transition-opacity opacity-0 group-hover:opacity-100'
-            onClick={e => {
-              e.stopPropagation();
-              console.log('Add Subtask clicked');
-            }}
-            title='Add subtask'
-          >
-            <PlusCircle className='h-4 w-4' />
-          </Button>
-          <Button
-            variant='ghost'
-            size='icon'
-            className='h-8 w-8'
-            onClick={e => {
-              e.stopPropagation();
-              // Handle more options
-            }}
-            title='More options'
-          >
-            <MoreHorizontal className='h-4 w-4' />
-          </Button>
+              />
+              <span style={{ color: priorityDetails.color }}>
+                {priorityDetails.name}
+              </span>
+            </>
+          ) : (
+            <Flag className='h-4 w-4 text-gray-300' />
+          )}
         </div>
       </div>
       {hasSubtasks && isExpanded && task.subtasks && (

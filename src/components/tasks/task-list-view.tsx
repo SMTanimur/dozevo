@@ -9,14 +9,7 @@ import {
 } from '@hello-pangea/dnd';
 
 import { Button } from '@/components/ui/button';
-import {
-  ChevronDown,
-  Plus,
-  MoreHorizontal,
-  Circle,
-  CircleCheck,
-  CircleX,
-} from 'lucide-react';
+import { ChevronDown, Plus, MoreHorizontal } from 'lucide-react';
 
 import { TaskRow } from '@/components/tasks/task-row';
 import { IList, IStatusDefinition, ITask } from '@/types';
@@ -40,20 +33,12 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
   });
 
   const { createTask, reorderTasks } = useTaskMutations();
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
-    {}
-  );
   const [tasksByStatus, setTasksByStatus] = useState<Record<string, ITask[]>>(
     {}
   );
 
   useEffect(() => {
     if (statuses.length > 0) {
-      const initialExpanded = Object.fromEntries(
-        statuses.map(status => [status._id, true])
-      );
-      setExpandedGroups(initialExpanded);
-
       const initialTasksByStatus = statuses.reduce((acc, status) => {
         acc[status._id] = tasks.filter(task => task.status?._id === status._id);
         return acc;
@@ -61,13 +46,6 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
       setTasksByStatus(initialTasksByStatus);
     }
   }, [statuses, tasks]);
-
-  const toggleGroup = (statusId: string) => {
-    setExpandedGroups(prev => ({
-      ...prev,
-      [statusId]: !prev[statusId],
-    }));
-  };
 
   const handleAddTask = (status: IStatusDefinition) => {
     const newTask: TCreateTask = {
@@ -138,8 +116,8 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
   }
 
   return (
-    <div className='flex flex-col h-full text-sm'>
-      <div className='flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10'>
+    <div className='flex flex-col h-full text-sm bg-gray-50 p-4'>
+      <div className='flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10 rounded-t-2xl shadow-sm'>
         <div className='flex items-center gap-4'>
           <Button
             variant='outline'
@@ -206,168 +184,93 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className='flex flex-col gap-4  overflow-auto'>
+        <div className='flex flex-col gap-8 mt-4'>
           {statuses.map(status => (
-            <div key={status._id} className=' px-4 '>
-              <div
-                className='flex items-center px-4 py-1.5 cursor-pointer  group'
-                onClick={() => toggleGroup(status._id)}
-              >
-                <ChevronDown
-                  className={cn(
-                    'h-4 w-4 mr-1 text-gray-400 transition-transform group-hover:text-gray-600',
-                    expandedGroups[status._id] ? 'rotate-0' : '-rotate-90'
-                  )}
-                />
-
-                <div
-                  className={cn(
-                    'flex items-center gap-2 px-2 py-1 rounded-md',
-                    status.type === 'in_progress' && 'bg-indigo-500 text-white',
-                    status.type === 'done' && 'bg-green-500 text-white',
-                    status.type === 'review' && 'bg-blue-500 text-white',
-                    status.type === 'custom' && 'bg-gray-500 text-white',
-                    status.type === 'closed' && 'bg-red-500 text-white',
-                    status.type === 'open' && 'bg-gray-500 text-white'
-                  )}
-                >
-                  <div>
-                    {status.type === 'in_progress' && (
-                      <Circle className='h-4 w-4 text-white' />
-                    )}
-                    {status.type === 'done' && (
-                      <CircleCheck className='h-4 w-4 text-white' />
-                    )}
-                    {status.type === 'review' && (
-                      <CircleCheck className='h-4 w-4 text-white  ' />
-                    )}
-                    {status.type === 'custom' && (
-                      <Circle className='h-4 w-4 text-white' />
-                    )}
-                    {status.type === 'closed' && (
-                      <CircleX className='h-4 w-4 text-white' />
-                    )}
-                    {status.type === 'open' && (
-                      <Circle className='h-4 w-4 text-white' />
-                    )}
-                  </div>
-                  <span className='font-medium text-white flex-grow truncate mr-2'>
+            <div
+              key={status._id}
+              className='bg-white rounded-2xl shadow-md border border-gray-100 p-0'
+            >
+              <div className='flex items-center justify-between px-6 py-4 border-b rounded-t-2xl bg-gradient-to-r from-gray-50 to-white'>
+                <div className='flex items-center gap-2'>
+                  <span
+                    className='rounded px-3 py-1 text-xs font-bold'
+                    style={{ background: status.color, color: '#fff' }}
+                  >
                     {status.status}
                   </span>
+                  <span className='text-gray-400 text-xs'>
+                    {tasksByStatus[status._id]?.length || 0} tasks
+                  </span>
                 </div>
-
-                <span className='ml-2 text-gray-500 text-sm'>
-                  {tasksByStatus[status._id]?.length || 0}
-                </span>
                 <Button
-                  variant='ghost'
-                  size='icon'
-                  className='ml-2 h-8 w-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  onClick={e => {
-                    e.stopPropagation();
-                    console.log('Status options clicked for:', status._id);
-                  }}
+                  className='rounded-full bg-primary text-white shadow hover:bg-primary-dark transition'
+                  onClick={() => handleAddTask(status)}
                 >
-                  <MoreHorizontal className='h-4 w-4' />
-                </Button>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  className='ml-auto h-8 px-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  onClick={e => {
-                    e.stopPropagation();
-                    handleAddTask(status);
-                  }}
-                >
-                  Add Task
+                  + Add Task
                 </Button>
               </div>
-
-              {expandedGroups[status._id] && (
-                <Droppable droppableId={status._id} type='TASK'>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className={cn(
-                        'transition-colors',
-                        snapshot.isDraggingOver ? 'bg-indigo-50' : 'bg-white'
-                      )}
-                    >
-                      <div className='flex items-center px-4 py-2 text-sm text-gray-500 border-t border-gray-200 bg-white'>
-                        <div className='flex-1'>Name</div>
-                        <div className='w-[200px] flex-shrink-0'>Assignee</div>
-                        <div className='w-[120px] flex-shrink-0'>Due date</div>
-                        <div className='w-[100px] flex-shrink-0'>Priority</div>
-                        <div className='w-[40px] flex justify-end flex-shrink-0'>
-                          <Button
-                            variant='ghost'
-                            size='icon'
-                            className='h-8 w-8'
-                          >
-                            <Plus className='h-4 w-4' />
-                          </Button>
-                        </div>
-                      </div>
-
-                      {(tasksByStatus[status._id] || []).map((task, index) => (
-                        <Draggable
-                          key={task._id}
-                          draggableId={task._id}
-                          index={index}
-                        >
-                          {(providedDraggable, snapshotDraggable) => (
-                            <div
-                              ref={providedDraggable.innerRef}
-                              {...providedDraggable.draggableProps}
-                              {...providedDraggable.dragHandleProps}
-                              style={providedDraggable.draggableProps.style}
-                              className={cn(
-                                'border-t border-gray-200',
-                                snapshotDraggable.isDragging
-                                  ? 'bg-indigo-100 shadow-md'
-                                  : ''
-                              )}
-                            >
-                              <TaskRow
-                                task={task}
-                                onClick={() => openTaskModal(task._id)}
-                                className='flex items-center px-4'
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                      <div className='px-4 py-1.5 border-t border-gray-200'>
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          className='h-7 px-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                          onClick={() => handleAddTask(status)}
-                        >
-                          <Plus className='h-4 w-4 mr-1' />
-                          Add Task
-                        </Button>
-                      </div>
+              <Droppable droppableId={status._id} type='TASK'>
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className={cn(
+                      'transition-colors',
+                      snapshot.isDraggingOver ? 'bg-indigo-50' : 'bg-white',
+                      'rounded-b-2xl'
+                    )}
+                  >
+                    <div className='grid grid-cols-[minmax(0,1fr)_200px_120px_100px] items-center px-6 py-2 text-xs text-gray-500 border-b bg-white rounded-t-2xl'>
+                      <div>Name</div>
+                      <div>Assignee</div>
+                      <div>Due date</div>
+                      <div>Priority</div>
                     </div>
-                  )}
-                </Droppable>
-              )}
+                    {(tasksByStatus[status._id] || []).map((task, index) => (
+                      <Draggable
+                        key={task._id}
+                        draggableId={task._id}
+                        index={index}
+                      >
+                        {(providedDraggable, snapshotDraggable) => (
+                          <div
+                            ref={providedDraggable.innerRef}
+                            {...providedDraggable.draggableProps}
+                            {...providedDraggable.dragHandleProps}
+                            style={providedDraggable.draggableProps.style}
+                            className={cn(
+                              'border-b border-gray-100 bg-white hover:bg-gray-50 transition group',
+                              snapshotDraggable.isDragging
+                                ? 'bg-indigo-100 shadow-md'
+                                : ''
+                            )}
+                          >
+                            <TaskRow
+                              task={task}
+                              onClick={() => openTaskModal(task._id)}
+                              className='group py-2 hover:bg-gray-50 cursor-pointer relative grid grid-cols-[minmax(0,1fr)_200px_120px_100px] items-center px-6'
+                            />
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                    <div className='px-6 py-3 border-t border-gray-100 bg-gray-50 rounded-b-2xl'>
+                      <Button
+                        variant='ghost'
+                        size='sm'
+                        className='h-7 px-2 text-primary font-semibold hover:text-primary-dark hover:bg-primary/10 rounded-lg transition'
+                        onClick={() => handleAddTask(status)}
+                      >
+                        <Plus className='h-4 w-4 mr-1' />
+                        Add Task
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </Droppable>
             </div>
           ))}
-
-          <div className='px-4 py-2 border-t border-gray-200'>
-            <Button
-              variant='ghost'
-              size='sm'
-              className='h-7 px-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-              onClick={() => console.log('New Status clicked')}
-            >
-              <Plus className='h-4 w-4 mr-1' />
-              New Status
-            </Button>
-          </div>
         </div>
       </DragDropContext>
     </div>

@@ -49,6 +49,17 @@ export enum Priority {
   CRITICAL = 'critical',
 }
 
+export interface ITaskAttachment {
+  _id: string;
+  url: string;
+  filename: string;
+  uploadedBy: ITaskUser;
+  createdAt: string;
+  bytes: number;
+  format: string;
+  public_id: string;
+}
+
 // Represents the data structure for a single task response
 export interface ITask {
   _id: string; // Or map to 'id'
@@ -76,10 +87,12 @@ export interface ITask {
   orderIndex?: number;
   completedAt: string | null; // ISO Date string or null
   archived: boolean;
-  attachments?: TTaskAttachment[]; // Added attachments
+  attachments?: ITaskAttachment[]; // Added attachments
   createdAt: string; // ISO Date string
   updatedAt: string; // ISO Date string
 }
+
+
 
 // Represents the data structure for a list of tasks response
 export interface ITaskListResponse {

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 // Import the new components
@@ -23,7 +24,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import {
   CalendarIcon,
-  Clock,
   User,
   Tag,
   MessageSquare,
@@ -31,7 +31,6 @@ import {
   Paperclip,
   Plus,
   ChevronDown,
-  FileText,
 } from 'lucide-react';
 import { ITaskUser, Priority } from '@/types';
 import { useGlobalStateStore } from '@/stores';
@@ -48,7 +47,8 @@ import {
   PriorityId,
   NO_PRIORITY_ID,
 } from '@/constants';
-import { AttachmentDialog } from './attachment-dialog';
+import { DocumentViewer } from './document-viewer';
+import { TaskAttachments } from './task-attachments';
 
 export const TaskDetailView = () => {
   const { closeTaskModal, isTaskModalOpen, selectedTaskId } =
@@ -67,9 +67,6 @@ export const TaskDetailView = () => {
   const [commentText, setCommentText] = useState('');
   const [addingSubtask, setAddingSubtask] = useState(false);
 
-  // State for managing the attachment dialog
-  const [isAttachmentDialogOpen, setIsAttachmentDialogOpen] = useState(false);
-
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const { data: spaceTasksData } = useGetTasks({
     spaceId: task?.space as string,
@@ -85,6 +82,11 @@ export const TaskDetailView = () => {
     spaceId: task?.space as string,
     listId: task?.list as string,
   });
+
+  const [selectedDocument, setSelectedDocument] = useState<{
+    url: string;
+    filename: string;
+  } | null>(null);
 
   useEffect(() => {
     setTitle(task?.name || '');
@@ -173,14 +175,13 @@ export const TaskDetailView = () => {
     }
   };
 
-  // This function will be passed to AttachmentDialog as onUpload
   const handleFileUpload = async (filesToUpload: File[]) => {
     if (task && filesToUpload.length > 0) {
       console.log('Uploading files from dialog:', filesToUpload);
-      uploadAttachment(
+      await uploadAttachment(
         {
           taskId: task._id,
-          files: filesToUpload, // Pass the array of files
+          files: filesToUpload,
           params: {
             workspaceId,
             spaceId: task.space,
@@ -189,9 +190,8 @@ export const TaskDetailView = () => {
         },
         {
           onSuccess: () => {
-            setIsAttachmentDialogOpen(false); // Close dialog on success
+            // Success is handled by the mutation hook
           },
-          // onError can be handled by the mutation hook's global onError
         }
       );
     }
@@ -388,9 +388,6 @@ export const TaskDetailView = () => {
                       />
                     </PopoverContent>
                   </Popover>
-                  <Button variant='outline' size='icon' className='h-9 w-9'>
-                    <Clock className='h-4 w-4' />
-                  </Button>
                 </div>
               </div>
 
@@ -440,44 +437,11 @@ export const TaskDetailView = () => {
             </div>
 
             <div className='mb-6'>
-              <div className='flex items-center justify-between mb-2'>
-                <Label className='text-sm text-gray-500'>Attachments</Label>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={() => setIsAttachmentDialogOpen(true)}
-                  disabled={isUploadingAttachment}
-                >
-                  <Paperclip className='h-4 w-4 mr-2' />
-                  Add Attachments
-                </Button>
-              </div>
-
-              {task.attachments && task.attachments.length > 0 ? (
-                <div className='space-y-2'>
-                  {task.attachments.map(attachment => (
-                    <div
-                      key={attachment.public_id || attachment._id}
-                      className='flex items-center gap-3 p-2 border rounded-md hover:bg-gray-50'
-                    >
-                      <FileText className='h-5 w-5 text-gray-500 flex-shrink-0' />
-                      <a
-                        href={attachment.url}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        className='text-sm text-blue-600 hover:underline flex-1 truncate'
-                        title={attachment.filename}
-                      >
-                        {attachment.filename}
-                      </a>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className='text-sm text-gray-400 py-2'>
-                  No attachments yet.
-                </div>
-              )}
+              <TaskAttachments
+                attachments={task?.attachments || []}
+                onUpload={handleFileUpload}
+                isUploading={isUploadingAttachment}
+              />
             </div>
 
             <div className='mb-6'>
@@ -618,11 +582,11 @@ export const TaskDetailView = () => {
           </div>
         </div>
 
-        <AttachmentDialog
-          isOpen={isAttachmentDialogOpen}
-          onClose={() => setIsAttachmentDialogOpen(false)}
-          onUpload={handleFileUpload}
-          isUploading={isUploadingAttachment}
+        <DocumentViewer
+          isOpen={!!selectedDocument}
+          onClose={() => setSelectedDocument(null)}
+          fileUrl={selectedDocument?.url || ''}
+          fileName={selectedDocument?.filename || ''}
         />
       </DialogContent>
     </Dialog>
