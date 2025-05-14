@@ -32,6 +32,10 @@ const getTaskDetailPath = (taskId: string) => `/v1/tasks/${taskId}`;
 // Path for reordering tasks
 const getReorderTasksPath = () => '/v1/tasks/reorder/list';
 
+// Path for task attachments
+const getTaskAttachmentsPath = (taskId: string) =>
+  `/v1/tasks/${taskId}/attachments`;
+
 // --- TaskService Class ---
 export class TaskService {
   async getAllTasks(params: {
@@ -130,6 +134,30 @@ export class TaskService {
       return response.data;
     } catch (error) {
       console.error(`Failed to reorder tasks for list ${data.listId}:`, error);
+      throw error;
+    }
+  }
+
+  async uploadAttachment(params: {
+    taskId: string;
+    files: File[]; // Changed from file: File to files: File[]
+  }): Promise<ITask> {
+    // Backend now returns a single ITask (the updated task)
+    const { taskId, files } = params;
+    const path = getTaskAttachmentsPath(taskId);
+
+    const formData = new FormData();
+    // Append multiple files. Backend expects them under the field name 'files'
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+
+    try {
+      // The backend controller for attachments now returns the updated task directly
+      const response = await api.post<ITask>(path, formData);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to upload attachments for task ${taskId}:`, error);
       throw error;
     }
   }
