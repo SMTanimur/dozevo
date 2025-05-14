@@ -31,6 +31,12 @@ interface DeleteTaskMutationInput {
   params: BaseParams;
 }
 
+interface UploadAttachmentMutationInput {
+  taskId: string;
+  file: File;
+  params: BaseParams; // For cache invalidation
+}
+
 // Define structure for input data
 // Type for the reorder input data (can be defined here or imported)
 interface ReorderTasksInput {
@@ -212,6 +218,32 @@ export const useTaskMutations = () => {
     },
   });
 
+  // --- Upload Attachment Mutation ---
+  const { mutate: uploadAttachment, isPending: isUploadingAttachment } =
+    useMutation<ITask, Error, UploadAttachmentMutationInput>({
+      mutationKey: [taskService.uploadAttachment.name],
+      mutationFn: ({ taskId, file }) =>
+        taskService.uploadAttachment({ taskId, file }),
+      onSuccess: (updatedTask, variables) => {
+        toast.success(
+          `Attachment uploaded successfully for task "${updatedTask.name}"!`
+        );
+        invalidateRelevantQueries(variables.params, variables.taskId);
+        // Optionally update the specific task query cache directly
+        queryClient.setQueryData(
+          [taskService.getTaskById.name, variables.taskId],
+          updatedTask
+        );
+      },
+      onError: (error, variables) => {
+        toast.error(
+          `Failed to upload attachment for task ${variables.taskId}: ${
+            (error as Error).message
+          }`
+        );
+      },
+    });
+
   return {
     createTask,
     isCreatingTask,
@@ -221,5 +253,7 @@ export const useTaskMutations = () => {
     isDeletingTask,
     reorderTasks, // Expose the new mutation
     isReorderingTasks,
+    uploadAttachment, // Expose attachment mutation
+    isUploadingAttachment,
   };
 };
