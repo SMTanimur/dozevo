@@ -2,7 +2,7 @@
 'use client';
 
 // Import the new components
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -22,16 +22,7 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import {
-  CalendarIcon,
-  User,
-  Tag,
-  MessageSquare,
-  Link,
-  Paperclip,
-  Plus,
-  ChevronDown,
-} from 'lucide-react';
+import { CalendarIcon, User, Tag, Plus, ChevronDown } from 'lucide-react';
 import { ITaskUser, Priority } from '@/types';
 import { useGlobalStateStore } from '@/stores';
 import { useGetTask, useGetTasks, useTaskMutations } from '@/hooks';
@@ -40,7 +31,7 @@ import { useParams } from 'next/navigation';
 import { UserAvatar } from '../ui';
 import { SubtaskForm } from './subtask-form';
 import SubtaskItem from './subtask-item';
-import { CommentItem } from './comments';
+
 import {
   PRIORITY_OPTIONS,
   NO_PRIORITY,
@@ -49,6 +40,7 @@ import {
 } from '@/constants';
 import { DocumentViewer } from './document-viewer';
 import { TaskAttachments } from './task-attachments';
+import { TaskDetailsRightBar } from './task-details-right-bar';
 
 export const TaskDetailView = () => {
   const { closeTaskModal, isTaskModalOpen, selectedTaskId } =
@@ -67,7 +59,6 @@ export const TaskDetailView = () => {
   const [commentText, setCommentText] = useState('');
   const [addingSubtask, setAddingSubtask] = useState(false);
 
-  const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const { data: spaceTasksData } = useGetTasks({
     spaceId: task?.space as string,
   });
@@ -217,7 +208,7 @@ export const TaskDetailView = () => {
 
   return (
     <Dialog open={isTaskModalOpen} onOpenChange={closeTaskModal}>
-      <DialogContent className='max-w-7xl p-0 h-[90vh] flex flex-col overflow-hidden'>
+      <DialogContent className='max-w-[1400px] p-0 h-[90vh] flex flex-col overflow-hidden'>
         <div className='flex items-center justify-between p-4 border-b'>
           <div className='flex items-center gap-2'>
             <Button variant='outline' size='sm' className='gap-1'>
@@ -437,14 +428,6 @@ export const TaskDetailView = () => {
             </div>
 
             <div className='mb-6'>
-              <TaskAttachments
-                attachments={task?.attachments || []}
-                onUpload={handleFileUpload}
-                isUploading={isUploadingAttachment}
-              />
-            </div>
-
-            <div className='mb-6'>
               <div className='text-sm text-gray-500 mb-1'>Custom Fields</div>
               <Button variant='outline' className='flex items-center gap-2'>
                 <Plus className='h-4 w-4' />
@@ -487,99 +470,23 @@ export const TaskDetailView = () => {
                 )}
               </div>
             </div>
-          </div>
 
-          <div className='w-[350px] border-l flex flex-col'>
-            <div className='p-4 border-b flex items-center justify-between'>
-              <h3 className='font-medium'>Activity</h3>
-              <div className='flex items-center gap-1'>
-                <Button variant='ghost' size='sm' className='h-7 px-2'>
-                  <MessageSquare className='h-3.5 w-3.5 mr-1' />
-                  {taskComments.length}
-                </Button>
-                <Button variant='ghost' size='icon' className='h-7 w-7'>
-                  <ChevronDown className='h-3.5 w-3.5' />
-                </Button>
-              </div>
-            </div>
-
-            <div className='flex-1 overflow-auto p-4'>
-              <div className='space-y-4'>
-                <div className='flex gap-2'>
-                  <UserAvatar user={task.creator} size='sm' />
-                  <div className='flex-1'>
-                    <div className='text-xs text-gray-500'>
-                      <span className='font-medium text-gray-700'>
-                        {task.creator.firstName} {task.creator.lastName}
-                      </span>{' '}
-                      created this task
-                    </div>
-                    <div className='text-xs text-gray-400'>
-                      {new Date(task.createdAt).toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-
-                {task.status.type !== 'open' && (
-                  <div className='flex gap-2'>
-                    <UserAvatar user={task.creator} size='sm' />
-                    <div className='flex-1'>
-                      <div className='text-xs text-gray-500'>
-                        <span className='font-medium text-gray-700'>
-                          {task.creator.firstName} {task.creator.lastName}
-                        </span>{' '}
-                        changed status from{' '}
-                        <span className='font-medium'>TO DO</span> to{' '}
-                        <span className='font-medium'>
-                          {task.status.status}
-                        </span>
-                      </div>
-                      <div className='text-xs text-gray-400'>
-                        {new Date(task.updatedAt).toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {taskComments.map(comment => (
-                  <CommentItem key={comment.id} comment={comment} />
-                ))}
-              </div>
-            </div>
-
-            <div className='p-4 border-t'>
-              <div className='flex gap-2'>
-                <UserAvatar user={task.creator} size='sm' />
-                <div className='flex-1'>
-                  <textarea
-                    ref={commentInputRef}
-                    className='w-full border rounded-md p-2 text-sm'
-                    placeholder='Write a comment...'
-                    rows={3}
-                    value={commentText}
-                    onChange={e => setCommentText(e.target.value)}
-                  />
-                  <div className='flex justify-between mt-2'>
-                    <div className='flex gap-1'>
-                      <Button variant='ghost' size='icon' className='h-7 w-7'>
-                        <Paperclip className='h-4 w-4' />
-                      </Button>
-                      <Button variant='ghost' size='icon' className='h-7 w-7'>
-                        <Link className='h-4 w-4' />
-                      </Button>
-                    </div>
-                    <Button
-                      size='sm'
-                      onClick={handleCommentSubmit}
-                      disabled={!commentText.trim()}
-                    >
-                      Send
-                    </Button>
-                  </div>
-                </div>
-              </div>
+            <div className='mb-6'>
+              <TaskAttachments
+                attachments={task?.attachments || []}
+                onUpload={handleFileUpload}
+                isUploading={isUploadingAttachment}
+              />
             </div>
           </div>
+
+          <TaskDetailsRightBar
+            task={task}
+            commentText={commentText}
+            onCommentChange={setCommentText}
+            onCommentSubmit={handleCommentSubmit}
+            taskComments={taskComments}
+          />
         </div>
 
         <DocumentViewer
