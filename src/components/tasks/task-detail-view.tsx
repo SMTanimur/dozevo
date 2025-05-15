@@ -22,15 +22,22 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { CalendarIcon, User, Tag, Plus, ChevronDown } from 'lucide-react';
+import {
+  CalendarIcon,
+  User,
+  Tag,
+  Plus,
+  ChevronDown,
+  ArrowLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { ITaskUser, Priority } from '@/types';
 import { useGlobalStateStore } from '@/stores';
-import { useGetTask, useGetTasks, useTaskMutations } from '@/hooks';
+import { useGetTask,  useTaskMutations } from '@/hooks';
 import { useGetStatuses } from '@/hooks/list';
 import { useParams } from 'next/navigation';
 import { UserAvatar } from '../ui';
 import { SubtaskForm } from './subtask-form';
-import SubtaskItem from './subtask-item';
 
 import {
   PRIORITY_OPTIONS,
@@ -43,7 +50,7 @@ import { TaskAttachments } from './task-attachments';
 import { TaskDetailsRightBar } from './task-details-right-bar';
 
 export const TaskDetailView = () => {
-  const { closeTaskModal, isTaskModalOpen, selectedTaskId } =
+  const { closeTaskModal, isTaskModalOpen, selectedTaskId, openTaskModal } =
     useGlobalStateStore();
   const [editingTitle, setEditingTitle] = useState(false);
 
@@ -59,9 +66,7 @@ export const TaskDetailView = () => {
   const [commentText, setCommentText] = useState('');
   const [addingSubtask, setAddingSubtask] = useState(false);
 
-  const { data: spaceTasksData } = useGetTasks({
-    spaceId: task?.space as string,
-  });
+ 
   const params = useParams();
   const workspaceId = params.w_id as string;
 
@@ -195,9 +200,7 @@ export const TaskDetailView = () => {
     }
   };
 
-  const subtasks = task
-    ? (spaceTasksData?.data || []).filter(t => t.parentTask === task._id)
-    : [];
+  const subtasks = task?.subtasks || [];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const taskComments: any[] = [];
@@ -206,11 +209,30 @@ export const TaskDetailView = () => {
 
   if (!task) return null;
 
+  // Handler for navigating to parent task
+  const handleGoToParentTask = () => {
+    if (task.parentTask) {
+      openTaskModal(task.parentTask);
+    }
+  };
+
   return (
     <Dialog open={isTaskModalOpen} onOpenChange={closeTaskModal}>
       <DialogContent className='max-w-[1400px] p-0 h-[90vh] flex flex-col overflow-hidden'>
+        {/* Top bar with optional back arrow */}
         <div className='flex items-center justify-between p-4 border-b'>
           <div className='flex items-center gap-2'>
+            {task.parentTask && (
+              <Button
+                variant='ghost'
+                size='icon'
+                className='h-8 w-8 mr-2 hover:bg-gray-200 focus:bg-gray-300 transition-colors'
+                onClick={handleGoToParentTask}
+                aria-label='Go to parent task'
+              >
+                <ArrowLeft className='h-5 w-5' />
+              </Button>
+            )}
             <Button variant='outline' size='sm' className='gap-1'>
               <span>Task</span>
               <ChevronDown className='h-3 w-3' />
@@ -462,7 +484,43 @@ export const TaskDetailView = () => {
                 {subtasks.length > 0 ? (
                   <div className='space-y-1'>
                     {subtasks.map(subtask => (
-                      <SubtaskItem key={subtask._id} task={subtask} />
+                      <div
+                        key={subtask._id}
+                        className='flex items-center p-2 rounded-md cursor-pointer hover:bg-gray-100 transition-colors group'
+                        onClick={() => openTaskModal(subtask._id)}
+                        tabIndex={0}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' || e.key === ' ')
+                            openTaskModal(subtask._id);
+                        }}
+                        aria-label={`Open subtask ${subtask.name}`}
+                      >
+                        <div
+                          className='w-4 h-4 rounded-full mr-2 flex items-center justify-center'
+                          style={{ backgroundColor: subtask.status.color }}
+                        >
+                          {subtask.status.type === 'in_progress' && (
+                            <div className='w-1.5 h-1.5 rounded-full bg-white' />
+                          )}
+                          {subtask.status.type === 'done' && (
+                            <svg
+                              className='w-2.5 h-2.5 text-white'
+                              fill='none'
+                              viewBox='0 0 24 24'
+                              stroke='currentColor'
+                            >
+                              <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M5 13l4 4L19 7'
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        <span className='flex-1 text-sm'>{subtask.name}</span>
+                        <ChevronRight className='h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity' />
+                      </div>
                     ))}
                   </div>
                 ) : (
