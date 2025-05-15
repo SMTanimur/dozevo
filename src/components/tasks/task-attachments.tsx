@@ -3,8 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Paperclip, FileText } from 'lucide-react';
 import Image from 'next/image';
-import Lightbox from 'react-image-lightbox';
-import 'react-image-lightbox/style.css';
+import { Lightbox } from '@/components/ui/lightbox';
 import { AttachmentDialog } from './attachment-dialog';
 import { DocumentViewer } from './document-viewer';
 import { ITaskAttachment } from '@/types';
@@ -41,13 +40,7 @@ export const TaskAttachments = ({
     setIsLightboxOpen(true);
   };
 
-  const handleLightboxClose = () => {
-    setIsLightboxOpen(false);
-    setTimeout(() => {
-      setLightboxImageUrl('');
-      setLightboxImageTitle('');
-    }, 300);
-  };
+
 
   return (
     <div className='mb-6'>
@@ -146,19 +139,12 @@ export const TaskAttachments = ({
         fileName={selectedDocument?.filename || ''}
       />
 
-      {isLightboxOpen && (
-        <Lightbox
-          mainSrc={lightboxImageUrl}
-          onCloseRequest={handleLightboxClose}
-          imageTitle={lightboxImageTitle}
-          reactModalStyle={{ overlay: { zIndex: 9999 } }}
-          imageCaption={lightboxImageTitle}
-          enableZoom={true}
-          clickOutsideToClose={true}
-          discourageDownloads={false}
-          wrapperClassName='lightbox-wrapper'
-        />
-      )}
+      <Lightbox
+        isOpen={isLightboxOpen}
+        onClose={() => setIsLightboxOpen(false)}
+        imageUrl={lightboxImageUrl}
+        imageTitle={lightboxImageTitle}
+      />
     </div>
   );
 };
