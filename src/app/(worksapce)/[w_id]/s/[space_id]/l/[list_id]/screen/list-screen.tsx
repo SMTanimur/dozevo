@@ -35,7 +35,6 @@ const ListScreen = () => {
     filters: {
       limit: 10,
     },
-  
   });
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -60,7 +59,7 @@ const ListScreen = () => {
 
   return (
     <>
-      <div className='flex flex-col h-[calc(100vh-4rem)] bg-background'>
+      <div className='flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden bg-background'>
         <header className='flex items-center justify-between p-4 border-b'>
           <div className='flex items-center gap-2'>
             <h1 className='text-xl font-semibold'>{listName}</h1>
