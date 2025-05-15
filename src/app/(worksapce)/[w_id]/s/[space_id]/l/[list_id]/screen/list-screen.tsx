@@ -17,6 +17,7 @@ import TaskBoardView from '@/components/tasks/task-board-view';
 import { useGetList } from '@/hooks/list';
 import { IList } from '@/types';
 import { useGetTasks } from '@/hooks';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const ListScreen = () => {
   const { list_id, w_id, space_id } = useParams();
@@ -253,11 +254,15 @@ const ListScreen = () => {
             value='overview'
             className='flex-1 p-0 m-0 overflow-auto'
           >
-            <GridLayout pageId='overview' key={list_id as string}>
-              {['docs', 'recent', 'workload', 'resources'].map(id => (
-                <div key={id}>{renderCard(id)}</div>
-              ))}
-            </GridLayout>
+            <ScrollArea className='h-[calc(100vh-10rem)]'>
+              <div className='p-4'>
+                <GridLayout pageId='overview' key={list_id as string}>
+                  {['docs', 'recent', 'workload', 'resources'].map(id => (
+                    <div key={id}>{renderCard(id)}</div>
+                  ))}
+                </GridLayout>
+              </div>
+            </ScrollArea>
           </TabsContent>
           <TabsContent value='list' className='flex-1 p-0 m-0 overflow-hidden'>
             <TaskListView list={list as IList} tasks={tasks?.data || []} />
