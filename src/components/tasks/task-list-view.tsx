@@ -20,6 +20,7 @@ import { TCreateTask } from '@/validations';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '../ui/scroll-area';
+import { TaskSkeleton } from '@/components';
 
 type TaskListViewProps = {
   list: IList;
@@ -113,7 +114,7 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
   };
 
   if (isLoadingStatuses) {
-    return <div>Loading statuses...</div>;
+    return <TaskSkeleton />;
   }
 
   return (
