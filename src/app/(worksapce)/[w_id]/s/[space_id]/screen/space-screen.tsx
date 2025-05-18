@@ -10,17 +10,41 @@ import {
 } from '@/components/overview-cards';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useGetLists } from '@/hooks/list';
 import { FileText, MoreHorizontal } from 'lucide-react';
 import { useParams } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+
+import { useGetTasks } from '@/hooks/task';
+import { ListCard } from '@/components/tasks/list-card';
+import { ListGroupedStatus } from '@/components/tasks/list-grouped-status';
+import { ITask } from '@/types';
 
 const SpaceScreen = () => {
-  const { space_id } = useParams();
+  const { space_id, w_id } = useParams();
   const [activeTab, setActiveTab] = useState('overview');
+  const { data: lists = [] } = useGetLists(w_id as string, space_id as string, {
+    enabled: !!w_id && !!space_id,
+  });
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-  };
+  // Fetch all tasks for the space (not per-list)
+  const { data: allTasksData } = useGetTasks({
+    spaceId: space_id as string,
+  });
+
+  // Group tasks by listId for fast lookup
+  const tasksByList = useMemo(() => {
+    const grouped: Record<string, ITask[]> = {};
+    if (allTasksData?.data) {
+      for (const task of allTasksData.data) {
+        if (task.list) {
+          if (!grouped[task.list]) grouped[task.list] = [];
+          grouped[task.list].push(task);
+        }
+      }
+    }
+    return grouped;
+  }, [allTasksData]);
 
   const renderCard = (id: string) => {
     switch (id) {
@@ -47,11 +71,7 @@ const SpaceScreen = () => {
         <Button className='bg-pink-500 hover:bg-pink-600'>Add card</Button>
       </header>
 
-      <Tabs
-        value={activeTab}
-        onValueChange={handleTabChange}
-        className='flex-1'
-      >
+      <Tabs value={activeTab} onValueChange={setActiveTab} className='flex-1'>
         <div className='flex items-center border-b'>
           <TabsList className='h-12 bg-transparent border-b-0 p-0 ml-4'>
             <TabsTrigger
@@ -266,6 +286,22 @@ const SpaceScreen = () => {
                 <div key={id}>{renderCard(id)}</div>
               ))}
             </GridLayout>
+          </TabsContent>
+          <TabsContent value='list' className='flex-1 p-5'>
+            {lists.length > 0 ? (
+              lists.map(list => (
+                <ListCard key={list._id} list={list} defaultExpanded>
+                  <ListGroupedStatus
+                    list={list}
+                    tasks={tasksByList[list._id] || []}
+                  />
+                </ListCard>
+              ))
+            ) : (
+              <div className='p-8 text-gray-400 text-center'>
+                No lists found.
+              </div>
+            )}
           </TabsContent>
         </ScrollArea>
       </Tabs>
