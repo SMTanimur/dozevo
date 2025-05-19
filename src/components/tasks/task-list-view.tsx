@@ -34,7 +34,7 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
     listId: list?._id as string,
   });
 
-  const { createTask, reorderTasks } = useTaskMutations();
+  const { createTask, reorderTasks, updateTask } = useTaskMutations();
   const [tasksByStatus, setTasksByStatus] = useState<Record<string, ITask[]>>(
     {}
   );
@@ -77,28 +77,25 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source } = result;
-
     if (!destination) {
       return;
     }
-
-    if (destination.droppableId === source.droppableId) {
+    const sourceStatusId = source.droppableId;
+    const destStatusId = destination.droppableId;
+    if (sourceStatusId === destStatusId) {
       if (destination.index === source.index) {
         return;
       }
-
-      const statusId = source.droppableId;
-      const tasksInGroup: ITask[] = Array.from(tasksByStatus[statusId] || []);
+      const tasksInGroup: ITask[] = Array.from(
+        tasksByStatus[sourceStatusId] || []
+      );
       const [movedTask] = tasksInGroup.splice(source.index, 1);
       tasksInGroup.splice(destination.index, 0, movedTask);
-
       setTasksByStatus(prev => ({
         ...prev,
-        [statusId]: tasksInGroup,
+        [sourceStatusId]: tasksInGroup,
       }));
-
       const orderedTaskIds = tasksInGroup.map(t => t._id);
-
       reorderTasks({
         listId: list._id as string,
         orderedTaskIds: orderedTaskIds,
@@ -109,7 +106,51 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
         },
       });
     } else {
-      console.log('Moving between groups not implemented in list view yet');
+      // Moving between statuses
+      const sourceTasks = Array.from(tasksByStatus[sourceStatusId] || []);
+      const destTasks = Array.from(tasksByStatus[destStatusId] || []);
+      const [movedTask] = sourceTasks.splice(source.index, 1);
+      if (!movedTask) return;
+      // Update the status locally
+      const updatedTask = {
+        ...movedTask,
+        status: { ...movedTask.status, _id: destStatusId },
+      };
+      destTasks.splice(destination.index, 0, updatedTask);
+      setTasksByStatus(prev => ({
+        ...prev,
+        [sourceStatusId]: sourceTasks,
+        [destStatusId]: destTasks,
+      }));
+      // Update the backend: status and order
+      updateTask({
+        taskId: movedTask._id,
+        data: { status: destStatusId },
+        params: {
+          spaceId: list.space as string,
+          listId: list._id as string,
+          workspaceId: list.workspace as string,
+        },
+      });
+      // Reorder both columns
+      reorderTasks({
+        listId: list._id as string,
+        orderedTaskIds: destTasks.map(t => t._id),
+        params: {
+          workspaceId: list.workspace as string,
+          spaceId: list.space as string,
+          listId: list._id as string,
+        },
+      });
+      reorderTasks({
+        listId: list._id as string,
+        orderedTaskIds: sourceTasks.map(t => t._id),
+        params: {
+          workspaceId: list.workspace as string,
+          spaceId: list.space as string,
+          listId: list._id as string,
+        },
+      });
     }
   };
 
