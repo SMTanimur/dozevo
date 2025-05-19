@@ -13,12 +13,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGetLists } from '@/hooks/list';
 import { FileText, MoreHorizontal } from 'lucide-react';
 import { useParams } from 'next/navigation';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 import { useGetTasks } from '@/hooks/task';
 import { ListCard } from '@/components/tasks/list-card';
 import { ListGroupedStatus } from '@/components/tasks/list-grouped-status';
 import { ITask } from '@/types';
+import TaskBoardView from '@/components/tasks/task-board-view';
 
 const SpaceScreen = () => {
   const { space_id, w_id } = useParams();
@@ -45,6 +46,14 @@ const SpaceScreen = () => {
     }
     return grouped;
   }, [allTasksData]);
+
+  const [selectedBoardListId, setSelectedBoardListId] = useState('');
+
+  useEffect(() => {
+    if (lists.length > 0 && !selectedBoardListId) {
+      setSelectedBoardListId(lists[0]._id);
+    }
+  }, [lists, selectedBoardListId]);
 
   const renderCard = (id: string) => {
     switch (id) {
@@ -286,6 +295,32 @@ const SpaceScreen = () => {
                 <div key={id}>{renderCard(id)}</div>
               ))}
             </GridLayout>
+          </TabsContent>
+          <TabsContent value='board' className='flex-1 p-5'>
+            {lists.length > 0 ? (
+              <>
+                <select
+                  className='mb-4 p-2 border rounded'
+                  value={selectedBoardListId}
+                  onChange={e => setSelectedBoardListId(e.target.value)}
+                >
+                  {lists.map(list => (
+                    <option key={list._id} value={list._id}>
+                      {list.name}
+                    </option>
+                  ))}
+                </select>
+                <TaskBoardView
+                  workspaceId={w_id as string}
+                  spaceId={space_id as string}
+                  listId={selectedBoardListId}
+                />
+              </>
+            ) : (
+              <div className='p-8 text-gray-400 text-center'>
+                No lists found.
+              </div>
+            )}
           </TabsContent>
           <TabsContent value='list' className='flex-1 p-5'>
             {lists.length > 0 ? (
