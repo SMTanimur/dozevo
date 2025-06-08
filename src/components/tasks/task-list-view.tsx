@@ -12,68 +12,70 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown, Plus, MoreHorizontal } from 'lucide-react';
 
 import { TaskRow } from '@/components/tasks/task-row';
-import { IList, IStatusDefinition, ITask } from '@/types';
+import { IList, ITask } from '@/types';
 import { useGetStatuses } from '@/hooks/list';
-import { useTaskMutations } from '@/hooks/task';
+import { useTaskMutations, useGetTasks } from '@/hooks/task';
 import { useGlobalStateStore } from '@/stores';
-import { TCreateTask } from '@/validations';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '../ui/scroll-area';
 import { TaskSkeleton } from '@/components';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 
 type TaskListViewProps = {
   list: IList;
-  tasks: ITask[];
 };
-export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
+export const TaskListView = ({ list }: TaskListViewProps) => {
   const { openTaskModal } = useGlobalStateStore();
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showArchived, setShowArchived] = useState(false);
+  const [selectedStatusIds, setSelectedStatusIds] = useState<string[]>([]);
+
+  const filtersApplied =
+    searchTerm !== '' || showArchived || selectedStatusIds.length > 0;
+
   const { data: statuses = [], isLoading: isLoadingStatuses } = useGetStatuses({
     workspaceId: list?.workspace as string,
     spaceId: list?.space as string,
     listId: list?._id as string,
   });
 
-  const { createTask, reorderTasks, updateTask } = useTaskMutations();
+  const { data: tasksResponse, isLoading: isLoadingTasks } = useGetTasks({
+    listId: list?._id,
+    spaceId: list?.space as string,
+    filters: {
+      search: searchTerm,
+      archived: showArchived,
+      status: selectedStatusIds,
+    },
+  });
+
+  const { reorderTasks, updateTask } = useTaskMutations();
   const [tasksByStatus, setTasksByStatus] = useState<Record<string, ITask[]>>(
     {}
   );
 
   useEffect(() => {
-    if (statuses.length > 0) {
+    if (statuses.length > 0 && tasksResponse?.data) {
       const initialTasksByStatus = statuses.reduce((acc, status) => {
-        acc[status._id] = tasks.filter(task => task.status?._id === status._id);
+        acc[status._id] = (tasksResponse.data || []).filter(
+          task => task.status?._id === status._id
+        );
         return acc;
       }, {} as Record<string, ITask[]>);
       setTasksByStatus(initialTasksByStatus);
     }
-  }, [statuses, tasks]);
-
-  const handleAddTask = (status: IStatusDefinition) => {
-    const newTask: TCreateTask = {
-      name: 'New Task',
-      status: status._id,
-      listId: list._id,
-    };
-
-    createTask(
-      {
-        data: newTask,
-        params: {
-          spaceId: list.space as string,
-          listId: list._id as string,
-        },
-      },
-      {
-        onSuccess: newTask => {
-          setTasksByStatus(prev => ({
-            ...prev,
-            [status._id]: [...(prev[status._id] || []), newTask],
-          }));
-        },
-      }
-    );
-  };
+  }, [statuses, tasksResponse]);
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source } = result;
@@ -154,7 +156,7 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
     }
   };
 
-  if (isLoadingStatuses) {
+  if (isLoadingStatuses || isLoadingTasks) {
     return <TaskSkeleton />;
   }
 
@@ -189,22 +191,59 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
         </div>
         <div className='flex items-center gap-2'>
           <Button
-            variant='outline'
+            variant={filtersApplied ? 'secondary' : 'outline'}
             size='sm'
             className='flex items-center gap-2'
           >
             <span>Filter</span>
+            {filtersApplied && (
+              <span className='w-2 h-2 bg-blue-500 rounded-full'></span>
+            )}
             <ChevronDown className='h-4 w-4' />
           </Button>
 
-          <Button
-            variant='outline'
-            size='sm'
-            className='flex items-center gap-2'
-          >
-            <span>Closed</span>
-            <ChevronDown className='h-4 w-4' />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant='outline'
+                size='sm'
+                className='flex items-center gap-2'
+              >
+                <span>Status</span>
+                {selectedStatusIds.length > 0 &&
+                  `(${selectedStatusIds.length})`}
+                <ChevronDown className='h-4 w-4' />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className='w-56'>
+              <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {statuses.map(status => (
+                <DropdownMenuCheckboxItem
+                  key={status._id}
+                  checked={selectedStatusIds.includes(status._id)}
+                  onCheckedChange={checked => {
+                    setSelectedStatusIds(prev =>
+                      checked
+                        ? [...prev, status._id]
+                        : prev.filter(id => id !== status._id)
+                    );
+                  }}
+                >
+                  {status.status}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <div className='flex items-center space-x-2'>
+            <Switch
+              id='archived-tasks-list'
+              checked={showArchived}
+              onCheckedChange={setShowArchived}
+            />
+            <Label htmlFor='archived-tasks-list'>Archived</Label>
+          </div>
           <Button
             variant='outline'
             size='sm'
@@ -216,8 +255,10 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
           <div className='relative'>
             <Input
               type='text'
-              placeholder='Search...'
+              placeholder='Search tasks...'
               className='h-9 px-3 py-1 rounded-md border border-input bg-background text-sm w-40'
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
           <Button variant='ghost' size='icon' className='h-9 w-9'>
@@ -246,10 +287,7 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
                       {tasksByStatus[status._id]?.length || 0} tasks
                     </span>
                   </div>
-                  <Button
-                    className='rounded-full bg-primary text-white shadow hover:bg-primary-dark transition'
-                    onClick={() => handleAddTask(status)}
-                  >
+                  <Button className='rounded-full bg-primary text-white shadow hover:bg-primary-dark transition'>
                     + Add Task
                   </Button>
                 </div>
@@ -304,7 +342,6 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
                           variant='ghost'
                           size='sm'
                           className='h-7 px-2 text-primary font-semibold hover:text-primary-dark hover:bg-primary/10 rounded-lg transition'
-                          onClick={() => handleAddTask(status)}
                         >
                           <Plus className='h-4 w-4 mr-1' />
                           Add Task
