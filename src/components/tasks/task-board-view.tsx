@@ -15,6 +15,9 @@ import { useGetStatuses } from '@/hooks/list';
 import TaskCard from './task-card'; // Import TaskCard
 import { TCreateTask } from '@/validations';
 import { cn } from '@/lib';
+import { Input } from '@/components/ui/input'; // Added Input import
+import { Switch } from '@/components/ui/switch'; // Added Switch import
+import { Label } from '@/components/ui/label'; // Added Label import
 
 // Assume workspaceId, spaceId, and listId are passed as props or derived from context
 interface TaskBoardViewProps {
@@ -34,10 +37,20 @@ export default function TaskBoardView({
   // Removed unused openTaskModal
   // const { openTaskModal } = useGlobalStateStore();
 
+  // State for filters
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showArchived, setShowArchived] = useState(false);
+
+  const filtersApplied = searchTerm !== '' || showArchived;
+
   // Fetch tasks and statuses
   const { data: tasksResponse, isLoading: isLoadingTasks } = useGetTasks({
     listId: listId,
     spaceId: spaceId,
+    filters: {
+      search: searchTerm,
+      archived: showArchived,
+    },
   });
   const tasks = tasksResponse?.data || [];
 
@@ -203,7 +216,7 @@ export default function TaskBoardView({
         </div>
         <div className='flex items-center gap-2'>
           <Button
-            variant='outline'
+            variant={filtersApplied ? 'secondary' : 'outline'}
             size='sm'
             className='flex items-center gap-2'
           >
@@ -218,14 +231,14 @@ export default function TaskBoardView({
             <span>Sort</span>
             <ChevronDown className='h-4 w-4' />
           </Button>
-          <Button
-            variant='outline'
-            size='sm'
-            className='flex items-center gap-2'
-          >
-            <span>Closed</span>
-            <ChevronDown className='h-4 w-4' />
-          </Button>
+          <div className='flex items-center space-x-2'>
+            <Switch
+              id='archived-tasks-board'
+              checked={showArchived}
+              onCheckedChange={setShowArchived}
+            />
+            <Label htmlFor='archived-tasks-board'>Archived</Label>
+          </div>
           <Button
             variant='outline'
             size='sm'
@@ -235,10 +248,12 @@ export default function TaskBoardView({
             <ChevronDown className='h-4 w-4' />
           </Button>
           <div className='relative'>
-            <input
+            <Input
               type='text'
-              placeholder='Search...'
+              placeholder='Search tasks...'
               className='h-9 px-3 py-1 rounded-md border border-input bg-background text-sm'
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
           <Button variant='ghost' size='icon' className='h-9 w-9'>
