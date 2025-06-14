@@ -33,6 +33,7 @@ import {
 
 type TaskListViewProps = {
   list: IList;
+  tasks: ITask[];
 };
 export const TaskListView = ({ list }: TaskListViewProps) => {
   const { openTaskModal } = useGlobalStateStore();
@@ -56,7 +57,7 @@ export const TaskListView = ({ list }: TaskListViewProps) => {
     filters: {
       search: searchTerm,
       archived: showArchived,
-      status: selectedStatusIds,
+      status: selectedStatusIds.join(','),
     },
   });
 
