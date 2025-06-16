@@ -96,7 +96,7 @@ export const useCommentMutations = () => {
   const { mutate: deleteComment, isPending: isDeletingComment } = useMutation<
     void,
     Error,
-    DeleteCommentMutationInput
+    DeleteCommentMutationInput 
   >({
     mutationKey: [commentService.deleteComment.name],
     mutationFn: ({ taskId, commentId }) =>
