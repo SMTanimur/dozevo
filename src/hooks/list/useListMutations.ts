@@ -87,7 +87,7 @@ export const useListMutations = () => {
     mutationFn: ({ workspaceId, spaceId, listId, data }) =>
       listService.updateList(workspaceId, spaceId, listId, data),
     onSuccess: (updatedList, variables) => {
-      toast.success(`List "${updatedList.name}" updated successfully!`);
+
       invalidateListQueries(
         variables.workspaceId,
         variables.spaceId,

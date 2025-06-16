@@ -77,7 +77,7 @@ export const useCommentMutations = () => {
     mutationFn: ({ taskId, commentId, data }) =>
       commentService.updateComment(taskId, commentId, data),
     onSuccess: (updatedComment, variables) => {
-      toast.success('Comment updated successfully!');
+
       invalidateCommentQueries(variables.taskId, variables.commentId);
       // Update the specific comment cache
       queryClient.setQueryData<
@@ -102,7 +102,7 @@ export const useCommentMutations = () => {
     mutationFn: ({ taskId, commentId }) =>
       commentService.deleteComment(taskId, commentId),
     onSuccess: (_, variables) => {
-      toast.success('Comment deleted successfully!');
+ 
       invalidateCommentQueries(variables.taskId, variables.commentId);
       // Remove the specific comment from cache
       queryClient.removeQueries({
