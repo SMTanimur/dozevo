@@ -158,11 +158,6 @@ export const useTaskMutations = () => {
       // onSettled will still invalidate to be sure.
     },
 
-    onSuccess: updatedTaskData => {
-      toast.success(`Task "${updatedTaskData.name}" update confirmed.`);
-      // No need to manually update cache here, invalidation in onSettled handles it.
-    },
-
     onSettled: (data, error, variables) => {
       console.log(
         'Invalidating queries in onSettled (after local state update)'
@@ -180,7 +175,7 @@ export const useTaskMutations = () => {
     mutationKey: [taskService.deleteTask.name],
     mutationFn: ({ taskId }) => taskService.deleteTask({ taskId }), // API call only needs taskId
     onSuccess: (_, variables) => {
-      toast.success('Task deleted successfully!');
+  
       // Remove the specific task query from cache
       queryClient.removeQueries({
         queryKey: [taskService.getTaskById.name, variables.taskId],
@@ -202,7 +197,7 @@ export const useTaskMutations = () => {
     mutationKey: [taskService.reorderTasks.name],
     mutationFn: data => taskService.reorderTasks(data), // Pass data directly
     onSuccess: (data, variables) => {
-      toast.success(data.message);
+    
       // Invalidate the task list for the specific context
       // We only need listId and spaceId for task invalidation
       invalidateRelevantQueries({
@@ -225,9 +220,7 @@ export const useTaskMutations = () => {
         { taskId, files } // Destructure files (array)
       ) => taskService.uploadAttachment({ taskId, files }), // Pass files array
       onSuccess: (updatedTask, variables) => {
-        toast.success(
-          `Attachment(s) uploaded successfully for task "${updatedTask.name}"!` // Updated message
-        );
+  
         invalidateRelevantQueries(variables.params, variables.taskId);
         queryClient.setQueryData(
           [taskService.getTaskById.name, variables.taskId],

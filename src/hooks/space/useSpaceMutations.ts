@@ -69,7 +69,7 @@ export const useSpaceMutations = () => {
     mutationFn: ({ workspaceId, spaceId, data }) =>
       spaceService.updateSpace(workspaceId, spaceId, data),
     onSuccess: (updatedSpace, variables) => {
-      toast.success(`Space "${updatedSpace.name}" updated successfully!`);
+
       invalidateSpaceQueries(variables.workspaceId, variables.spaceId);
       // Update the specific space cache
       queryClient.setQueryData(
