@@ -161,6 +161,25 @@ export class TaskService {
       throw error;
     }
   }
+
+  // New method to get workload by status
+  async getWorkloadByStatus(spaceId: string): Promise<{
+    data: Array<{ status: string; count: number; color?: string }>;
+  }> {
+    const path = `/v1/tasks/spaces/${spaceId}/stats/workload-by-status`;
+    try {
+      const response = await api.get<{
+        data: Array<{ status: string; count: number; color?: string }>;
+      }>(path);
+      return response.data;
+    } catch (error) {
+      console.error(
+        `Failed to fetch workload by status for space ${spaceId}:`,
+        error
+      );
+      throw error;
+    }
+  }
 }
 
 // Export a singleton instance

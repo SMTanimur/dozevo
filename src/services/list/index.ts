@@ -186,6 +186,27 @@ export class ListService {
       throw error;
     }
   }
+
+  async getOverview(
+    workspaceId: string,
+    spaceId: string,
+    listId: string
+  ): Promise<{
+    recentTasks: Record<string, unknown>[];
+    workloadByStatus: Record<string, unknown>[];
+    totalTasks: number;
+    totalStatuses: number;
+  }> {
+    try {
+      const response = await api.get(
+        `${getListBasePath(workspaceId, spaceId)}/${listId}/overview`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch overview for list ${listId}:`, error);
+      throw error;
+    }
+  }
 }
 
 // Export a singleton instance
