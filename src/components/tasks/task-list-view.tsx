@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   DragDropContext,
   Droppable,
@@ -14,7 +14,7 @@ import { ChevronDown, Plus, MoreHorizontal } from 'lucide-react';
 import { TaskRow } from '@/components/tasks/task-row';
 import { IList, ITask } from '@/types';
 import { useGetStatuses } from '@/hooks/list';
-import { useTaskMutations, useGetTasks } from '@/hooks/task';
+import { useTaskMutations } from '@/hooks/task';
 import { useGlobalStateStore } from '@/stores';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -35,15 +35,12 @@ type TaskListViewProps = {
   list: IList;
   tasks: ITask[];
 };
-export const TaskListView = ({ list }: TaskListViewProps) => {
+export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
   const { openTaskModal } = useGlobalStateStore();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showArchived, setShowArchived] = useState(false);
   const [selectedStatusIds, setSelectedStatusIds] = useState<string[]>([]);
-
-  const filtersApplied =
-    searchTerm !== '' || showArchived || selectedStatusIds.length > 0;
 
   const { data: statuses = [], isLoading: isLoadingStatuses } = useGetStatuses({
     workspaceId: list?.workspace as string,
@@ -51,32 +48,98 @@ export const TaskListView = ({ list }: TaskListViewProps) => {
     listId: list?._id as string,
   });
 
-  const { data: tasksResponse, isLoading: isLoadingTasks } = useGetTasks({
-    listId: list?._id,
-    spaceId: list?.space as string,
-    filters: {
-      search: searchTerm,
-      archived: showArchived,
-      status: selectedStatusIds.join(','),
-    },
-  });
-
   const { reorderTasks, updateTask } = useTaskMutations();
   const [tasksByStatus, setTasksByStatus] = useState<Record<string, ITask[]>>(
     {}
   );
 
+  // Use useMemo to prevent recalculation on every render
+  const filtersApplied = useMemo(() => {
+    return searchTerm !== '' || showArchived || selectedStatusIds.length > 0;
+  }, [searchTerm, showArchived, selectedStatusIds]);
+
+  // Use useMemo to prevent recalculation on every render
+  const filteredTasks = useMemo(() => {
+    console.log('filteredTasks useMemo recalculating', {
+      tasksLength: tasks.length,
+      searchTerm,
+      showArchived,
+      selectedStatusIdsLength: selectedStatusIds.length,
+    });
+
+    return tasks.filter(task => {
+      const matchesSearch =
+        !searchTerm ||
+        task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesArchived = showArchived ? true : !task.archived;
+      const matchesStatus =
+        selectedStatusIds.length === 0 ||
+        (task.status && selectedStatusIds.includes(task.status._id));
+      return matchesSearch && matchesArchived && matchesStatus;
+    });
+  }, [tasks, searchTerm, showArchived, selectedStatusIds]);
+
+  // Memoize the onCheckedChange callback
+  const handleShowArchivedChange = useCallback((checked: boolean) => {
+    setShowArchived(checked);
+  }, []);
+
+  // Memoize the search term change callback
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchTerm(e.target.value);
+    },
+    []
+  );
+
+  // Memoize the status selection callback
+  const handleStatusChange = useCallback(
+    (statusId: string, checked: boolean) => {
+      setSelectedStatusIds(prev =>
+        checked ? [...prev, statusId] : prev.filter(id => id !== statusId)
+      );
+    },
+    []
+  );
+
   useEffect(() => {
-    if (statuses.length > 0 && tasksResponse?.data) {
+    console.log('TaskListView useEffect triggered', {
+      statusesLength: statuses.length,
+      filteredTasksLength: filteredTasks.length,
+      tasksByStatusKeys: Object.keys(tasksByStatus).length,
+    });
+
+    if (statuses.length > 0 && filteredTasks) {
       const initialTasksByStatus = statuses.reduce((acc, status) => {
-        acc[status._id] = (tasksResponse.data || []).filter(
+        acc[status._id] = filteredTasks.filter(
           task => task.status?._id === status._id
         );
         return acc;
       }, {} as Record<string, ITask[]>);
-      setTasksByStatus(initialTasksByStatus);
+
+      // Only update if the data has actually changed
+      setTasksByStatus(prev => {
+        const prevKeys = Object.keys(prev);
+        const newKeys = Object.keys(initialTasksByStatus);
+
+        if (prevKeys.length !== newKeys.length) {
+          console.log('TasksByStatus updated: different number of keys');
+          return initialTasksByStatus;
+        }
+
+        for (const key of newKeys) {
+          if (prev[key]?.length !== initialTasksByStatus[key]?.length) {
+            console.log('TasksByStatus updated: different task counts');
+            return initialTasksByStatus;
+          }
+        }
+
+        console.log('TasksByStatus unchanged: no update needed');
+        return prev;
+      });
     }
-  }, [statuses, tasksResponse]);
+  }, [statuses, filteredTasks]);
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source } = result;
@@ -157,7 +220,7 @@ export const TaskListView = ({ list }: TaskListViewProps) => {
     }
   };
 
-  if (isLoadingStatuses || isLoadingTasks) {
+  if (isLoadingStatuses) {
     return <TaskSkeleton />;
   }
 
@@ -224,11 +287,7 @@ export const TaskListView = ({ list }: TaskListViewProps) => {
                   key={status._id}
                   checked={selectedStatusIds.includes(status._id)}
                   onCheckedChange={checked => {
-                    setSelectedStatusIds(prev =>
-                      checked
-                        ? [...prev, status._id]
-                        : prev.filter(id => id !== status._id)
-                    );
+                    handleStatusChange(status._id, checked);
                   }}
                 >
                   {status.status}
@@ -241,7 +300,7 @@ export const TaskListView = ({ list }: TaskListViewProps) => {
             <Switch
               id='archived-tasks-list'
               checked={showArchived}
-              onCheckedChange={setShowArchived}
+              onCheckedChange={handleShowArchivedChange}
             />
             <Label htmlFor='archived-tasks-list'>Archived</Label>
           </div>
@@ -259,7 +318,7 @@ export const TaskListView = ({ list }: TaskListViewProps) => {
               placeholder='Search tasks...'
               className='h-9 px-3 py-1 rounded-md border border-input bg-background text-sm w-40'
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
             />
           </div>
           <Button variant='ghost' size='icon' className='h-9 w-9'>
