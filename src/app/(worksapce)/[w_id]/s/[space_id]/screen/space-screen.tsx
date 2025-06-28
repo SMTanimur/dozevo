@@ -11,6 +11,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGetLists } from '@/hooks/list';
+import { useGetOverview } from '@/hooks/space';
 import { FileText, MoreHorizontal } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import React, { useState, useMemo, useEffect } from 'react';
@@ -27,6 +28,12 @@ const SpaceScreen = () => {
   const { data: lists = [] } = useGetLists(w_id as string, space_id as string, {
     enabled: !!w_id && !!space_id,
   });
+
+  // Fetch overview data
+  const { data: overviewData } = useGetOverview(
+    { workspaceId: w_id as string, spaceId: space_id as string },
+    { enabled: !!w_id && !!space_id }
+  );
 
   // Fetch all tasks for the space (not per-list)
   const { data: allTasksData } = useGetTasks({
@@ -58,11 +65,13 @@ const SpaceScreen = () => {
   const renderCard = (id: string) => {
     switch (id) {
       case 'docs':
-        return <DocsCard />;
+        return <DocsCard recentDocs={overviewData?.recentDocs} />;
       case 'recent':
-        return <RecentCard />;
+        return <RecentCard recentTasks={overviewData?.recentTasks} />;
       case 'workload':
-        return <WorkloadStatus />;
+        return (
+          <WorkloadStatus workloadByStatus={overviewData?.workloadByStatus} />
+        );
       case 'resources':
         return <ResourcesCard />;
       default:

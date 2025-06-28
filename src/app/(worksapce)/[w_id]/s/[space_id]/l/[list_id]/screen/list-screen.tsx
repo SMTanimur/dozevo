@@ -11,12 +11,12 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, MoreHorizontal } from 'lucide-react';
 import { useParams } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 import TaskBoardView from '@/components/tasks/task-board-view';
-import { useGetList } from '@/hooks/list';
+import { useGetList, useGetListOverview } from '@/hooks/list';
 import { IList } from '@/types';
-import { useGetTasks } from '@/hooks';
+import { useGetTasks } from '@/hooks/task';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const ListScreen = () => {
@@ -30,13 +30,34 @@ const ListScreen = () => {
       enabled: !!w_id && !!space_id && !!list_id,
     }
   );
+
+  // Fetch overview data
+  const { data: overviewData } = useGetListOverview(
+    {
+      workspaceId: w_id as string,
+      spaceId: space_id as string,
+      listId: list_id as string,
+    },
+    { enabled: !!w_id && !!space_id && !!list_id }
+  );
+
+  // Memoize the filters to prevent unnecessary re-renders
+  const filters = useMemo(
+    () => ({
+      limit: 10,
+    }),
+    []
+  );
+
   const { data: tasks } = useGetTasks({
     spaceId: space_id as string,
     listId: list_id as string,
-    filters: {
-      limit: 10,
-    },
+    filters,
   });
+
+  // Memoize the tasks data to prevent unnecessary re-renders
+  const memoizedTasks = useMemo(() => tasks?.data || [], [tasks?.data]);
+
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
@@ -46,9 +67,11 @@ const ListScreen = () => {
       case 'docs':
         return <DocsCard />;
       case 'recent':
-        return <RecentCard />;
+        return <RecentCard recentTasks={overviewData?.recentTasks} />;
       case 'workload':
-        return <WorkloadStatus />;
+        return (
+          <WorkloadStatus workloadByStatus={overviewData?.workloadByStatus} />
+        );
       case 'resources':
         return <ResourcesCard />;
       default:
@@ -56,7 +79,7 @@ const ListScreen = () => {
     }
   };
 
-  const listName = 'List Name Placeholder';
+  const listName = list?.name || 'Loading...';
 
   return (
     <>
@@ -265,7 +288,11 @@ const ListScreen = () => {
             </ScrollArea>
           </TabsContent>
           <TabsContent value='list' className='flex-1 p-0 m-0 overflow-hidden'>
-            <TaskListView list={list as IList} tasks={tasks?.data || []} />
+            <TaskListView
+              key={`${list_id}-${memoizedTasks.length}`}
+              list={list as IList}
+              tasks={memoizedTasks}
+            />
           </TabsContent>
           <TabsContent value='board' className='flex-1 p-0 m-0 overflow-hidden'>
             <TaskBoardView

@@ -1,174 +1,43 @@
 import { Card } from '@/components/ui/card';
+import { Clock, List, CheckSquare } from 'lucide-react';
 
-export const RecentCard = () => (
-  <Card className='p-4 h-full'>
-    <h2 className='text-lg drag-handle font-medium mb-4'>Recent</h2>
-    <div className='space-y-3'>
-      <div className='flex items-center gap-2'>
-        <svg
-          className='h-4 w-4 text-gray-500'
-          viewBox='0 0 24 24'
-          fill='none'
-          xmlns='http://www.w3.org/2000/svg'
-        >
-          <path
-            d='M8 6H21'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-          <path
-            d='M8 12H21'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-          <path
-            d='M8 18H21'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-          <path
-            d='M3 6H3.01'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-          <path
-            d='M3 12H3.01'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-          <path
-            d='M3 18H3.01'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-        </svg>
-        <span>Project 1</span>
-        <span className='text-gray-500 text-sm'>• in Projects</span>
+interface RecentCardProps {
+  recentTasks?: Record<string, unknown>[];
+}
+
+export const RecentCard = ({ recentTasks }: RecentCardProps) => {
+  const getTaskIcon = (status?: string) => {
+    if (!status) return <CheckSquare className='h-4 w-4 text-gray-500' />;
+
+    const statusLower = status.toLowerCase();
+    if (statusLower.includes('complete') || statusLower.includes('done')) {
+      return <CheckSquare className='h-4 w-4 text-green-500' />;
+    } else if (statusLower.includes('progress')) {
+      return <Clock className='h-4 w-4 text-blue-500' />;
+    } else {
+      return <List className='h-4 w-4 text-gray-500' />;
+    }
+  };
+
+  return (
+    <Card className='p-4 h-full'>
+      <h2 className='text-lg drag-handle font-medium mb-4'>Recent</h2>
+      <div className='space-y-3'>
+        {recentTasks && recentTasks.length > 0 ? (
+          recentTasks.map((task: Record<string, unknown>) => {
+            const status = task.status as Record<string, unknown>;
+            return (
+              <div key={task._id as string} className='flex items-center gap-2'>
+                {getTaskIcon(status?.status as string)}
+                <span className='truncate'>{task.name as string}</span>
+                <span className='text-gray-500 text-sm'>• in Tasks</span>
+              </div>
+            );
+          })
+        ) : (
+          <div className='text-gray-500 text-sm'>No recent tasks</div>
+        )}
       </div>
-      <div className='flex items-center gap-2'>
-        <svg
-          className='h-4 w-4 text-gray-500'
-          viewBox='0 0 24 24'
-          fill='none'
-          xmlns='http://www.w3.org/2000/svg'
-        >
-          <rect
-            x='3'
-            y='3'
-            width='18'
-            height='18'
-            rx='2'
-            stroke='currentColor'
-            strokeWidth='2'
-          />
-          <path d='M3 9H21' stroke='currentColor' strokeWidth='2' />
-          <path d='M3 15H21' stroke='currentColor' strokeWidth='2' />
-          <path d='M9 3V21' stroke='currentColor' strokeWidth='2' />
-          <path d='M15 3V21' stroke='currentColor' strokeWidth='2' />
-        </svg>
-        <span>Projects</span>
-        <span className='text-gray-500 text-sm'>• in Team Space</span>
-      </div>
-      <div className='flex items-center gap-2'>
-        <svg
-          className='h-4 w-4 text-gray-500'
-          viewBox='0 0 24 24'
-          fill='none'
-          xmlns='http://www.w3.org/2000/svg'
-        >
-          <path
-            d='M8 6H21'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-          <path
-            d='M8 12H21'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-          <path
-            d='M8 18H21'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-          <path
-            d='M3 6H3.01'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-          <path
-            d='M3 12H3.01'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-          <path
-            d='M3 18H3.01'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-        </svg>
-        <span>jazlia</span>
-        <span className='text-gray-500 text-sm'>• in Team Space</span>
-      </div>
-      <div className='flex items-center gap-2'>
-        <svg
-          className='h-4 w-4 text-gray-500'
-          viewBox='0 0 24 24'
-          fill='none'
-          xmlns='http://www.w3.org/2000/svg'
-        >
-          <path
-            d='M8 6H21'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-          <path
-            d='M8 12H21'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-          <path
-            d='M8 18H21'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-          <path
-            d='M3 6H3.01'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-          <path
-            d='M3 12H3.01'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-          <path
-            d='M3 18H3.01'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-          />
-        </svg>
-        <span>Project 2</span>
-        <span className='text-gray-500 text-sm'>• in Projects</span>
-      </div>
-    </div>
-  </Card>
-);
+    </Card>
+  );
+};
