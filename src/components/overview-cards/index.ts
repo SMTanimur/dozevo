@@ -1,6 +1,6 @@
-export * from './DocsCard';
-export * from './RecentCard';
-export * from './WorkloadCard';
-export * from './ResourcesCard';
-export * from './SkeletonCard';
-export * from './workload-status';
+export { DocsCard } from './DocsCard';
+export { RecentCard } from './RecentCard';
+export { ResourcesCard } from './ResourcesCard';
+export { WorkloadCard } from './WorkloadCard';
+export { WorkloadStatus } from './workload-status';
+export { DashboardOverview } from './DashboardOverview';
