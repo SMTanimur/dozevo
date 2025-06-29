@@ -6,5 +6,6 @@ export * from './task';
 export * from './comment';
 export * from './auth';
 export * from './notification';
-export * from './layout'
+export * from './layout';
 export * from './status';
+export * from './doc';

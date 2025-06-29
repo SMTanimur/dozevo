@@ -7,3 +7,5 @@ export * from './task';
 export * from './comment';
 export * from './notification';
 export * from './tag';
+export * from './docs';
+export * from './dashboard';
