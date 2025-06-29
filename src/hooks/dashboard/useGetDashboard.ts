@@ -8,6 +8,7 @@ interface TaskItem {
   status?: string;
   dueDate?: string;
   assignee?: string;
+  priority?: 'high' | 'medium' | 'low';
   [key: string]: unknown;
 }
 
