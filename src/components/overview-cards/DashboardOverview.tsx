@@ -392,12 +392,10 @@ export function DashboardOverview({ data, isLoading }: DashboardOverviewProps) {
                 cy='60%'
               >
                 <RadialBar
-                  minAngle={15}
                   label={{ position: 'insideStart', fill: '#666' }}
                   background
-                  clockWise
                   dataKey='value'
-                  nameKey='name'
+                  name='name'
                 />
                 <Legend
                   iconSize={10}
