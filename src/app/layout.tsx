@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+
 import '@/styles/globals.css';
 import '@/styles/theme.css';
 import 'react-grid-layout/css/styles.css';
@@ -7,10 +7,10 @@ import GlobalModals from './providers/global-modals';
 import { QueryProvider } from './providers/query.provider';
 import { Toaster } from '@/components/ui/sonner';
 import { GlobalProvider } from './providers/global.provider';
-import { defaultMetadata } from '@/configs';
+
 import { CheckProvider } from './providers/check-provider';
 
-export const metadata: Metadata = defaultMetadata;
+
 export default function RootLayout({
   children,
 }: Readonly<{

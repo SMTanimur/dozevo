@@ -1,2 +1,2 @@
 export * from './keywords'
-export * from './metadata'
+export * from './seo-utils'

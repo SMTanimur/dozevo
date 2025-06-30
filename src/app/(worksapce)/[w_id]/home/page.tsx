@@ -1,30 +1,29 @@
-'use client';
+import { constructMetadata } from "@/configs";
+import { siteCorConfig } from "@/configs/seo/site-config";
+import { WorkspaceService } from "@/services";
+import { WorkspaceHomeScreen } from "./screen/workspace-home-screen";
 
-import React from 'react';
-import { useParams } from 'next/navigation';
-import { DashboardOverview } from '@/components/overview-cards';
-import { useGetDashboard } from '@/hooks/dashboard';
-import { ScrollArea } from '@/components/ui/scroll-area';
+type PageProps = {
+  params: {
+    w_id: string;
+  };
+};
 
-const WorkspaceHome = () => {
-  const { w_id } = useParams();
-  const { data, isLoading } = useGetDashboard(w_id as string, {
-    enabled: !!w_id,
+export const generateMetadata = async ({ params }: PageProps) => {
+  const { w_id } = params;
+  const workspaceService = new WorkspaceService();
+  const workspace = await workspaceService.getWorkspaceById(w_id);
+  return constructMetadata({
+    title: workspace.name,
+    description: `Workspace ${workspace.name}`,
+    canonical: `${siteCorConfig.url}/${w_id}/home`,
+    ogImage: workspace.avatar || `${siteCorConfig.url}/images/seo_image.png`,
   });
+};
 
-  return (
-    <div className='flex flex-col h-[calc(100vh-4rem)] bg-background'>
-      <header className='flex items-center justify-between p-4 border-b'>
-        <div className='flex items-center gap-2'>
-          <h1 className='text-xl font-semibold'>Workspace Overview</h1>
-        </div>
-      </header>
-
-      <ScrollArea className='flex-1 p-6'>
-        <DashboardOverview data={data} isLoading={isLoading} />
-      </ScrollArea>
-    </div>
-  );
+const WorkspaceHome = ({ params }: PageProps) => {
+  const { w_id } = params;
+  return <WorkspaceHomeScreen w_id={w_id} />;
 };
 
 export default WorkspaceHome;
