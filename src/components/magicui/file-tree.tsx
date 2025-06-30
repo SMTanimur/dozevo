@@ -362,7 +362,7 @@ const CollapseButton = forwardRef<
 
   const closeAll = useCallback(() => {
     setExpandedItems?.([]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, []);
 
   useEffect(() => {
@@ -370,7 +370,7 @@ const CollapseButton = forwardRef<
     if (expandAll) {
       expendAllTree(elements);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [expandAll]);
 
   return (
