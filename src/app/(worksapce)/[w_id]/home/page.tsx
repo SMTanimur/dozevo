@@ -1,17 +1,16 @@
-import { constructMetadata } from "@/configs";
-import { siteCorConfig } from "@/configs/seo/site-config";
-import { WorkspaceService } from "@/services";
-import { WorkspaceHomeScreen } from "./screen/workspace-home-screen";
+import { constructMetadata } from '@/configs';
+import { siteCorConfig } from '@/configs/seo/site-config';
+import { WorkspaceService } from '@/services';
+import { WorkspaceHomeScreen } from './screen/workspace-home-screen';
 
 type Params = {
-  params: {
+  params: Promise<{
     w_id: string;
-  };
+  }>;
 };
 
-
 export const generateMetadata = async ({ params }: Params) => {
-  const { w_id } = params;
+  const { w_id } = await params;
   const workspaceService = new WorkspaceService();
   const workspace = await workspaceService.getWorkspaceById(w_id);
   return constructMetadata({
@@ -22,8 +21,8 @@ export const generateMetadata = async ({ params }: Params) => {
   });
 };
 
-const WorkspaceHome = ({ params }: Params) => {
-  const { w_id } = params;
+const WorkspaceHome = async ({ params }: Params) => {
+  const { w_id } = await params;
   return <WorkspaceHomeScreen w_id={w_id} />;
 };
 
