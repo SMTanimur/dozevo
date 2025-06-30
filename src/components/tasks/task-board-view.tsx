@@ -52,6 +52,7 @@ export default function TaskBoardView({
       archived: showArchived,
     },
   });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const tasks = tasksResponse?.data || [];
 
   const { data: statuses = [], isLoading: isLoadingStatuses } = useGetStatuses({

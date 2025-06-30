@@ -47,7 +47,7 @@ const useTree = () => {
   return context;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+ 
 interface TreeViewComponentProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 type Direction = "rtl" | "ltr" | undefined;

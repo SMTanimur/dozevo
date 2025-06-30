@@ -16,7 +16,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { useGetTaskTrends, TaskTrend } from '@/hooks/dashboard';
+import { useGetTaskTrends } from '@/hooks/dashboard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 

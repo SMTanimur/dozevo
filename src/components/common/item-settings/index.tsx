@@ -42,7 +42,7 @@ export const ItemSettings = ({
   item,
   spaceId,
   setEditListOpen,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   listId,
 }: ItemSettingsProps) => {
   const [colorPickerOpen, setColorPickerOpen] = useState(false);

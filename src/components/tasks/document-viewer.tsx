@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Document, Page, pdfjs } from 'react-pdf';
+
 import mammoth from 'mammoth';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
-// Initialize PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+
 
 interface DocumentViewerProps {
   isOpen: boolean;
@@ -21,6 +20,7 @@ export const DocumentViewer = ({
   fileUrl,
   fileName,
 }: DocumentViewerProps) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [docxContent, setDocxContent] = useState<string>('');
@@ -41,10 +41,6 @@ export const DocumentViewer = ({
     }
   }, [isOpen, fileUrl, fileExtension]);
 
-  const handleDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
-    setIsLoading(false);
-  };
 
   const handleDocxLoad = async () => {
     try {
@@ -71,18 +67,7 @@ export const DocumentViewer = ({
     if (fileExtension === 'pdf') {
       return (
         <div className='flex flex-col items-center'>
-          <Document
-            file={fileUrl}
-            onLoadSuccess={handleDocumentLoadSuccess}
-            className='max-w-full'
-          >
-            <Page
-              pageNumber={pageNumber}
-              renderTextLayer={false}
-              renderAnnotationLayer={false}
-              className='max-w-full'
-            />
-          </Document>
+       
           {numPages && (
             <div className='flex items-center gap-4 mt-4'>
               <Button
