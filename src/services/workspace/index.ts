@@ -49,7 +49,7 @@ export class WorkspaceService {
 
   async updateWorkspace(
     id: string,
-    data: UpdateWorkspaceInput,
+    data: UpdateWorkspaceInput
   ): Promise<Workspace> {
     try {
       // Validate input data (optional here)
@@ -74,4 +74,7 @@ export class WorkspaceService {
 }
 
 // Export a singleton instance
-export const workspaceService = new WorkspaceService(); 
+export const workspaceService = new WorkspaceService();
+
+// Export server-side service
+export * from './server';
