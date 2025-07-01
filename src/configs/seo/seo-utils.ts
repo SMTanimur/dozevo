@@ -11,9 +11,9 @@ type MetadataProps = {
 };
 
 const defaultMetadata = {
-  title: 'TaskGen - Organize Your Work',
+  title: 'Taskiya - Organize Your Work',
   description:
-    'TaskGen helps you manage your tasks and projects efficiently.',
+    'Taskiya helps you manage your tasks and projects efficiently.',
 };
 
 export const normalizeDate = (dateString: string) => {
@@ -29,8 +29,8 @@ export const constructMetadata = ({
   keywords = [],
 }: MetadataProps) => {
   return {
-    metadataBase: new URL('https://taskgen-io.vercel.app/'),
-    title: title ? `${title} - Taskgen` : defaultMetadata.title,
+    metadataBase: new URL('https://taskiya.vercel.app/'),
+    title: title ? `${title} - Taskiya` : defaultMetadata.title,
     description,
     keywords: [
       ...metaKeywords,
@@ -70,11 +70,11 @@ export const constructMetadata = ({
    
     twitter: {
       creator: '@SMTanimur',
-      site: '@Taskzen',
+      site: '@Taskiya',
       card: 'summary_large_image',
-      title: 'TaskGen - Organize Your Work',
+      title: 'Taskiya - Organize Your Work',
       description:
-        'TaskGen is a task management tool that helps you manage your tasks and projects efficiently.',
+        'Taskiya is a task management tool that helps you manage your tasks and projects efficiently.',
       images: [
         {
           url: `${siteCorConfig.url}/images/seo_image.png`,
@@ -92,7 +92,7 @@ export const constructMetadata = ({
       'og:image:type': 'image/png',
       'og:image:secure_url': `${siteCorConfig.url}/images/seo_image.png`,
       'og:image:alt':
-        'TaskGen - Organize Your Work',
+        'Taskiya - Organize Your Work',
       'twitter:image': `${siteCorConfig.url}/images/seo_image.png`,
       'twitter:card': 'summary_large_image',
     },
