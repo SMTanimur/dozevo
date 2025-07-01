@@ -74,7 +74,7 @@ export const constructMetadata = ({
       card: 'summary_large_image',
       title: 'TaskGen - Organize Your Work',
       description:
-        'Build powerful workflow automation, chatbot builders, and interactive visual tools with ReactFlow, JointJS, Tiptap, and other modern technologies.',
+        'TaskGen is a task management tool that helps you manage your tasks and projects efficiently.',
       images: [
         {
           url: `${siteCorConfig.url}/images/seo_image.png`,
