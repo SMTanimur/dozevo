@@ -10,9 +10,9 @@ type MetadataProps = {
 };
 
 const defaultMetadata = {
-  title: 'TaskZen - Organize Your Work',
+  title: 'TaskGen - Organize Your Work',
   description:
-    'TaskZen helps you manage your tasks and projects efficiently.',
+    'TaskGen helps you manage your tasks and projects efficiently.',
 };
 
 export const normalizeDate = (dateString: string) => {
@@ -69,7 +69,7 @@ export const constructMetadata = ({
       creator: '@SMTanimur',
       site: '@Taskzen',
       card: 'summary_large_image',
-      title: 'TaskZen - Organize Your Work',
+      title: 'TaskGen - Organize Your Work',
       description:
         'Build powerful workflow automation, chatbot builders, and interactive visual tools with ReactFlow, JointJS, Tiptap, and other modern technologies.',
       images: [
@@ -89,7 +89,7 @@ export const constructMetadata = ({
       'og:image:type': 'image/png',
       'og:image:secure_url': `${siteCorConfig.url}/images/seo_image.png`,
       'og:image:alt':
-        'Taskzen - Workflow Automation & Visual Development Platform',
+        'TaskGen - Organize Your Work',
       'twitter:image': `${siteCorConfig.url}/images/seo_image.png`,
       'twitter:card': 'summary_large_image',
     },
