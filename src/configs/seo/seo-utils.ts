@@ -7,6 +7,7 @@ type MetadataProps = {
   description?: string;
   canonical: string;
   ogImage?: string;
+  keywords?: string[];
 };
 
 const defaultMetadata = {
@@ -25,13 +26,15 @@ export const constructMetadata = ({
   description = defaultMetadata.description,
   canonical = '/',
   ogImage =  `${siteCorConfig.url}/images/seo_image.png`,
+  keywords = [],
 }: MetadataProps) => {
   return {
     metadataBase: new URL('https://taskgen-io.vercel.app/'),
-    title: title ? `${title} - TaskZen` : defaultMetadata.title,
+    title: title ? `${title} - Taskgen` : defaultMetadata.title,
     description,
     keywords: [
-      ...metaKeywords
+      ...metaKeywords,
+      ...keywords
     ],
     alternates: {
       canonical,
