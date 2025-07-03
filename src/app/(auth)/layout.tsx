@@ -19,7 +19,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
       {/* Logo - Adjusted text color */}
       <div className='absolute top-10 z-20 flex items-center gap-2'>
         <Icon name='Workflow' className='h-8 w-8 text-primary' />
-        <span className='text-xl font-semibold text-slate-900'>Taskiya</span> {/* Changed text color */}
+        <span className='text-xl font-semibold text-slate-900'>Notiqo</span> {/* Changed text color */}
       </div>
 
       {/* Main content card container (for gradient border) - Adjusted for light theme */}

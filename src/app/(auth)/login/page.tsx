@@ -6,8 +6,8 @@ import { constructMetadata } from "@/configs";
 
 
 export const metadata: Metadata = constructMetadata({
-  title: 'Login - Taskiya',
-  description: 'Login to your Taskiya account',
+  title: 'Login - Notiqo',
+  description: 'Login to your Notiqo account',
   canonical: '/login',
 })
 

@@ -3,8 +3,8 @@ import { Metadata } from 'next';
 import { constructMetadata } from '@/configs';
 
 export const metadata: Metadata = constructMetadata({
-  title: 'Signup - Taskiya',
-  description: 'Signup to your Taskiya account',
+  title: 'Signup - Notiqo',
+  description: 'Signup to your Notiqo account',
   canonical: '/signup',
 });
 
