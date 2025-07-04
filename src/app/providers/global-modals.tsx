@@ -1,19 +1,13 @@
 'use client';
 
-
-
-
+import { TaskDetailView } from '@/components/tasks/task-detail-view';
 
 const GlobalModals = () => {
-
-
   return (
-
-    <div className=''>
-   
-    </div>
+    <>
+      <TaskDetailView />
+    </>
   );
 };
 
 export default GlobalModals;
-

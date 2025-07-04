@@ -76,22 +76,26 @@ export default function TaskBoardView({
       }, {} as TasksByStatusMap);
       setLocalTasksByStatus(newTasksByStatus);
     }
-  }, [tasks, statuses]); // Depend on tasks and statuses
+  }, [tasks, statuses]);
 
-  const handleAddTask = (status: IStatusDefinition) => {
+  const handleAddTask = async (status: IStatusDefinition) => {
     const newTask: TCreateTask = {
       name: 'New Task',
       status: status._id as string,
       listId: listId,
     };
-    // Note: Creating tasks might require refreshing local state too, or relying on invalidation
-    createTask({
-      data: newTask,
-      params: { spaceId, listId },
-    });
+
+    try {
+      await createTask({
+        data: newTask,
+        params: { spaceId, listId },
+      });
+    } catch (error) {
+      console.error('Failed to create task:', error);
+    }
   };
 
-  const handleDragEnd = (result: DropResult) => {
+  const handleDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result;
 
     // 1. Basic validation and exit conditions
@@ -126,7 +130,6 @@ export default function TaskBoardView({
         t => t._id === draggableId
       );
       if (taskIndexInSource === -1) {
-        console.error('Task not found in local source column for removal');
         return currentTasksByStatus;
       }
       const [removedTaskLocally] = sourceColumn.splice(taskIndexInSource, 1);
@@ -137,7 +140,6 @@ export default function TaskBoardView({
       if (sourceStatusId !== destinationStatusId) {
         const newStatus = statuses.find(s => s._id === destinationStatusId);
         if (!newStatus) {
-          console.error('Destination status not found');
           return currentTasksByStatus;
         }
         taskForInsertion.status = newStatus; // Update status for insertion
@@ -161,37 +163,58 @@ export default function TaskBoardView({
       return finalTasksByStatus; // Return the new state
     });
 
-    // 3. Trigger the backend mutation if local state update was successful
-    if (finalTasksByStatus) {
-      // Get the final ordered list of task IDs from the updated state
-      const destinationTasks: ITask[] =
-        finalTasksByStatus[destinationStatusId] || [];
+    try {
+      // Update status if column changed
+      if (sourceStatusId !== destinationStatusId) {
+        const newStatus = statuses.find(s => s._id === destinationStatusId);
+        if (newStatus) {
+          await updateTask({
+            taskId: taskToMove._id,
+            data: { status: newStatus._id as string },
+            params: { workspaceId, spaceId, listId },
+          });
+        }
+      }
+
+      // Reorder tasks in destination column
+      const destinationTasks = localTasksByStatus[destinationStatusId] || [];
       const orderedTaskIds = destinationTasks.map(task => task._id);
 
-      // Call the bulk reorder mutation
-      reorderTasks({
-        listId: listId, // Assuming tasks in board view belong to the main listId prop
+      await reorderTasks({
+        listId: listId,
         orderedTaskIds: orderedTaskIds,
-        params: { workspaceId, spaceId, listId }, // Pass context for invalidation
+        params: { workspaceId, spaceId, listId },
       });
 
-      // If the task moved between columns, we also need to reorder the source column
+      // If moved between columns, also reorder source column
       if (sourceStatusId !== destinationStatusId) {
-        const sourceTasks: ITask[] = finalTasksByStatus[sourceStatusId] || [];
+        const sourceTasks = localTasksByStatus[sourceStatusId] || [];
         const sourceOrderedTaskIds = sourceTasks.map(task => task._id);
-        reorderTasks({
+        await reorderTasks({
           listId: listId,
           orderedTaskIds: sourceOrderedTaskIds,
           params: { workspaceId, spaceId, listId },
         });
       }
-    } else {
-      console.error('Local state update failed, mutation skipped.');
+    } catch (error) {
+      console.error('Failed to update task order:', error);
+      // Revert local state on error
+      const newTasksByStatus = statuses.reduce((acc, status) => {
+        const statusId = status._id as string;
+        acc[statusId] = tasks.filter(task => task.status?._id === statusId);
+        return acc;
+      }, {} as TasksByStatusMap);
+      setLocalTasksByStatus(newTasksByStatus);
     }
   };
 
   if (isLoadingTasks || isLoadingStatuses) {
-    return <div>Loading board...</div>; // Or a spinner
+    return (
+      <div className='flex items-center justify-center h-64'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
+        <span className='ml-2'>Loading board...</span>
+      </div>
+    );
   }
 
   return (
@@ -357,7 +380,7 @@ export default function TaskBoardView({
                       <Button
                         variant='ghost'
                         size='sm'
-                        className='w-full justify-start text-gray-500'
+                        className='w-full justify-start text-gray-500 hover:text-gray-700'
                         onClick={() =>
                           handleAddTask(status as IStatusDefinition)
                         }

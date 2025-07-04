@@ -90,8 +90,6 @@ export const useTaskMutations = () => {
           listId: variables.params.listId,
         }),
       });
-      // We might need workspaceId for status invalidation if getStatusesQueryKey needs it
-      // queryClient.invalidateQueries({ queryKey: getStatusesQueryKey(...) });
     },
     onError: error => {
       toast.error(`Failed to create task: ${(error as Error).message}`);
@@ -175,7 +173,6 @@ export const useTaskMutations = () => {
     mutationKey: [taskService.deleteTask.name],
     mutationFn: ({ taskId }) => taskService.deleteTask({ taskId }), // API call only needs taskId
     onSuccess: (_, variables) => {
-  
       // Remove the specific task query from cache
       queryClient.removeQueries({
         queryKey: [taskService.getTaskById.name, variables.taskId],
@@ -197,7 +194,6 @@ export const useTaskMutations = () => {
     mutationKey: [taskService.reorderTasks.name],
     mutationFn: data => taskService.reorderTasks(data), // Pass data directly
     onSuccess: (data, variables) => {
-    
       // Invalidate the task list for the specific context
       // We only need listId and spaceId for task invalidation
       invalidateRelevantQueries({
@@ -220,7 +216,6 @@ export const useTaskMutations = () => {
         { taskId, files } // Destructure files (array)
       ) => taskService.uploadAttachment({ taskId, files }), // Pass files array
       onSuccess: (updatedTask, variables) => {
-  
         invalidateRelevantQueries(variables.params, variables.taskId);
         queryClient.setQueryData(
           [taskService.getTaskById.name, variables.taskId],

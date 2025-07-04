@@ -15,9 +15,12 @@ interface GlobalModalState {
 export const useGlobalStateStore = create<GlobalModalState>(set => ({
   selectedTaskId: null,
   isTaskModalOpen: false,
-  openTaskModal: (id: string) =>
-    set({ selectedTaskId: id, isTaskModalOpen: true }),
-  closeTaskModal: () => set({ isTaskModalOpen: false }),
+  openTaskModal: (id: string) => {
+    set({ selectedTaskId: id, isTaskModalOpen: true });
+  },
+  closeTaskModal: () => {
+    set({ isTaskModalOpen: false });
+  },
 
   setGlobalStore: updater => {
     set(state => ({

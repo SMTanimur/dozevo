@@ -97,8 +97,11 @@ export default function TaskCard({
         <TooltipProvider delayDuration={200}>
           <div className='p-3'>
             <div
-              className='text-sm font-medium mb-2 flex items-center gap-1 cursor-pointer hover:text-blue-600'
-              onClick={() => openTaskModal(task._id)}
+              className='text-sm font-medium mb-2 flex items-center gap-1 cursor-pointer hover:text-blue-600 transition-colors'
+              onClick={e => {
+                e.stopPropagation();
+                openTaskModal(task._id);
+              }}
               title={task.name}
             >
               {isSubtask && (

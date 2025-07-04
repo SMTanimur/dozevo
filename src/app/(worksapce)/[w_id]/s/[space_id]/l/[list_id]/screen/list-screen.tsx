@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, TaskDetailView, TaskListView } from '@/components';
+import { Button, TaskListView } from '@/components';
 import { GridLayout } from '@/components/home/GridLayout';
 import {
   DocsCard,
@@ -306,8 +306,6 @@ const ListScreen = () => {
           </TabsContent>
         </Tabs>
       </div>
-
-      <TaskDetailView />
     </>
   );
 };
