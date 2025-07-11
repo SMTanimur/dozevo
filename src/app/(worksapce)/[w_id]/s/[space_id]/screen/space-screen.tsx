@@ -10,8 +10,9 @@ import {
 } from '@/components/overview-cards';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import { useGetLists } from '@/hooks/list';
-import { useGetOverview } from '@/hooks/space';
+import { useGetOverview, useGetSpace, useSpaceMutations } from '@/hooks/space';
 import { FileText, MoreHorizontal } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import React, { useState, useMemo, useEffect } from 'react';
@@ -25,9 +26,29 @@ import TaskBoardView from '@/components/tasks/task-board-view';
 const SpaceScreen = () => {
   const { space_id, w_id } = useParams();
   const [activeTab, setActiveTab] = useState('overview');
+
+  // Space editing state
+  const [isEditingSpaceName, setIsEditingSpaceName] = useState(false);
+  const [spaceName, setSpaceName] = useState('');
+
+  // Fetch space data
+  const { data: spaceData } = useGetSpace(w_id as string, space_id as string, {
+    enabled: !!w_id && !!space_id,
+  });
+
+  // Space mutations
+  const { updateSpace, isUpdatingSpace } = useSpaceMutations();
+
   const { data: lists = [] } = useGetLists(w_id as string, space_id as string, {
     enabled: !!w_id && !!space_id,
   });
+
+  // Initialize space name when data is loaded
+  useEffect(() => {
+    if (spaceData?.name) {
+      setSpaceName(spaceData.name);
+    }
+  }, [spaceData?.name]);
 
   // Fetch overview data
   const { data: overviewData } = useGetOverview(
@@ -62,6 +83,38 @@ const SpaceScreen = () => {
     }
   }, [lists, selectedBoardListId]);
 
+  // Handle double-click to start editing
+  const handleDoubleClick = () => {
+    setIsEditingSpaceName(true);
+  };
+
+  // Handle save space name
+  const handleSaveSpaceName = () => {
+    if (spaceName.trim() && spaceName !== spaceData?.name) {
+      updateSpace({
+        workspaceId: w_id as string,
+        spaceId: space_id as string,
+        data: { name: spaceName.trim() },
+      });
+    }
+    setIsEditingSpaceName(false);
+  };
+
+  // Handle cancel editing
+  const handleCancelEdit = () => {
+    setSpaceName(spaceData?.name || '');
+    setIsEditingSpaceName(false);
+  };
+
+  // Handle input key press
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSaveSpaceName();
+    } else if (e.key === 'Escape') {
+      handleCancelEdit();
+    }
+  };
+
   const renderCard = (id: string) => {
     switch (id) {
       case 'docs':
@@ -83,7 +136,42 @@ const SpaceScreen = () => {
     <div className='flex flex-col h-[calc(100vh-4rem)] bg-background'>
       <header className='flex items-center justify-between p-4 border-b'>
         <div className='flex items-center gap-2'>
-          <h1 className='text-xl font-semibold'>Team Space</h1>
+          {isEditingSpaceName ? (
+            <div className='flex items-center gap-2'>
+              <Input
+                value={spaceName}
+                onChange={e => setSpaceName(e.target.value)}
+                onBlur={handleSaveSpaceName}
+                onKeyDown={handleKeyPress}
+                className='text-xl font-semibold h-auto py-1 px-2 border-2 border-blue-500'
+                autoFocus
+                disabled={isUpdatingSpace}
+              />
+              <Button
+                size='sm'
+                onClick={handleSaveSpaceName}
+                disabled={isUpdatingSpace}
+              >
+                Save
+              </Button>
+              <Button
+                size='sm'
+                variant='outline'
+                onClick={handleCancelEdit}
+                disabled={isUpdatingSpace}
+              >
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <h1
+              className='text-xl font-semibold cursor-pointer hover:bg-gray-100 px-2 py-1 rounded transition-colors'
+              onDoubleClick={handleDoubleClick}
+              title='Double-click to edit space name'
+            >
+              {spaceName || spaceData?.name || 'Loading...'}
+            </h1>
+          )}
           <MoreHorizontal className='h-5 w-5 text-gray-500' />
         </div>
         <Button className='bg-pink-500 hover:bg-pink-600'>Add card</Button>
