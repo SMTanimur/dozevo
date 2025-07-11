@@ -113,3 +113,6 @@ export class SpaceService {
 
 // Export a singleton instance
 export const spaceService = new SpaceService();
+
+// Export server service
+export * from './server';

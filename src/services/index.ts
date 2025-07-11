@@ -3,6 +3,7 @@ export * from './user';
 export * from './workspace';
 export * from './workspace/server';
 export * from './space';
+export * from './space/server';
 export * from './list';
 export * from './task';
 export * from './comment';
