@@ -17,12 +17,12 @@ export const Header = () => {
         <Link href='/' className='flex items-center gap-3'>
           <Image
             src='/images/logo-color.svg'
-            alt='Notiqo Logo'
+            alt='Dozevo Logo'
             width={36}
             height={36}
           />
           {/* Slightly smaller */}
-          <span className='font-semibold text-xl text-gray-800'>Notiqo</span>
+          <span className='font-semibold text-xl text-gray-800'>Dozevo</span>
         </Link>
       </div>
       <div className='hidden md:flex items-center gap-4'>

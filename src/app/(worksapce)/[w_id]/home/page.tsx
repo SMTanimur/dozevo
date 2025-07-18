@@ -33,7 +33,7 @@ export const generateMetadata = async ({ params }: Params) => {
       return constructMetadata({
         title: 'Workspace',
         description:
-          'Notiqo Workspace - Manage your tasks and projects efficiently',
+          'Dozevo Workspace - Manage your tasks and projects efficiently',
         canonical: `${siteCorConfig.url}/${w_id}/home`,
         ogImage: `${siteCorConfig.url}/images/seo_image.png`,
       });
@@ -51,7 +51,7 @@ export const generateMetadata = async ({ params }: Params) => {
     return constructMetadata({
       title: 'Workspace',
       description:
-        'Notiqo Workspace - Manage your tasks and projects efficiently',
+        'Dozevo Workspace - Manage your tasks and projects efficiently',
       canonical: `${siteCorConfig.url}/workspace`,
       ogImage: `${siteCorConfig.url}/images/seo_image.png`,
     });

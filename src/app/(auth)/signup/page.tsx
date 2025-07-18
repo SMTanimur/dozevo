@@ -3,8 +3,8 @@ import { Metadata } from 'next';
 import { constructMetadata } from '@/configs';
 
 export const metadata: Metadata = constructMetadata({
-  title: 'Signup - Notiqo',
-  description: 'Signup to your Notiqo account',
+  title: 'Signup - Dozevo',
+  description: 'Signup to your Dozevo account',
   canonical: '/signup',
 });
 

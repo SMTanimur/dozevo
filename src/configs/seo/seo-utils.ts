@@ -11,9 +11,9 @@ type MetadataProps = {
 };
 
 const defaultMetadata = {
-  title: 'Notiqo - Organize Your Work',
+  title: 'Dozevo - Organize Your Work',
   description:
-    'Notiqo helps you manage your tasks and projects efficiently.',
+    'Dozevo helps you manage your tasks and projects efficiently.',
 };
 
 export const normalizeDate = (dateString: string) => {
@@ -29,8 +29,8 @@ export const constructMetadata = ({
   keywords = [],
 }: MetadataProps) => {
   return {
-    metadataBase: new URL('https://notiqo-ai.vercel.app/'),
-    title: title ? `${title} - Notiqo` : defaultMetadata.title,
+    metadataBase: new URL('https://Dozevo-ai.vercel.app/'),
+    title: title ? `${title} - Dozevo` : defaultMetadata.title,
     description,
     keywords: [
       ...metaKeywords,
@@ -70,11 +70,11 @@ export const constructMetadata = ({
    
     twitter: {
       creator: '@SMTanimur',
-      site: '@Notiqo',
+      site: '@Dozevo',
       card: 'summary_large_image',
-      title: 'Notiqo - Organize Your Work',
+      title: 'Dozevo - Organize Your Work',
       description:
-        'Notiqo is a task management tool that helps you manage your tasks and projects efficiently.',
+        'Dozevo is a task management tool that helps you manage your tasks and projects efficiently.',
       images: [
         {
           url: `${siteCorConfig.url}/images/seo_image.png`,
@@ -92,7 +92,7 @@ export const constructMetadata = ({
       'og:image:type': 'image/png',
       'og:image:secure_url': `${siteCorConfig.url}/images/seo_image.png`,
       'og:image:alt':
-        'Notiqo - Organize Your Work',
+        'Dozevo - Organize Your Work',
       'twitter:image': `${siteCorConfig.url}/images/seo_image.png`,
       'twitter:card': 'summary_large_image',
     },
