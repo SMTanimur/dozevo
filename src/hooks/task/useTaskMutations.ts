@@ -97,7 +97,7 @@ export const useTaskMutations = () => {
   });
 
   // --- Update Task Mutation (with Optimistic Update - Invalidate on Settled Strategy) ---
-  const { mutate: updateTask, isPending: isUpdatingTask } = useMutation<
+  const { mutateAsync: updateTask, isPending: isUpdatingTask } = useMutation<
     ITask, // Return type
     Error, // Error type
     UpdateTaskMutationInput, // Variables type
@@ -186,7 +186,7 @@ export const useTaskMutations = () => {
   });
 
   // --- Reorder Tasks Mutation ---
-  const { mutate: reorderTasks, isPending: isReorderingTasks } = useMutation<
+  const { mutateAsync: reorderTasks, isPending: isReorderingTasks } = useMutation<
     { message: string }, // Success response type
     Error, // Error type
     ReorderTasksMutationInput // Variables type
