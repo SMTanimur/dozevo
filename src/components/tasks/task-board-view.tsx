@@ -126,6 +126,9 @@ export default function TaskBoardView({
       const sourceStatusId = source.droppableId;
       const destinationStatusId = destination.droppableId;
 
+      // Store the updated state to use for reordering
+      let updatedState: TasksByStatusMap = {};
+
       // Optimistically update UI
       setLocalTasksByStatus(prev => {
         const newState = { ...prev };
@@ -155,6 +158,9 @@ export default function TaskBoardView({
         newState[sourceStatusId] = sourceColumn;
         newState[destinationStatusId] = destColumn;
 
+        // Store the updated state for reordering
+        updatedState = newState;
+
         return newState;
       });
 
@@ -168,14 +174,26 @@ export default function TaskBoardView({
           });
         }
 
-        // Reorder in destination column
-        const updatedDestColumn = localTasksByStatus[destinationStatusId] || [];
-        if (updatedDestColumn.length > 0) {
+        // Reorder in destination column using the captured state
+        const destColumn = updatedState[destinationStatusId] || [];
+        if (destColumn.length > 0) {
           await reorderTasks({
             listId: listId,
-            orderedTaskIds: updatedDestColumn.map(t => t._id),
+            orderedTaskIds: destColumn.map(t => t._id),
             params: { workspaceId, spaceId, listId },
           });
+        }
+
+        // Also reorder source column if different
+        if (sourceStatusId !== destinationStatusId) {
+          const sourceColumn = updatedState[sourceStatusId] || [];
+          if (sourceColumn.length > 0) {
+            await reorderTasks({
+              listId: listId,
+              orderedTaskIds: sourceColumn.map(t => t._id),
+              params: { workspaceId, spaceId, listId },
+            });
+          }
         }
       } catch (error) {
         console.error('Failed to update task:', error);
@@ -189,16 +207,7 @@ export default function TaskBoardView({
         setLocalTasksByStatus(revertedState);
       }
     },
-    [
-      statuses,
-      tasks,
-      updateTask,
-      reorderTasks,
-      workspaceId,
-      spaceId,
-      listId,
-      localTasksByStatus,
-    ]
+    [statuses, tasks, updateTask, reorderTasks, workspaceId, spaceId, listId]
   );
 
   if (isLoadingTasks || isLoadingStatuses) {
@@ -435,7 +444,6 @@ export default function TaskBoardView({
                                     {...provided.dragHandleProps}
                                     style={{
                                       ...provided.draggableProps.style,
-                                      opacity: snapshot.isDragging ? 0.9 : 1,
                                       transform: snapshot.isDragging
                                         ? `${provided.draggableProps.style?.transform} rotate(3deg)`
                                         : provided.draggableProps.style
@@ -444,17 +452,24 @@ export default function TaskBoardView({
                                     className={cn(
                                       'transition-all duration-200',
                                       snapshot.isDragging &&
-                                        'shadow-2xl shadow-blue-500/30'
+                                        'shadow-2xl shadow-blue-500/50 scale-105 opacity-95'
                                     )}
                                   >
-                                    <TaskCard
-                                      task={task}
-                                      mutationParams={{
-                                        workspaceId,
-                                        spaceId,
-                                        listId,
-                                      }}
-                                    />
+                                    <div
+                                      className={cn(
+                                        snapshot.isDragging &&
+                                          'bg-white dark:bg-slate-800 rounded-xl ring-2 ring-blue-400 dark:ring-blue-500'
+                                      )}
+                                    >
+                                      <TaskCard
+                                        task={task}
+                                        mutationParams={{
+                                          workspaceId,
+                                          spaceId,
+                                          listId,
+                                        }}
+                                      />
+                                    </div>
                                   </div>
                                 )}
                               </Draggable>

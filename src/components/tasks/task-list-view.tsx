@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   DragDropContext,
   Droppable,
@@ -9,7 +10,17 @@ import {
 } from '@hello-pangea/dnd';
 
 import { Button } from '@/components/ui/button';
-import { ChevronDown, Plus, MoreHorizontal } from 'lucide-react';
+import {
+  ChevronDown,
+  Plus,
+  MoreHorizontal,
+  Search,
+  Filter,
+  ArrowUpDown,
+  User,
+  Sparkles,
+  List,
+} from 'lucide-react';
 
 import { TaskRow } from '@/components/tasks/task-row';
 import { IList, ITask } from '@/types';
@@ -30,6 +41,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type TaskListViewProps = {
   list: IList;
