@@ -3,73 +3,93 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { motion } from 'motion/react';
 import { ShimmerButton } from '@/components/magicui/shimmer-button';
 import Image from 'next/image';
+import { Menu, Sparkles } from 'lucide-react';
 
 export const Header = () => {
   const router = useRouter();
 
   return (
-    <nav className='w-full border-b px-6 sm:px-10 md:px-20 py-4 flex justify-between items-center absolute top-0 left-0 z-10 bg-transparent'>
-      {/* Use absolute positioning for transparent overlay effect if desired, or keep sticky with adjusted background */}
+    <motion.nav
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className='w-full border-b border-slate-200/50 dark:border-slate-800/50 px-6 sm:px-10 md:px-20 py-4 flex justify-between items-center sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl'
+    >
+      {/* Logo */}
       <div className='flex items-center gap-3'>
-        {/* Updated Logo Placeholder */}
-        <Link href='/' className='flex items-center gap-3'>
-          <Image
-            src='/images/logo-color.svg'
-            alt='Dozevo Logo'
-            width={36}
-            height={36}
-          />
-          {/* Slightly smaller */}
-          <span className='font-semibold text-xl text-gray-800'>Dozevo</span>
+        <Link href='/' className='flex items-center gap-3 group'>
+          <motion.div
+            whileHover={{ rotate: 360, scale: 1.1 }}
+            transition={{ duration: 0.6 }}
+            className='relative'
+          >
+            <Image
+              src='/images/logo-color.svg'
+              alt='Dozevo Logo'
+              width={40}
+              height={40}
+              className='group-hover:drop-shadow-lg transition-all'
+            />
+          </motion.div>
+          <span className='font-bold text-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent'>
+            Dozevo
+          </span>
         </Link>
       </div>
-      <div className='hidden md:flex items-center gap-4'>
+
+      {/* Desktop Navigation */}
+      <div className='hidden md:flex items-center gap-3'>
         <Link
           href='/demo'
-          className='text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors px-3 py-2'
+          className='text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors px-4 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800'
         >
-          Book a Demo
+          Features
         </Link>
+        <Link
+          href='/demo'
+          className='text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors px-4 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800'
+        >
+          Pricing
+        </Link>
+        <Link
+          href='/demo'
+          className='text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors px-4 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800'
+        >
+          Contact
+        </Link>
+
+        <div className='h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2' />
+
         <ShimmerButton
-          borderRadius='8px'
+          borderRadius='12px'
           background='transparent'
           shimmerColor='#e5e7eb'
-          className='border  border-black hover:border-gray-200 transition-colors duration-300 text-sm font-medium text-gray-500 hover:text-gray-900  py-1.5'
+          className='border border-slate-300 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 py-2'
           onClick={() => router.push('/login')}
         >
           Log in
         </ShimmerButton>
         <ShimmerButton
-          borderRadius='8px'
-          background='#8B5CF6'
+          borderRadius='12px'
+          background='linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)'
           shimmerColor='#ffffff'
-          className='shadow-sm py-1.5'
+          className='shadow-lg shadow-blue-500/30 hover:shadow-xl transition-all py-2 font-semibold'
           onClick={() => router.push('/signup')}
         >
-          Sign Up
+          <Sparkles className='h-4 w-4 mr-2 inline' />
+          Get Started Free
         </ShimmerButton>
       </div>
-      {/* Mobile Menu Button Placeholder (Keep basic structure) */}
+
+      {/* Mobile Menu Button */}
       <div className='md:hidden'>
-        <button className='p-2 rounded-md text-gray-500 hover:text-gray-800 hover:bg-gray-100'>
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            fill='none'
-            viewBox='0 0 24 24'
-            strokeWidth={1.5}
-            stroke='currentColor'
-            className='w-6 h-6'
-          >
-            <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              d='M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5'
-            />
-          </svg>
+        <button className='p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all'>
+          <Menu className='w-6 h-6' />
         </button>
       </div>
-    </nav>
+    </motion.nav>
   );
 };
