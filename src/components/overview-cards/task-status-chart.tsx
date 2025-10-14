@@ -116,10 +116,12 @@ export const TaskStatusChart: React.FC<TaskStatusChartProps> = ({
           </Pie>
           <Tooltip
             contentStyle={{
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '12px',
               color: 'white',
+              padding: '12px',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
             }}
           />
           <Legend

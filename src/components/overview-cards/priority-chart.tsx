@@ -38,21 +38,38 @@ export const PriorityChart: React.FC<PriorityChartProps> = ({
           data={data}
           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray='3 3' stroke='#e5e7eb' opacity={0.3} />
-          <XAxis dataKey='name' stroke='#9ca3af' style={{ fontSize: '12px' }} />
-          <YAxis stroke='#9ca3af' style={{ fontSize: '12px' }} />
+          <CartesianGrid
+            strokeDasharray='3 3'
+            stroke='#e5e7eb'
+            opacity={0.2}
+            vertical={false}
+          />
+          <XAxis
+            dataKey='name'
+            stroke='#64748b'
+            style={{ fontSize: '12px', fontWeight: 500 }}
+            tickLine={false}
+          />
+          <YAxis
+            stroke='#64748b'
+            style={{ fontSize: '12px' }}
+            tickLine={false}
+            axisLine={false}
+          />
           <Tooltip
             contentStyle={{
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '12px',
               color: 'white',
+              padding: '12px',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
             }}
-            cursor={{ fill: 'rgba(0, 0, 0, 0.1)' }}
+            cursor={{ fill: 'rgba(59, 130, 246, 0.05)' }}
           />
           <Bar
             dataKey='value'
-            radius={[8, 8, 0, 0]}
+            radius={[10, 10, 0, 0]}
             animationBegin={delay * 1000}
             animationDuration={1000}
             onMouseEnter={(_, index) => setActiveIndex(index)}

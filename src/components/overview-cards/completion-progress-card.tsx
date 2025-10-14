@@ -31,8 +31,8 @@ export const CompletionProgressCard: React.FC<CompletionProgressCardProps> = ({
 }) => {
   return (
     <AnimatedCard delay={delay}>
-      <Card className='overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-900'>
-        <CardHeader className='bg-gradient-to-r from-cyan-500 via-cyan-600 to-blue-600 text-white relative overflow-hidden'>
+      <Card className='overflow-hidden border border-slate-200/50 dark:border-slate-800/50 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 hover:shadow-2xl transition-all duration-500 bg-white dark:bg-slate-900 rounded-2xl h-full'>
+        <CardHeader className='bg-gradient-to-r from-cyan-500 via-cyan-600 to-blue-600 text-white relative overflow-hidden pb-5'>
           {/* Animated background pattern */}
           <motion.div
             className='absolute inset-0 opacity-10'
@@ -52,16 +52,16 @@ export const CompletionProgressCard: React.FC<CompletionProgressCardProps> = ({
           />
 
           <div className='relative z-10'>
-            <CardTitle className='text-lg font-semibold'>
+            <CardTitle className='text-lg font-bold tracking-tight'>
               Task Completion Progress
             </CardTitle>
-            <CardDescription className='text-white opacity-90'>
+            <CardDescription className='text-white/90 text-xs mt-1'>
               Overall task completion rate
             </CardDescription>
           </div>
         </CardHeader>
 
-        <CardContent className='pt-6 space-y-6'>
+        <CardContent className='pt-6 pb-6 space-y-6'>
           {/* Main progress bar */}
           <div className='space-y-3'>
             <div className='flex justify-between items-center'>
@@ -90,7 +90,7 @@ export const CompletionProgressCard: React.FC<CompletionProgressCardProps> = ({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: delay + 0.5 }}
               whileHover={{ scale: 1.05 }}
-              className='flex flex-col items-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-xl shadow-sm'
+              className='flex flex-col items-center p-5 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-2xl shadow-lg border border-blue-200/50 dark:border-blue-800/50'
             >
               <span className='text-sm font-medium text-muted-foreground mb-1'>
                 To Do
@@ -105,7 +105,7 @@ export const CompletionProgressCard: React.FC<CompletionProgressCardProps> = ({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: delay + 0.6 }}
               whileHover={{ scale: 1.05 }}
-              className='flex flex-col items-center p-4 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30 rounded-xl shadow-sm'
+              className='flex flex-col items-center p-5 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30 rounded-2xl shadow-lg border border-amber-200/50 dark:border-amber-800/50'
             >
               <span className='text-sm font-medium text-muted-foreground mb-1'>
                 In Progress
@@ -120,7 +120,7 @@ export const CompletionProgressCard: React.FC<CompletionProgressCardProps> = ({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: delay + 0.7 }}
               whileHover={{ scale: 1.05 }}
-              className='flex flex-col items-center p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-xl shadow-sm'
+              className='flex flex-col items-center p-5 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-2xl shadow-lg border border-green-200/50 dark:border-green-800/50'
             >
               <span className='text-sm font-medium text-muted-foreground mb-1'>
                 Completed

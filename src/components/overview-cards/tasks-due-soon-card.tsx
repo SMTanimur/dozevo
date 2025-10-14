@@ -40,8 +40,8 @@ export const TasksDueSoonCard: React.FC<TasksDueSoonCardProps> = ({
 }) => {
   return (
     <AnimatedCard delay={delay}>
-      <Card className='overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-900'>
-        <CardHeader className='bg-gradient-to-r from-red-500 via-red-600 to-rose-600 text-white relative overflow-hidden'>
+      <Card className='overflow-hidden border border-slate-200/50 dark:border-slate-800/50 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 hover:shadow-2xl transition-all duration-500 bg-white dark:bg-slate-900 rounded-2xl h-full'>
+        <CardHeader className='bg-gradient-to-r from-red-500 via-red-600 to-rose-600 text-white relative overflow-hidden pb-5'>
           {/* Animated background pattern */}
           <motion.div
             className='absolute inset-0 opacity-10'
@@ -60,8 +60,9 @@ export const TasksDueSoonCard: React.FC<TasksDueSoonCardProps> = ({
             }}
           />
 
-          <div className='relative z-10 flex items-center gap-2'>
+          <div className='relative z-10 flex items-center gap-3'>
             <motion.div
+              className='bg-white/20 backdrop-blur-sm p-2.5 rounded-xl'
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{
                 duration: 2,
@@ -72,17 +73,17 @@ export const TasksDueSoonCard: React.FC<TasksDueSoonCardProps> = ({
               <AlertTriangle className='h-5 w-5' />
             </motion.div>
             <div>
-              <CardTitle className='text-lg font-semibold'>
+              <CardTitle className='text-lg font-bold tracking-tight'>
                 Tasks Due Soon
               </CardTitle>
-              <CardDescription className='text-white opacity-90'>
+              <CardDescription className='text-white/90 text-xs mt-1'>
                 Tasks due in the next 7 days
               </CardDescription>
             </div>
           </div>
         </CardHeader>
 
-        <CardContent className='pt-6'>
+        <CardContent className='pt-6 pb-6'>
           {tasks.length > 0 ? (
             <StaggerContainer className='space-y-3'>
               {tasks.map((task, index) => (
@@ -92,10 +93,10 @@ export const TasksDueSoonCard: React.FC<TasksDueSoonCardProps> = ({
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: delay + index * 0.1 }}
                   whileHover={{
-                    scale: 1.02,
-                    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                    scale: 1.01,
+                    backgroundColor: 'rgba(59, 130, 246, 0.02)',
                   }}
-                  className='flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-800 transition-all'
+                  className='flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all'
                 >
                   <div className='flex items-center space-x-3 flex-1'>
                     <motion.div

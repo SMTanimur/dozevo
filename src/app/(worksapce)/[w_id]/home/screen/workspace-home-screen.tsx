@@ -254,7 +254,7 @@ export const WorkspaceHomeScreen = ({ w_id }: WorkspaceHomeScreenProps) => {
       >
         {/* Background decoration */}
         <div className='absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-pink-500/10' />
-        
+
         <div className='relative flex items-center gap-4'>
           <motion.div
             className='p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg shadow-blue-500/30'
@@ -349,40 +349,41 @@ export const WorkspaceHomeScreen = ({ w_id }: WorkspaceHomeScreenProps) => {
 // Loading skeleton
 function WorkspaceHomeScreenSkeleton() {
   return (
-    <div className='flex flex-col h-[calc(100vh-4rem)] bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950'>
-      <header className='flex items-center justify-between p-6 border-b'>
-        <div className='flex items-center gap-3'>
-          <Skeleton className='h-6 w-6 rounded-full' />
+    <div className='flex flex-col h-[calc(100vh-4rem)] bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950'>
+      <header className='flex items-center justify-between px-8 py-6 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl'>
+        <div className='flex items-center gap-4'>
+          <Skeleton className='h-14 w-14 rounded-2xl' />
           <div>
             <Skeleton className='h-8 w-64 mb-2' />
-            <Skeleton className='h-4 w-48' />
+            <Skeleton className='h-4 w-56' />
           </div>
         </div>
-        <Skeleton className='h-10 w-32 rounded-full' />
+        <Skeleton className='h-11 w-36 rounded-full' />
       </header>
 
-      <ScrollArea className='flex-1 p-6'>
-        <div className='max-w-[1600px] mx-auto space-y-8'>
+      <ScrollArea className='flex-1'>
+        <div className='max-w-[1800px] mx-auto px-8 py-8 space-y-8'>
           {/* Stats Skeleton */}
           <div className='grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6'>
             {[...Array(6)].map((_, i) => (
-              <Skeleton key={i} className='h-32 rounded-lg' />
+              <Skeleton key={i} className='h-36 rounded-xl' />
             ))}
           </div>
 
           {/* Charts Skeleton */}
-          <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
+          <div className='grid gap-6 lg:grid-cols-3'>
             {[...Array(3)].map((_, i) => (
-              <Skeleton key={i} className='h-96 rounded-lg' />
+              <Skeleton key={i} className='h-[400px] rounded-2xl' />
             ))}
           </div>
 
           {/* Additional Skeletons */}
-          <div className='grid gap-6 md:grid-cols-2'>
-            {[...Array(2)].map((_, i) => (
-              <Skeleton key={i} className='h-80 rounded-lg' />
-            ))}
+          <div className='grid gap-6 lg:grid-cols-5'>
+            <Skeleton className='lg:col-span-3 h-[400px] rounded-2xl' />
+            <Skeleton className='lg:col-span-2 h-[400px] rounded-2xl' />
           </div>
+
+          <Skeleton className='h-[300px] rounded-2xl' />
         </div>
       </ScrollArea>
     </div>

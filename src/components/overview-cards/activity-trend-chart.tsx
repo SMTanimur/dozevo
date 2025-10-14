@@ -39,17 +39,34 @@ export const ActivityTrendChart: React.FC<ActivityTrendChartProps> = ({
               <stop offset='95%' stopColor='#8b5cf6' stopOpacity={0.1} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray='3 3' stroke='#e5e7eb' opacity={0.3} />
-          <XAxis dataKey='date' stroke='#9ca3af' style={{ fontSize: '12px' }} />
-          <YAxis stroke='#9ca3af' style={{ fontSize: '12px' }} />
+          <CartesianGrid
+            strokeDasharray='3 3'
+            stroke='#e5e7eb'
+            opacity={0.2}
+            vertical={false}
+          />
+          <XAxis
+            dataKey='date'
+            stroke='#64748b'
+            style={{ fontSize: '12px', fontWeight: 500 }}
+            tickLine={false}
+          />
+          <YAxis
+            stroke='#64748b'
+            style={{ fontSize: '12px' }}
+            tickLine={false}
+            axisLine={false}
+          />
           <Tooltip
             contentStyle={{
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '12px',
               color: 'white',
+              padding: '12px',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
             }}
-            labelStyle={{ color: 'white' }}
+            labelStyle={{ color: 'white', fontWeight: 600 }}
           />
           <Area
             type='monotone'

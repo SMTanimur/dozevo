@@ -23,8 +23,6 @@ export const AnimatedStatCard: React.FC<AnimatedStatCardProps> = ({
   value,
   icon: Icon,
   gradient,
-  iconColor,
-  iconBgColor,
   delay = 0,
   suffix = '',
   description,
@@ -32,52 +30,52 @@ export const AnimatedStatCard: React.FC<AnimatedStatCardProps> = ({
   return (
     <AnimatedCard delay={delay}>
       <Card
-        className={`${gradient} border-none shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden relative`}
+        className={`${gradient} border-none shadow-xl shadow-blue-200/20 dark:shadow-slate-900/40 hover:shadow-2xl hover:scale-[1.02] transition-all duration-500 overflow-hidden relative rounded-2xl`}
       >
         <CardContent className='p-6'>
           {/* Background decoration */}
           <motion.div
-            className='absolute -right-8 -top-8 w-32 h-32 rounded-full opacity-10'
-            style={{ backgroundColor: iconColor }}
+            className='absolute -right-8 -top-8 w-32 h-32 rounded-full opacity-20 dark:opacity-10'
+            style={{ backgroundColor: 'white' }}
             animate={{
-              scale: [1, 1.2, 1],
+              scale: [1, 1.3, 1],
               rotate: [0, 90, 0],
             }}
             transition={{
-              duration: 8,
+              duration: 10,
               repeat: Infinity,
               ease: 'easeInOut',
             }}
           />
 
-          <div className='relative z-10 flex flex-col items-center justify-center'>
+          <div className='relative z-10 flex flex-col items-center justify-center min-h-[140px]'>
             {/* Animated icon */}
             <motion.div
-              className={`${iconBgColor} p-3 rounded-xl mb-4 shadow-md`}
-              whileHover={{ rotate: 360, scale: 1.1 }}
-              transition={{ duration: 0.6 }}
+              className='bg-white/20 dark:bg-white/10 backdrop-blur-sm p-3.5 rounded-2xl mb-4 shadow-lg'
+              whileHover={{ rotate: 360, scale: 1.15 }}
+              transition={{ duration: 0.6, type: 'spring' }}
             >
               <motion.div
                 animate={{
-                  y: [0, -5, 0],
+                  y: [0, -6, 0],
                 }}
                 transition={{
-                  duration: 2,
+                  duration: 3,
                   repeat: Infinity,
                   ease: 'easeInOut',
                 }}
               >
-                <Icon className={iconColor} size={28} strokeWidth={2.5} />
+                <Icon className='text-white' size={30} strokeWidth={2.5} />
               </motion.div>
             </motion.div>
 
             {/* Animated value */}
-            <div className='text-4xl font-bold mb-2'>
+            <div className='text-4xl font-extrabold mb-2 text-white'>
               <CountUp end={value} duration={1.5} suffix={suffix} />
             </div>
 
             {/* Title */}
-            <p className='text-sm font-medium text-muted-foreground text-center'>
+            <p className='text-sm font-semibold text-white/90 text-center tracking-wide'>
               {title}
             </p>
 
@@ -87,7 +85,7 @@ export const AnimatedStatCard: React.FC<AnimatedStatCardProps> = ({
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 transition={{ delay: delay + 0.5 }}
-                className='text-xs text-muted-foreground mt-2 text-center'
+                className='text-xs text-white/80 mt-2 text-center'
               >
                 {description}
               </motion.p>
