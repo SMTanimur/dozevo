@@ -5,8 +5,6 @@ import mammoth from 'mammoth';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
-
-
 interface DocumentViewerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -67,7 +65,6 @@ export const DocumentViewer = ({
     if (fileExtension === 'pdf') {
       return (
         <div className='flex flex-col items-center'>
-       
           {numPages && (
             <div className='flex items-center gap-4 mt-4'>
               <Button
