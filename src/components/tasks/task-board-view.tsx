@@ -255,11 +255,25 @@ export default function TaskBoardView({
                     size='sm'
                     className='flex items-center gap-2 h-9 rounded-lg border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
                   >
-                    <span className='text-sm font-medium'>Status</span>
+                    <span className='text-sm font-medium'>Group: Status</span>
                     <ChevronDown className='h-3.5 w-3.5' />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Group by status</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    className='flex items-center gap-2 h-9 rounded-lg border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  >
+                    <span className='text-sm font-medium'>Subtasks</span>
+                    <ChevronDown className='h-3.5 w-3.5' />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Show/hide subtasks</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
