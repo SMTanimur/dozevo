@@ -33,6 +33,7 @@ import {
   AnimatedWrapper,
   StaggerContainer,
 } from '@/components/common/animated-wrapper';
+import { ThemeSwitcher } from '@/components/common/theme-switcher';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -141,14 +142,14 @@ const WorkspacePage = () => {
 
   if (isLoading) {
     return (
-      <div className='flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-4'>
+      <div className='flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-4'>
         <motion.div
           className='flex flex-col items-center gap-4'
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
           <motion.div
-            className='w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full'
+            className='w-16 h-16 border-4 border-primary border-t-transparent rounded-full'
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
           />
@@ -162,42 +163,45 @@ const WorkspacePage = () => {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950'>
+    <div className='min-h-screen bg-gradient-to-br from-background via-background to-primary/5'>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className='relative border-b border-slate-200/50 dark:border-slate-800/50 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl'
+        className='relative border-b border-border bg-background/80 backdrop-blur-xl'
       >
-        <div className='absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5' />
+        <div className='absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/3 to-accent/5' />
         <div className='relative max-w-7xl mx-auto px-8 py-6'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-4'>
               <motion.div
-                className='p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg shadow-blue-500/30'
+                className='p-3 rounded-2xl bg-primary shadow-lg shadow-primary/30'
                 animate={{ rotate: [0, 360] }}
                 transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
               >
-                <Sparkles className='h-6 w-6 text-white' />
+                <Sparkles className='h-6 w-6 text-primary-foreground' />
               </motion.div>
               <div>
-                <h1 className='text-3xl font-bold bg-gradient-to-r from-slate-900 via-blue-800 to-purple-900 dark:from-slate-100 dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent'>
+                <h1 className='text-3xl font-bold bg-gradient-to-r from-foreground via-primary to-primary/60 bg-clip-text text-transparent'>
                   Your Workspaces
                 </h1>
-                <p className='text-sm text-slate-600 dark:text-slate-400 mt-0.5'>
+                <p className='text-sm text-muted-foreground mt-0.5'>
                   Select a workspace to get started
                 </p>
               </div>
             </div>
 
-            <Button
-              onClick={() => setIsCreateModalOpen(true)}
-              className='rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl transition-all'
-            >
-              <Plus className='h-4 w-4 mr-2' />
-              Create Workspace
-            </Button>
+            <div className='flex items-center gap-2'>
+              <ThemeSwitcher />
+              <Button
+                onClick={() => setIsCreateModalOpen(true)}
+                className='rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl transition-all'
+              >
+                <Plus className='h-4 w-4 mr-2' />
+                Create Workspace
+              </Button>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -208,7 +212,7 @@ const WorkspacePage = () => {
           <AnimatedWrapper variant='fadeIn' delay={0.3}>
             <div className='flex flex-col items-center justify-center py-20 text-center'>
               <motion.div
-                className='mb-6 p-6 rounded-3xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-2xl shadow-blue-500/30'
+                className='mb-6 p-6 rounded-3xl bg-primary shadow-2xl shadow-primary/30'
                 animate={{
                   y: [0, -10, 0],
                 }}
@@ -218,19 +222,19 @@ const WorkspacePage = () => {
                   ease: 'easeInOut',
                 }}
               >
-                <Building2 className='h-16 w-16 text-white' />
+                <Building2 className='h-16 w-16 text-primary-foreground' />
               </motion.div>
-              <h2 className='text-2xl font-bold text-slate-800 dark:text-slate-200 mb-2'>
+              <h2 className='text-2xl font-bold text-foreground mb-2'>
                 No workspaces yet
               </h2>
-              <p className='text-slate-600 dark:text-slate-400 mb-6 max-w-md'>
+              <p className='text-muted-foreground mb-6 max-w-md'>
                 Create your first workspace to start organizing your tasks and
                 collaborating with your team
               </p>
               <Button
                 onClick={() => setIsCreateModalOpen(true)}
                 size='lg'
-                className='rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl transition-all'
+                className='rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl transition-all'
               >
                 <Plus className='h-5 w-5 mr-2' />
                 Create Your First Workspace
@@ -254,10 +258,10 @@ const WorkspacePage = () => {
                 >
                   <Card
                     className={cn(
-                      'overflow-hidden border-2 transition-all duration-300 cursor-pointer group relative',
+                      'overflow-hidden border-2 transition-all duration-300 cursor-pointer group relative bg-card',
                       isActive
-                        ? 'border-blue-400 dark:border-blue-500 shadow-2xl shadow-blue-500/30 ring-2 ring-blue-400/20'
-                        : 'border-slate-200/50 dark:border-slate-700/50 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 hover:shadow-2xl hover:border-blue-300 dark:hover:border-blue-600'
+                        ? 'border-primary shadow-2xl shadow-primary/30 ring-2 ring-primary/20'
+                        : 'border-border shadow-xl shadow-primary/5 hover:shadow-2xl hover:border-primary/50'
                     )}
                   >
                     {/* Active Badge */}
@@ -267,7 +271,7 @@ const WorkspacePage = () => {
                         animate={{ scale: 1, opacity: 1 }}
                         className='absolute top-3 right-3 z-10'
                       >
-                        <Badge className='bg-green-500 text-white shadow-lg shadow-green-500/30'>
+                        <Badge className='bg-primary text-primary-foreground shadow-lg shadow-primary/30'>
                           <CheckCircle2 className='h-3 w-3 mr-1' />
                           Active
                         </Badge>
@@ -318,22 +322,20 @@ const WorkspacePage = () => {
                     </div>
 
                     {/* Content */}
-                    <CardContent className='p-5 bg-white dark:bg-slate-900'>
+                    <CardContent className='p-5 bg-card'>
                       <div className='space-y-3 mb-4'>
                         <div className='flex items-center justify-between text-sm'>
-                          <span className='text-slate-600 dark:text-slate-400 flex items-center gap-2'>
+                          <span className='text-muted-foreground flex items-center gap-2'>
                             <Users className='h-4 w-4' />
                             Members
                           </span>
-                          <span className='font-semibold text-slate-700 dark:text-slate-300'>
+                          <span className='font-semibold text-foreground'>
                             {workspace.members?.length || 0}
                           </span>
                         </div>
 
                         <div className='flex items-center justify-between text-sm'>
-                          <span className='text-slate-600 dark:text-slate-400'>
-                            Type
-                          </span>
+                          <span className='text-muted-foreground'>Type</span>
                           <Badge variant='outline' className='capitalize'>
                             {workspace.workspaceType}
                           </Badge>
@@ -341,10 +343,10 @@ const WorkspacePage = () => {
                       </div>
 
                       {/* Actions */}
-                      <div className='flex items-center gap-2 pt-3 border-t border-slate-200/50 dark:border-slate-700/50'>
+                      <div className='flex items-center gap-2 pt-3 border-t border-border'>
                         <Button
                           onClick={() => handleSelectWorkspace(workspace._id)}
-                          className='flex-1 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl transition-all'
+                          className='flex-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl transition-all'
                         >
                           Open
                           <ArrowRight className='h-4 w-4 ml-1' />
@@ -353,7 +355,7 @@ const WorkspacePage = () => {
                         <Button
                           variant='outline'
                           size='icon'
-                          className='rounded-lg border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-400'
+                          className='rounded-lg hover:bg-primary/10 hover:border-primary/50'
                           onClick={e => {
                             e.stopPropagation();
                             // TODO: Implement edit functionality
@@ -365,13 +367,13 @@ const WorkspacePage = () => {
                         <Button
                           variant='outline'
                           size='icon'
-                          className='rounded-lg border-slate-200 dark:border-slate-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-400'
+                          className='rounded-lg hover:bg-destructive/10 hover:border-destructive/50'
                           onClick={e => {
                             e.stopPropagation();
                             setWorkspaceToDelete(workspace._id);
                           }}
                         >
-                          <Trash2 className='h-4 w-4 text-red-500' />
+                          <Trash2 className='h-4 w-4 text-destructive' />
                         </Button>
                       </div>
                     </CardContent>
@@ -388,21 +390,21 @@ const WorkspacePage = () => {
               whileHover={{ y: -5 }}
             >
               <Card
-                className='h-full border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 bg-slate-50/50 dark:bg-slate-900/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-300 cursor-pointer group overflow-hidden'
+                className='h-full border-2 border-dashed border-border hover:border-primary bg-muted/30 hover:bg-primary/5 transition-all duration-300 cursor-pointer group overflow-hidden'
                 onClick={() => setIsCreateModalOpen(true)}
               >
                 <CardContent className='flex flex-col items-center justify-center h-full min-h-[280px] p-6'>
                   <motion.div
-                    className='mb-4 p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg shadow-blue-500/30 group-hover:shadow-xl transition-shadow'
+                    className='mb-4 p-4 rounded-2xl bg-primary shadow-lg shadow-primary/30 group-hover:shadow-xl transition-shadow'
                     whileHover={{ rotate: 360, scale: 1.1 }}
                     transition={{ duration: 0.6 }}
                   >
-                    <Plus className='h-8 w-8 text-white' />
+                    <Plus className='h-8 w-8 text-primary-foreground' />
                   </motion.div>
-                  <h3 className='text-lg font-semibold text-slate-700 dark:text-slate-300 mb-1'>
+                  <h3 className='text-lg font-semibold text-foreground mb-1'>
                     Create Workspace
                   </h3>
-                  <p className='text-sm text-slate-500 dark:text-slate-400 text-center'>
+                  <p className='text-sm text-muted-foreground text-center'>
                     Start a new workspace for your projects
                   </p>
                 </CardContent>
