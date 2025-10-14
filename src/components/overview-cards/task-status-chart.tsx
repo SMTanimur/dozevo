@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'motion/react';
 import {
   PieChart,
   Pie,
@@ -46,7 +45,6 @@ const renderCustomizedLabel = ({
   innerRadius,
   outerRadius,
   percent,
-  name,
 }: CustomLabelProps) => {
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);

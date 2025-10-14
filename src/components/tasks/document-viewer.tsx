@@ -28,20 +28,6 @@ export const DocumentViewer = ({
 
   const fileExtension = fileName.split('.').pop()?.toLowerCase();
 
-  // Reset state when the dialog is opened with a new file
-  useEffect(() => {
-    if (isOpen) {
-      setIsLoading(true);
-      setPageNumber(1);
-
-      // If it's a DOCX file, load it
-      if (['doc', 'docx'].includes(fileExtension || '')) {
-        handleDocxLoad();
-      }
-    }
-  }, [isOpen, fileUrl, fileExtension]);
-
-
   const handleDocxLoad = async () => {
     try {
       const response = await fetch(fileUrl);
@@ -54,6 +40,20 @@ export const DocumentViewer = ({
       setIsLoading(false);
     }
   };
+
+  // Reset state when the dialog is opened with a new file
+  useEffect(() => {
+    if (isOpen) {
+      setIsLoading(true);
+      setPageNumber(1);
+
+      // If it's a DOCX file, load it
+      if (['doc', 'docx'].includes(fileExtension || '')) {
+        handleDocxLoad();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, fileUrl, fileExtension]);
 
   const renderContent = () => {
     if (isLoading) {
