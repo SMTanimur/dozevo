@@ -273,11 +273,11 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
           animate={{ opacity: 1, scale: 1 }}
         >
           <motion.div
-            className='w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full'
+            className='w-12 h-12 border-4 border-primary border-t-transparent rounded-full'
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
           />
-          <span className='text-sm font-medium text-slate-600 dark:text-slate-400'>
+          <span className='text-sm font-medium text-muted-foreground'>
             Loading tasks...
           </span>
         </motion.div>
@@ -286,19 +286,19 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
   }
 
   return (
-    <div className='flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-blue-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950'>
+    <div className='flex flex-col h-full bg-gradient-to-br from-background via-background to-primary/5'>
       {/* Modern Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className='flex items-center justify-between px-6 py-4 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl sticky top-0 z-10'
+        className='flex items-center justify-between px-6 py-4 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-10'
       >
         <div className='flex items-center gap-3'>
           <motion.div
-            className='p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg shadow-blue-500/30'
+            className='p-2 rounded-xl bg-primary shadow-lg shadow-primary/30'
             whileHover={{ scale: 1.05, rotate: 5 }}
           >
-            <List className='h-4 w-4 text-white' />
+            <List className='h-4 w-4 text-primary-foreground' />
           </motion.div>
           <div className='flex items-center gap-2'>
             <TooltipProvider>
@@ -357,13 +357,13 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
                   className={cn(
                     'flex items-center gap-2 h-9 rounded-lg',
                     filtersApplied &&
-                      'bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                      'bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30'
                   )}
                 >
                   <Filter className='h-3.5 w-3.5' />
                   <span className='text-sm font-medium'>Filter</span>
                   {filtersApplied && (
-                    <span className='ml-1 px-1.5 py-0.5 text-xs bg-white/20 rounded'>
+                    <span className='ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground/20 rounded'>
                       {selectedStatusIds.length + (showArchived ? 1 : 0)}
                     </span>
                   )}
@@ -383,7 +383,7 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
                     >
                       <span className='text-sm font-medium'>Status</span>
                       {selectedStatusIds.length > 0 && (
-                        <span className='px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded'>
+                        <span className='px-1.5 py-0.5 text-xs bg-primary/20 text-primary rounded'>
                           {selectedStatusIds.length}
                         </span>
                       )}
@@ -445,7 +445,7 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
             </Tooltip>
           </TooltipProvider>
 
-          <div className='flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'>
+          <div className='flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-background'>
             <Switch
               id='archived-tasks-list'
               checked={showArchived}
@@ -460,21 +460,17 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
           </div>
 
           <div className='relative'>
-            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400' />
+            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
             <Input
               type='text'
               placeholder='Search tasks...'
-              className='h-9 pl-9 pr-3 rounded-lg border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm w-[200px] focus:w-[240px] transition-all'
+              className='h-9 pl-9 pr-3 rounded-lg text-sm w-[200px] focus:w-[240px] transition-all'
               value={searchTerm}
               onChange={handleSearchChange}
             />
           </div>
 
-          <Button
-            variant='ghost'
-            size='icon'
-            className='h-9 w-9 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800'
-          >
+          <Button variant='ghost' size='icon' className='h-9 w-9 rounded-lg'>
             <MoreHorizontal className='h-4 w-4' />
           </Button>
         </div>
@@ -491,10 +487,10 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: statusIndex * 0.1 }}
-                  className='bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 overflow-hidden'
+                  className='bg-card rounded-2xl border border-border shadow-xl shadow-primary/5 overflow-hidden'
                 >
                   {/* Status Header */}
-                  <div className='flex items-center justify-between px-6 py-4 border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-slate-50/50 to-transparent dark:from-slate-800/30 dark:to-transparent'>
+                  <div className='flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30'>
                     <div className='flex items-center gap-3'>
                       <motion.div
                         className='w-2.5 h-2.5 rounded-full shadow-lg'
@@ -509,11 +505,11 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
                           ease: 'easeInOut',
                         }}
                       />
-                      <span className='text-base font-bold text-slate-700 dark:text-slate-300'>
+                      <span className='text-base font-bold text-foreground'>
                         {status.status}
                       </span>
                       <motion.span
-                        className='px-2.5 py-0.5 text-xs font-bold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                        className='px-2.5 py-0.5 text-xs font-bold rounded-full bg-muted text-muted-foreground'
                         key={tasksByStatus[status._id]?.length || 0}
                         initial={{ scale: 1.2 }}
                         animate={{ scale: 1 }}
@@ -523,7 +519,7 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
                     </div>
                     <Button
                       size='sm'
-                      className='rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl transition-all'
+                      className='rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl transition-all'
                     >
                       <Plus className='h-4 w-4 mr-1' />
                       Add Task
@@ -538,12 +534,12 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
                         className={cn(
                           'transition-all duration-300',
                           snapshot.isDraggingOver
-                            ? 'bg-blue-50/50 dark:bg-blue-900/10'
-                            : 'bg-white dark:bg-slate-900'
+                            ? 'bg-primary/10 ring-2 ring-primary/30'
+                            : 'bg-card'
                         )}
                       >
                         {/* Table Header */}
-                        <div className='grid grid-cols-[minmax(0,1fr)_200px_120px_100px] items-center px-6 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30'>
+                        <div className='grid grid-cols-[minmax(0,1fr)_200px_120px_100px] items-center px-6 py-3 text-xs font-semibold text-muted-foreground border-b border-border bg-muted/30'>
                           <div>Task Name</div>
                           <div>Assignee</div>
                           <div>Due Date</div>
@@ -571,10 +567,10 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
                                           ?.transform,
                                   }}
                                   className={cn(
-                                    'border-b border-slate-200/50 dark:border-slate-700/50 transition-all duration-200',
+                                    'border-b border-border transition-all duration-200',
                                     snapshotDraggable.isDragging
-                                      ? 'bg-white dark:bg-slate-800 shadow-2xl shadow-blue-500/30 ring-2 ring-blue-400 dark:ring-blue-500 rounded-lg scale-105 opacity-95 z-50'
-                                      : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                                      ? 'bg-card shadow-2xl shadow-primary/50 ring-4 ring-primary rounded-xl scale-105 opacity-100 z-50'
+                                      : 'bg-card hover:bg-accent/50'
                                   )}
                                 >
                                   <TaskRow
@@ -592,13 +588,13 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
                         {/* Add Task Footer */}
                         {(tasksByStatus[status._id] || []).length === 0 && (
                           <div className='px-6 py-12 text-center'>
-                            <p className='text-sm text-slate-400 dark:text-slate-500 mb-3'>
+                            <p className='text-sm text-muted-foreground mb-3'>
                               No tasks in this status
                             </p>
                             <Button
                               variant='ghost'
                               size='sm'
-                              className='text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+                              className='text-primary hover:bg-primary/10'
                             >
                               <Plus className='h-4 w-4 mr-1' />
                               Add your first task
@@ -606,11 +602,11 @@ export const TaskListView = ({ list, tasks }: TaskListViewProps) => {
                           </div>
                         )}
 
-                        <div className='px-6 py-3 border-t border-slate-200/50 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30'>
+                        <div className='px-6 py-3 border-t border-border bg-muted/30'>
                           <Button
                             variant='ghost'
                             size='sm'
-                            className='h-8 px-3 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all font-medium'
+                            className='h-8 px-3 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-all font-medium'
                           >
                             <Plus className='h-4 w-4 mr-1' />
                             Add Task

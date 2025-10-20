@@ -1,39 +1,23 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  ChevronDown,
-  Plus,
-  MoreHorizontal,
-  Search,
-  Filter,
-  ArrowUpDown,
-  User,
-  Sparkles,
-} from 'lucide-react';
+import { ChevronDown, Plus, MoreHorizontal } from 'lucide-react';
 import {
   DragDropContext,
   Droppable,
   Draggable,
   DropResult,
 } from '@hello-pangea/dnd';
-import { ITask, IStatusDefinition } from '@/types';
+import { ITask, IStatusDefinition, StatusType } from '@/types'; // Assuming IList might be needed for context
 import { useGetTasks, useTaskMutations } from '@/hooks/task';
 import { useGetStatuses } from '@/hooks/list';
-import TaskCard from './task-card';
+import TaskCard from './task-card'; // Import TaskCard
 import { TCreateTask } from '@/validations';
 import { cn } from '@/lib';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input'; // Added Input import
+import { Switch } from '@/components/ui/switch'; // Added Switch import
+import { Label } from '@/components/ui/label'; // Added Label import
 
 // Assume workspaceId, spaceId, and listId are passed as props or derived from context
 interface TaskBoardViewProps {
@@ -111,424 +95,315 @@ export default function TaskBoardView({
     }
   };
 
-  const handleDragEnd = useCallback(
-    async (result: DropResult) => {
-      const { destination, source, draggableId } = result;
+  const handleDragEnd = async (result: DropResult) => {
+    const { destination, source, draggableId } = result;
 
-      // Basic validation
-      if (!destination) return;
-      if (
-        destination.droppableId === source.droppableId &&
-        destination.index === source.index
-      )
-        return;
+    // 1. Basic validation and exit conditions
+    if (!destination) return;
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    )
+      return;
 
-      const sourceStatusId = source.droppableId;
-      const destinationStatusId = destination.droppableId;
+    // Find the globally sourced task (from original 'tasks' array for correct data)
+    const taskToMove = tasks.find(t => t._id === draggableId);
+    if (!taskToMove) {
+      console.error('Draggable task not found in original tasks array');
+      return;
+    }
 
-      // Store the updated state to use for reordering
-      let updatedState: TasksByStatusMap = {};
+    const sourceStatusId = source.droppableId;
+    const destinationStatusId = destination.droppableId;
+    const destinationIndex = destination.index;
 
-      // Optimistically update UI
-      setLocalTasksByStatus(prev => {
-        const newState = { ...prev };
-        const sourceColumn = [...(prev[sourceStatusId] || [])];
-        const destColumn =
-          sourceStatusId === destinationStatusId
-            ? sourceColumn
-            : [...(prev[destinationStatusId] || [])];
+    // 2. Prepare data for local state update (using simplified type for mutation)
+    let finalTasksByStatus: TasksByStatusMap | null = null;
+    setLocalTasksByStatus(currentTasksByStatus => {
+      const sourceColumn = [...(currentTasksByStatus[sourceStatusId] || [])];
+      const destinationColumn =
+        sourceStatusId === destinationStatusId
+          ? sourceColumn
+          : [...(currentTasksByStatus[destinationStatusId] || [])];
 
-        // Find and remove task from source
-        const taskIndex = sourceColumn.findIndex(t => t._id === draggableId);
-        if (taskIndex === -1) return prev;
+      const taskIndexInSource = sourceColumn.findIndex(
+        t => t._id === draggableId
+      );
+      if (taskIndexInSource === -1) {
+        return currentTasksByStatus;
+      }
+      const [removedTaskLocally] = sourceColumn.splice(taskIndexInSource, 1);
 
-        const [movedTask] = sourceColumn.splice(taskIndex, 1);
+      const taskForInsertion = { ...removedTaskLocally };
 
-        // Update task status if changing columns
-        if (sourceStatusId !== destinationStatusId) {
-          const newStatus = statuses.find(s => s._id === destinationStatusId);
-          if (newStatus) {
-            movedTask.status = newStatus;
-          }
+      // Handle status change if columns differ
+      if (sourceStatusId !== destinationStatusId) {
+        const newStatus = statuses.find(s => s._id === destinationStatusId);
+        if (!newStatus) {
+          return currentTasksByStatus;
         }
+        taskForInsertion.status = newStatus; // Update status for insertion
+        // We still need to update the individual task's status if it moves column
+        updateTask({
+          taskId: taskToMove._id,
+          data: { status: newStatus._id as string }, // Only update status
+          params: { workspaceId, spaceId, listId },
+        });
+      }
 
-        // Insert into destination
-        destColumn.splice(destination.index, 0, movedTask);
+      // Insert the task into the destination column at the correct index
+      destinationColumn.splice(destinationIndex, 0, taskForInsertion);
 
-        newState[sourceStatusId] = sourceColumn;
-        newState[destinationStatusId] = destColumn;
+      // Create the final state map
+      finalTasksByStatus = {
+        ...currentTasksByStatus,
+        [sourceStatusId]: sourceColumn,
+        [destinationStatusId]: destinationColumn,
+      };
+      return finalTasksByStatus; // Return the new state
+    });
 
-        // Store the updated state for reordering
-        updatedState = newState;
+    try {
+      // Update status if column changed
+      if (sourceStatusId !== destinationStatusId) {
+        const newStatus = statuses.find(s => s._id === destinationStatusId);
+        if (newStatus) {
+          await updateTask({
+            taskId: taskToMove._id,
+            data: { status: newStatus._id as string },
+            params: { workspaceId, spaceId, listId },
+          });
+        }
+      }
 
-        return newState;
+      // Reorder tasks in destination column
+      const destinationTasks = localTasksByStatus[destinationStatusId] || [];
+      const orderedTaskIds = destinationTasks.map(task => task._id);
+
+      await reorderTasks({
+        listId: listId,
+        orderedTaskIds: orderedTaskIds,
+        params: { workspaceId, spaceId, listId },
       });
 
-      try {
-        // Update backend
-        if (sourceStatusId !== destinationStatusId) {
-          await updateTask({
-            taskId: draggableId,
-            data: { status: destinationStatusId },
-            params: { workspaceId, spaceId, listId },
-          });
-        }
-
-        // Reorder in destination column using the captured state
-        const destColumn = updatedState[destinationStatusId] || [];
-        if (destColumn.length > 0) {
-          await reorderTasks({
-            listId: listId,
-            orderedTaskIds: destColumn.map(t => t._id),
-            params: { workspaceId, spaceId, listId },
-          });
-        }
-
-        // Also reorder source column if different
-        if (sourceStatusId !== destinationStatusId) {
-          const sourceColumn = updatedState[sourceStatusId] || [];
-          if (sourceColumn.length > 0) {
-            await reorderTasks({
-              listId: listId,
-              orderedTaskIds: sourceColumn.map(t => t._id),
-              params: { workspaceId, spaceId, listId },
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Failed to update task:', error);
-        // Revert on error
-        const revertedState = statuses.reduce((acc, status) => {
-          acc[status._id as string] = tasks.filter(
-            task => task.status?._id === status._id
-          );
-          return acc;
-        }, {} as TasksByStatusMap);
-        setLocalTasksByStatus(revertedState);
+      // If moved between columns, also reorder source column
+      if (sourceStatusId !== destinationStatusId) {
+        const sourceTasks = localTasksByStatus[sourceStatusId] || [];
+        const sourceOrderedTaskIds = sourceTasks.map(task => task._id);
+        await reorderTasks({
+          listId: listId,
+          orderedTaskIds: sourceOrderedTaskIds,
+          params: { workspaceId, spaceId, listId },
+        });
       }
-    },
-    [statuses, tasks, updateTask, reorderTasks, workspaceId, spaceId, listId]
-  );
+    } catch (error) {
+      console.error('Failed to update task order:', error);
+      // Revert local state on error
+      const newTasksByStatus = statuses.reduce((acc, status) => {
+        const statusId = status._id as string;
+        acc[statusId] = tasks.filter(task => task.status?._id === statusId);
+        return acc;
+      }, {} as TasksByStatusMap);
+      setLocalTasksByStatus(newTasksByStatus);
+    }
+  };
 
   if (isLoadingTasks || isLoadingStatuses) {
     return (
       <div className='flex items-center justify-center h-64'>
-        <motion.div
-          className='flex flex-col items-center gap-3'
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-        >
-          <motion.div
-            className='w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full'
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          />
-          <span className='text-sm font-medium text-slate-600 dark:text-slate-400'>
-            Loading board...
-          </span>
-        </motion.div>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
+        <span className='ml-2'>Loading board...</span>
       </div>
     );
   }
 
   return (
-    <div className='flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-blue-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950'>
-      {/* Modern Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className='flex items-center justify-between px-6 py-4 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl'
-      >
-        <div className='flex items-center gap-3'>
-          <motion.div
-            className='p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg shadow-blue-500/30'
-            whileHover={{ scale: 1.05, rotate: 5 }}
+    <div className='flex flex-col h-full'>
+      <div className='flex items-center justify-between p-4 border-b'>
+        <div className='flex items-center gap-4'>
+          <Button
+            variant='outline'
+            size='sm'
+            className='flex items-center gap-2'
           >
-            <Sparkles className='h-4 w-4 text-white' />
-          </motion.div>
-          <div className='flex items-center gap-2'>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    className='flex items-center gap-2 h-9 rounded-lg border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  >
-                    <span className='text-sm font-medium'>Group: Status</span>
-                    <ChevronDown className='h-3.5 w-3.5' />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Group by status</TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    className='flex items-center gap-2 h-9 rounded-lg border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  >
-                    <span className='text-sm font-medium'>Subtasks</span>
-                    <ChevronDown className='h-3.5 w-3.5' />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Show/hide subtasks</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+            <span>Group: Status</span>
+            <ChevronDown className='h-4 w-4' />
+          </Button>
+          <Button
+            variant='outline'
+            size='sm'
+            className='flex items-center gap-2'
+          >
+            <span>Subtasks</span>
+            <ChevronDown className='h-4 w-4' />
+          </Button>
         </div>
-
         <div className='flex items-center gap-2'>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={filtersApplied ? 'default' : 'outline'}
-                  size='sm'
-                  className={cn(
-                    'flex items-center gap-2 h-9 rounded-lg',
-                    filtersApplied &&
-                      'bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30'
-                  )}
-                >
-                  <Filter className='h-3.5 w-3.5' />
-                  <span className='text-sm font-medium'>Filter</span>
-                  {filtersApplied && (
-                    <span className='ml-1 px-1.5 py-0.5 text-xs bg-white/20 rounded'>
-                      1
-                    </span>
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Filter tasks</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  className='flex items-center gap-2 h-9 rounded-lg border-slate-200 dark:border-slate-700'
-                >
-                  <ArrowUpDown className='h-3.5 w-3.5' />
-                  <span className='text-sm font-medium'>Sort</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Sort tasks</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  className='flex items-center gap-2 h-9 rounded-lg border-slate-200 dark:border-slate-700'
-                >
-                  <User className='h-3.5 w-3.5' />
-                  <span className='text-sm font-medium'>Assignee</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Filter by assignee</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <div className='flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'>
+          <Button
+            variant={filtersApplied ? 'secondary' : 'outline'}
+            size='sm'
+            className='flex items-center gap-2'
+          >
+            <span>Filter</span>
+            <ChevronDown className='h-4 w-4' />
+          </Button>
+          <Button
+            variant='outline'
+            size='sm'
+            className='flex items-center gap-2'
+          >
+            <span>Sort</span>
+            <ChevronDown className='h-4 w-4' />
+          </Button>
+          <div className='flex items-center space-x-2'>
             <Switch
               id='archived-tasks-board'
               checked={showArchived}
               onCheckedChange={setShowArchived}
             />
-            <Label
-              htmlFor='archived-tasks-board'
-              className='text-sm font-medium cursor-pointer'
-            >
-              Archived
-            </Label>
+            <Label htmlFor='archived-tasks-board'>Archived</Label>
           </div>
-
+          <Button
+            variant='outline'
+            size='sm'
+            className='flex items-center gap-2'
+          >
+            <span>Assignee</span>
+            <ChevronDown className='h-4 w-4' />
+          </Button>
           <div className='relative'>
-            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400' />
             <Input
               type='text'
               placeholder='Search tasks...'
-              className='h-9 pl-9 pr-3 rounded-lg border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm w-[200px] focus:w-[240px] transition-all'
+              className='h-9 px-3 py-1 rounded-md border border-input bg-background text-sm'
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
-
-          <Button
-            variant='ghost'
-            size='icon'
-            className='h-9 w-9 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800'
-          >
+          <Button variant='ghost' size='icon' className='h-9 w-9'>
             <MoreHorizontal className='h-4 w-4' />
           </Button>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Board Content */}
-      <div className='flex-1 overflow-auto p-6'>
+      <div className='flex-1 overflow-auto p-4'>
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className='flex items-start gap-6 h-full min-h-[600px]'>
-            <AnimatePresence>
-              {statuses.map((status, columnIndex) => (
-                <motion.div
-                  key={status._id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: columnIndex * 0.1 }}
-                  className='min-w-[320px] max-w-[360px]'
-                >
-                  <Droppable
-                    droppableId={status._id as string}
-                    key={status._id}
-                  >
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                        className={cn(
-                          'flex flex-col h-full rounded-2xl border transition-all duration-300',
-                          snapshot.isDraggingOver
-                            ? 'border-blue-400 bg-blue-50/50 dark:bg-blue-900/10 shadow-lg shadow-blue-500/20'
-                            : 'border-slate-200/50 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm',
-                          'hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50'
-                        )}
-                      >
-                        {/* Column Header */}
-                        <div className='flex items-center justify-between p-4 border-b border-slate-200/50 dark:border-slate-700/50'>
-                          <div className='flex items-center gap-3 flex-1'>
-                            <motion.div
-                              className='w-2.5 h-2.5 rounded-full shadow-lg'
-                              style={{
-                                backgroundColor: status.color,
-                                boxShadow: `0 0 12px ${status.color}40`,
-                              }}
-                              animate={{
-                                scale: [1, 1.2, 1],
-                              }}
-                              transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: 'easeInOut',
-                              }}
-                            />
-                            <span className='font-semibold text-slate-700 dark:text-slate-300'>
-                              {status.status}
-                            </span>
-                            <motion.span
-                              className='ml-auto px-2.5 py-0.5 text-xs font-bold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                              key={
-                                localTasksByStatus[status._id as string]
-                                  ?.length || 0
-                              }
-                              initial={{ scale: 1.2 }}
-                              animate={{ scale: 1 }}
-                            >
-                              {localTasksByStatus[status._id as string]
-                                ?.length || 0}
-                            </motion.span>
-                          </div>
-                          <Button
-                            variant='ghost'
-                            size='icon'
-                            className='h-8 w-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800'
-                          >
-                            <MoreHorizontal className='h-4 w-4' />
-                          </Button>
-                        </div>
-
-                        {/* Tasks Container */}
-                        <div className='flex-1 overflow-auto p-3 space-y-3 min-h-[400px]'>
-                          <AnimatePresence mode='popLayout'>
-                            {(
-                              localTasksByStatus[status._id as string] || []
-                            ).map((task, index) => (
-                              <Draggable
-                                key={task._id}
-                                draggableId={task._id}
-                                index={index}
-                              >
-                                {(provided, snapshot) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    style={{
-                                      ...provided.draggableProps.style,
-                                      transform: snapshot.isDragging
-                                        ? `${provided.draggableProps.style?.transform} rotate(3deg)`
-                                        : provided.draggableProps.style
-                                            ?.transform,
-                                    }}
-                                    className={cn(
-                                      'transition-all duration-200',
-                                      snapshot.isDragging &&
-                                        'shadow-2xl shadow-blue-500/50 scale-105 opacity-95'
-                                    )}
-                                  >
-                                    <div
-                                      className={cn(
-                                        snapshot.isDragging &&
-                                          'bg-white dark:bg-slate-800 rounded-xl ring-2 ring-blue-400 dark:ring-blue-500'
-                                      )}
-                                    >
-                                      <TaskCard
-                                        task={task}
-                                        mutationParams={{
-                                          workspaceId,
-                                          spaceId,
-                                          listId,
-                                        }}
-                                      />
-                                    </div>
-                                  </div>
-                                )}
-                              </Draggable>
-                            ))}
-                          </AnimatePresence>
-                          {provided.placeholder}
-                        </div>
-
-                        {/* Add Task Button */}
-                        <div className='p-3 border-t border-slate-200/50 dark:border-slate-700/50'>
-                          <Button
-                            variant='ghost'
-                            size='sm'
-                            className='w-full justify-start text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg'
-                            onClick={() =>
-                              handleAddTask(status as IStatusDefinition)
-                            }
-                          >
-                            <Plus className='h-4 w-4 mr-2' />
-                            <span className='font-medium'>Add Task</span>
-                          </Button>
-                        </div>
-                      </div>
+          <div className='flex items-start gap-4 h-full'>
+            {statuses.map(status => (
+              <Droppable key={status._id} droppableId={status._id as string}>
+                {provided => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className={cn(
+                      'min-w-[300px] max-w-[350px] flex flex-col  rounded-lg',
+                      status.type === StatusType.DONE && 'bg-green-100',
+                      status.type === StatusType.IN_PROGRESS && 'bg-blue-100',
+                      status.type === StatusType.OPEN && 'bg-gray-100',
+                      status.type === StatusType.CLOSED && 'bg-red-100',
+                      status.type === StatusType.REVIEW && 'bg-yellow-100'
                     )}
-                  </Droppable>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                  >
+                    <div className='flex items-center justify-between p-3 border-b bg-white rounded-lg'>
+                      <div className='flex items-center'>
+                        <div
+                          className='w-5 h-5 rounded-full mr-2 flex items-center justify-center'
+                          style={{ backgroundColor: status.color }}
+                        >
+                          {status.type === 'in_progress' && (
+                            <div className='w-2 h-2 rounded-full bg-white' />
+                          )}
+                          {status.type === 'done' && (
+                            <svg
+                              className='w-3 h-3 text-white'
+                              fill='none'
+                              viewBox='0 0 24 24'
+                              stroke='currentColor'
+                            >
+                              <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M5 13l4 4L19 7'
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        <span className='font-medium'>{status.status}</span>
+                        <span className='ml-2 text-gray-500 text-sm'>
+                          {localTasksByStatus[status._id as string]?.length ||
+                            0}
+                        </span>
+                      </div>
+                      <div className='flex items-center'>
+                        <Button variant='ghost' size='icon' className='h-8 w-8'>
+                          <MoreHorizontal className='h-4 w-4' />
+                        </Button>
+                      </div>
+                    </div>
 
-            {/* Add Column Button */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: statuses.length * 0.1 }}
-              className='flex-shrink-0 w-[280px]'
-            >
+                    <div className='flex-1 overflow-auto p-2 space-y-2'>
+                      {(localTasksByStatus[status._id as string] || []).map(
+                        (task, index) => (
+                          <Draggable
+                            key={task._id}
+                            draggableId={task._id}
+                            index={index}
+                          >
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                style={{
+                                  ...provided.draggableProps.style,
+                                  opacity: snapshot.isDragging ? 0.8 : 1,
+                                }}
+                              >
+                                <TaskCard
+                                  task={task}
+                                  mutationParams={{
+                                    workspaceId,
+                                    spaceId,
+                                    listId,
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </Draggable>
+                        )
+                      )}
+                      {provided.placeholder}
+                    </div>
+
+                    <div className='p-2'>
+                      <Button
+                        variant='ghost'
+                        size='sm'
+                        className='w-full justify-start text-gray-500 hover:text-gray-700'
+                        onClick={() =>
+                          handleAddTask(status as IStatusDefinition)
+                        }
+                      >
+                        <Plus className='h-4 w-4 mr-1' />
+                        Add Task
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </Droppable>
+            ))}
+
+            <div className='flex-shrink-0 w-[200px]'>
               <Button
                 variant='outline'
                 size='sm'
-                className='w-full h-12 justify-start rounded-xl border-dashed border-2 border-slate-300 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all'
+                className='w-full justify-start'
               >
-                <Plus className='h-4 w-4 mr-2' />
-                <span className='font-medium'>Add Status Group</span>
+                <Plus className='h-4 w-4 mr-1' />
+                Add group
               </Button>
-            </motion.div>
+            </div>
           </div>
         </DragDropContext>
       </div>
