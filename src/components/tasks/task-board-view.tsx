@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +12,7 @@ import {
   ArrowUpDown,
   User,
   Sparkles,
+  GripVertical,
 } from 'lucide-react';
 import {
   DragDropContext,
@@ -22,7 +23,7 @@ import {
 import { ITask, IStatusDefinition } from '@/types';
 import { useGetTasks, useTaskMutations } from '@/hooks/task';
 import { useGetStatuses } from '@/hooks/list';
-import TaskCard from './task-card';
+import TaskCard from './task-card'; // Import TaskCard
 import { TCreateTask } from '@/validations';
 import { cn } from '@/lib';
 import { Input } from '@/components/ui/input';
@@ -111,104 +112,178 @@ export default function TaskBoardView({
     }
   };
 
-  const handleDragEnd = useCallback(
-    async (result: DropResult) => {
-      const { destination, source, draggableId } = result;
+  const handleDragStart = (result: { draggableId: string }) => {
+    console.log('Drag started:', result.draggableId);
+  };
 
-      // Basic validation
-      if (!destination) return;
-      if (
-        destination.droppableId === source.droppableId &&
-        destination.index === source.index
-      )
-        return;
+  const handleDragEnd = async (result: DropResult) => {
+    const { destination, source, draggableId } = result;
 
-      const sourceStatusId = source.droppableId;
-      const destinationStatusId = destination.droppableId;
+    // 1. Basic validation and exit conditions
+    if (!destination) {
+      // If dropped outside a valid drop zone, do nothing
+      return;
+    }
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      // If dropped in the same position, do nothing
+      return;
+    }
 
-      // Store the updated state to use for reordering
-      let updatedState: TasksByStatusMap = {};
+    // Find the globally sourced task (from original 'tasks' array for correct data)
+    const taskToMove = tasks.find(t => t._id === draggableId);
+    if (!taskToMove) {
+      console.error('Draggable task not found in original tasks array');
+      return;
+    }
 
-      // Optimistically update UI
-      setLocalTasksByStatus(prev => {
-        const newState = { ...prev };
-        const sourceColumn = [...(prev[sourceStatusId] || [])];
-        const destColumn =
-          sourceStatusId === destinationStatusId
-            ? sourceColumn
-            : [...(prev[destinationStatusId] || [])];
+    console.log('Drag operation:', {
+      taskId: draggableId,
+      from: source.droppableId,
+      to: destination.droppableId,
+      fromIndex: source.index,
+      toIndex: destination.index,
+    });
 
-        // Find and remove task from source
-        const taskIndex = sourceColumn.findIndex(t => t._id === draggableId);
-        if (taskIndex === -1) return prev;
+    const sourceStatusId = source.droppableId;
+    const destinationStatusId = destination.droppableId;
+    const destinationIndex = destination.index;
 
-        const [movedTask] = sourceColumn.splice(taskIndex, 1);
+    // 2. Prepare data for local state update (using simplified type for mutation)
+    let finalTasksByStatus: TasksByStatusMap | null = null;
+    setLocalTasksByStatus(currentTasksByStatus => {
+      const sourceColumn = [...(currentTasksByStatus[sourceStatusId] || [])];
+      const destinationColumn =
+        sourceStatusId === destinationStatusId
+          ? sourceColumn
+          : [...(currentTasksByStatus[destinationStatusId] || [])];
 
-        // Update task status if changing columns
-        if (sourceStatusId !== destinationStatusId) {
-          const newStatus = statuses.find(s => s._id === destinationStatusId);
-          if (newStatus) {
-            movedTask.status = newStatus;
-          }
+      const taskIndexInSource = sourceColumn.findIndex(
+        t => t._id === draggableId
+      );
+      if (taskIndexInSource === -1) {
+        return currentTasksByStatus;
+      }
+      const [removedTaskLocally] = sourceColumn.splice(taskIndexInSource, 1);
+
+      const taskForInsertion = { ...removedTaskLocally };
+
+      // Handle status change if columns differ
+      if (sourceStatusId !== destinationStatusId) {
+        const newStatus = statuses.find(s => s._id === destinationStatusId);
+        if (!newStatus) {
+          return currentTasksByStatus;
         }
+        taskForInsertion.status = newStatus; // Update status for insertion
+        // We still need to update the individual task's status if it moves column
+        updateTask({
+          taskId: taskToMove._id,
+          data: { status: newStatus._id as string }, // Only update status
+          params: { workspaceId, spaceId, listId },
+        });
+      }
 
-        // Insert into destination
-        destColumn.splice(destination.index, 0, movedTask);
+      // Insert the task into the destination column at the correct index
+      destinationColumn.splice(destinationIndex, 0, taskForInsertion);
 
-        newState[sourceStatusId] = sourceColumn;
-        newState[destinationStatusId] = destColumn;
+      // Create the final state map
+      finalTasksByStatus = {
+        ...currentTasksByStatus,
+        [sourceStatusId]: sourceColumn,
+        [destinationStatusId]: destinationColumn,
+      };
+      return finalTasksByStatus; // Return the new state
+    });
 
-        // Store the updated state for reordering
-        updatedState = newState;
+    try {
+      // Update status if column changed
+      if (sourceStatusId !== destinationStatusId) {
+        const newStatus = statuses.find(s => s._id === destinationStatusId);
+        if (newStatus) {
+          console.log('Updating task status:', {
+            taskId: taskToMove._id,
+            newStatus: newStatus._id,
+          });
 
-        return newState;
+          await Promise.race([
+            updateTask({
+              taskId: taskToMove._id,
+              data: { status: newStatus._id as string },
+              params: { workspaceId, spaceId, listId },
+            }),
+            new Promise((_, reject) =>
+              setTimeout(
+                () => reject(new Error('Status update timeout')),
+                10000
+              )
+            ),
+          ]);
+        }
+      }
+
+      // Reorder tasks in destination column
+      const destinationTasks = localTasksByStatus[destinationStatusId] || [];
+      const orderedTaskIds = destinationTasks.map(task => task._id);
+
+      console.log('Reordering destination column:', {
+        destinationStatusId,
+        orderedTaskIds,
       });
 
-      try {
-        // Update backend
-        if (sourceStatusId !== destinationStatusId) {
-          await updateTask({
-            taskId: draggableId,
-            data: { status: destinationStatusId },
-            params: { workspaceId, spaceId, listId },
-          });
-        }
+      await Promise.race([
+        reorderTasks({
+          listId: listId,
+          orderedTaskIds: orderedTaskIds,
+          params: { workspaceId, spaceId, listId },
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Reorder timeout')), 10000)
+        ),
+      ]);
 
-        // Reorder in destination column using the captured state
-        const destColumn = updatedState[destinationStatusId] || [];
-        if (destColumn.length > 0) {
-          await reorderTasks({
+      // If moved between columns, also reorder source column
+      if (sourceStatusId !== destinationStatusId) {
+        const sourceTasks = localTasksByStatus[sourceStatusId] || [];
+        const sourceOrderedTaskIds = sourceTasks.map(task => task._id);
+
+        console.log('Reordering source column:', {
+          sourceStatusId,
+          sourceOrderedTaskIds,
+        });
+
+        await Promise.race([
+          reorderTasks({
             listId: listId,
-            orderedTaskIds: destColumn.map(t => t._id),
+            orderedTaskIds: sourceOrderedTaskIds,
             params: { workspaceId, spaceId, listId },
-          });
-        }
-
-        // Also reorder source column if different
-        if (sourceStatusId !== destinationStatusId) {
-          const sourceColumn = updatedState[sourceStatusId] || [];
-          if (sourceColumn.length > 0) {
-            await reorderTasks({
-              listId: listId,
-              orderedTaskIds: sourceColumn.map(t => t._id),
-              params: { workspaceId, spaceId, listId },
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Failed to update task:', error);
-        // Revert on error
-        const revertedState = statuses.reduce((acc, status) => {
-          acc[status._id as string] = tasks.filter(
-            task => task.status?._id === status._id
-          );
-          return acc;
-        }, {} as TasksByStatusMap);
-        setLocalTasksByStatus(revertedState);
+          }),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Source reorder timeout')), 10000)
+          ),
+        ]);
       }
-    },
-    [statuses, tasks, updateTask, reorderTasks, workspaceId, spaceId, listId]
-  );
+
+      console.log('Drag operation completed successfully');
+    } catch (error: unknown) {
+      console.error('Failed to update task order:', error);
+      console.error('Error details:', {
+        taskId: draggableId,
+        sourceStatusId,
+        destinationStatusId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      // Revert local state on error
+      const newTasksByStatus = statuses.reduce((acc, status) => {
+        const statusId = status._id as string;
+        acc[statusId] = tasks.filter(task => task.status?._id === statusId);
+        return acc;
+      }, {} as TasksByStatusMap);
+      setLocalTasksByStatus(newTasksByStatus);
+    }
+  };
 
   if (isLoadingTasks || isLoadingStatuses) {
     return (
@@ -219,11 +294,11 @@ export default function TaskBoardView({
           animate={{ opacity: 1, scale: 1 }}
         >
           <motion.div
-            className='w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full'
+            className='w-12 h-12 border-4 border-primary border-t-transparent rounded-full'
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
           />
-          <span className='text-sm font-medium text-slate-600 dark:text-slate-400'>
+          <span className='text-sm font-medium text-muted-foreground'>
             Loading board...
           </span>
         </motion.div>
@@ -232,19 +307,19 @@ export default function TaskBoardView({
   }
 
   return (
-    <div className='flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-blue-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950'>
+    <div className='flex flex-col h-full bg-gradient-to-br from-background via-background to-primary/5'>
       {/* Modern Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className='flex items-center justify-between px-6 py-4 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl'
+        className='flex items-center justify-between px-6 py-4 border-b border-border bg-background/80 backdrop-blur-xl'
       >
         <div className='flex items-center gap-3'>
           <motion.div
-            className='p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg shadow-blue-500/30'
+            className='p-2 rounded-xl bg-primary shadow-lg shadow-primary/30'
             whileHover={{ scale: 1.05, rotate: 5 }}
           >
-            <Sparkles className='h-4 w-4 text-white' />
+            <Sparkles className='h-4 w-4 text-primary-foreground' />
           </motion.div>
           <div className='flex items-center gap-2'>
             <TooltipProvider>
@@ -253,7 +328,7 @@ export default function TaskBoardView({
                   <Button
                     variant='outline'
                     size='sm'
-                    className='flex items-center gap-2 h-9 rounded-lg border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    className='flex items-center gap-2 h-9 rounded-lg'
                   >
                     <span className='text-sm font-medium'>Group: Status</span>
                     <ChevronDown className='h-3.5 w-3.5' />
@@ -267,7 +342,7 @@ export default function TaskBoardView({
                   <Button
                     variant='outline'
                     size='sm'
-                    className='flex items-center gap-2 h-9 rounded-lg border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    className='flex items-center gap-2 h-9 rounded-lg'
                   >
                     <span className='text-sm font-medium'>Subtasks</span>
                     <ChevronDown className='h-3.5 w-3.5' />
@@ -289,13 +364,13 @@ export default function TaskBoardView({
                   className={cn(
                     'flex items-center gap-2 h-9 rounded-lg',
                     filtersApplied &&
-                      'bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                      'bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30'
                   )}
                 >
                   <Filter className='h-3.5 w-3.5' />
                   <span className='text-sm font-medium'>Filter</span>
                   {filtersApplied && (
-                    <span className='ml-1 px-1.5 py-0.5 text-xs bg-white/20 rounded'>
+                    <span className='ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground/20 rounded'>
                       1
                     </span>
                   )}
@@ -309,7 +384,7 @@ export default function TaskBoardView({
                 <Button
                   variant='outline'
                   size='sm'
-                  className='flex items-center gap-2 h-9 rounded-lg border-slate-200 dark:border-slate-700'
+                  className='flex items-center gap-2 h-9 rounded-lg'
                 >
                   <ArrowUpDown className='h-3.5 w-3.5' />
                   <span className='text-sm font-medium'>Sort</span>
@@ -323,7 +398,7 @@ export default function TaskBoardView({
                 <Button
                   variant='outline'
                   size='sm'
-                  className='flex items-center gap-2 h-9 rounded-lg border-slate-200 dark:border-slate-700'
+                  className='flex items-center gap-2 h-9 rounded-lg'
                 >
                   <User className='h-3.5 w-3.5' />
                   <span className='text-sm font-medium'>Assignee</span>
@@ -333,7 +408,7 @@ export default function TaskBoardView({
             </Tooltip>
           </TooltipProvider>
 
-          <div className='flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'>
+          <div className='flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-background'>
             <Switch
               id='archived-tasks-board'
               checked={showArchived}
@@ -348,21 +423,17 @@ export default function TaskBoardView({
           </div>
 
           <div className='relative'>
-            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400' />
+            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
             <Input
               type='text'
               placeholder='Search tasks...'
-              className='h-9 pl-9 pr-3 rounded-lg border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm w-[200px] focus:w-[240px] transition-all'
+              className='h-9 pl-9 pr-3 rounded-lg text-sm w-[200px] focus:w-[240px] transition-all'
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
 
-          <Button
-            variant='ghost'
-            size='icon'
-            className='h-9 w-9 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800'
-          >
+          <Button variant='ghost' size='icon' className='h-9 w-9 rounded-lg'>
             <MoreHorizontal className='h-4 w-4' />
           </Button>
         </div>
@@ -370,7 +441,10 @@ export default function TaskBoardView({
 
       {/* Board Content */}
       <div className='flex-1 overflow-auto p-6'>
-        <DragDropContext onDragEnd={handleDragEnd}>
+        <DragDropContext
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
           <div className='flex items-start gap-6 h-full min-h-[600px]'>
             <AnimatePresence>
               {statuses.map((status, columnIndex) => (
@@ -390,15 +464,14 @@ export default function TaskBoardView({
                         ref={provided.innerRef}
                         {...provided.droppableProps}
                         className={cn(
-                          'flex flex-col h-full rounded-2xl border transition-all duration-300',
+                          'flex flex-col h-full rounded-2xl border transition-all duration-300 bg-card/80 backdrop-blur-sm',
                           snapshot.isDraggingOver
-                            ? 'border-blue-400 bg-blue-50/50 dark:bg-blue-900/10 shadow-lg shadow-blue-500/20'
-                            : 'border-slate-200/50 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm',
-                          'hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50'
+                            ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20 ring-2 ring-primary/30'
+                            : 'border-border shadow-md hover:shadow-xl hover:shadow-primary/10'
                         )}
                       >
                         {/* Column Header */}
-                        <div className='flex items-center justify-between p-4 border-b border-slate-200/50 dark:border-slate-700/50'>
+                        <div className='flex items-center justify-between p-4 border-b border-border'>
                           <div className='flex items-center gap-3 flex-1'>
                             <motion.div
                               className='w-2.5 h-2.5 rounded-full shadow-lg'
@@ -415,11 +488,11 @@ export default function TaskBoardView({
                                 ease: 'easeInOut',
                               }}
                             />
-                            <span className='font-semibold text-slate-700 dark:text-slate-300'>
+                            <span className='font-semibold text-foreground'>
                               {status.status}
                             </span>
                             <motion.span
-                              className='ml-auto px-2.5 py-0.5 text-xs font-bold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                              className='ml-auto px-2.5 py-0.5 text-xs font-bold rounded-full bg-muted text-muted-foreground'
                               key={
                                 localTasksByStatus[status._id as string]
                                   ?.length || 0
@@ -434,7 +507,7 @@ export default function TaskBoardView({
                           <Button
                             variant='ghost'
                             size='icon'
-                            className='h-8 w-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800'
+                            className='h-8 w-8 rounded-lg'
                           >
                             <MoreHorizontal className='h-4 w-4' />
                           </Button>
@@ -455,34 +528,50 @@ export default function TaskBoardView({
                                   <div
                                     ref={provided.innerRef}
                                     {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
                                     style={{
                                       ...provided.draggableProps.style,
-                                      transform: snapshot.isDragging
-                                        ? `${provided.draggableProps.style?.transform} rotate(3deg)`
-                                        : provided.draggableProps.style
-                                            ?.transform,
+                                      opacity: snapshot.isDragging ? 0.8 : 1,
                                     }}
                                     className={cn(
-                                      'transition-all duration-200',
-                                      snapshot.isDragging &&
-                                        'shadow-2xl shadow-blue-500/50 scale-105 opacity-95'
+                                      'group relative transition-all duration-200',
+                                      snapshot.isDragging && 'z-50'
                                     )}
                                   >
-                                    <div
-                                      className={cn(
-                                        snapshot.isDragging &&
-                                          'bg-white dark:bg-slate-800 rounded-xl ring-2 ring-blue-400 dark:ring-blue-500'
-                                      )}
-                                    >
-                                      <TaskCard
-                                        task={task}
-                                        mutationParams={{
-                                          workspaceId,
-                                          spaceId,
-                                          listId,
-                                        }}
-                                      />
+                                    <div className='flex items-start gap-2'>
+                                      {/* Drag Handle */}
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <div
+                                              {...provided.dragHandleProps}
+                                              className={cn(
+                                                'flex items-center justify-center w-6 h-6 rounded cursor-grab active:cursor-grabbing',
+                                                'text-muted-foreground hover:text-foreground hover:bg-muted/50',
+                                                'opacity-0 group-hover:opacity-100 transition-opacity duration-200',
+                                                snapshot.isDragging &&
+                                                  'opacity-100 text-primary'
+                                              )}
+                                            >
+                                              <GripVertical className='h-4 w-4' />
+                                            </div>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Drag to reorder</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+
+                                      {/* Task Card */}
+                                      <div className='flex-1'>
+                                        <TaskCard
+                                          task={task}
+                                          mutationParams={{
+                                            workspaceId,
+                                            spaceId,
+                                            listId,
+                                          }}
+                                        />
+                                      </div>
                                     </div>
                                   </div>
                                 )}
@@ -493,11 +582,11 @@ export default function TaskBoardView({
                         </div>
 
                         {/* Add Task Button */}
-                        <div className='p-3 border-t border-slate-200/50 dark:border-slate-700/50'>
+                        <div className='p-3 border-t border-border'>
                           <Button
                             variant='ghost'
                             size='sm'
-                            className='w-full justify-start text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg'
+                            className='w-full justify-start text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg'
                             onClick={() =>
                               handleAddTask(status as IStatusDefinition)
                             }
@@ -523,7 +612,7 @@ export default function TaskBoardView({
               <Button
                 variant='outline'
                 size='sm'
-                className='w-full h-12 justify-start rounded-xl border-dashed border-2 border-slate-300 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all'
+                className='w-full h-12 justify-start rounded-xl border-dashed border-2 hover:border-primary hover:bg-primary/5 transition-all'
               >
                 <Plus className='h-4 w-4 mr-2' />
                 <span className='font-medium'>Add Status Group</span>
