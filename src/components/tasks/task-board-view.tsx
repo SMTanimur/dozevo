@@ -12,6 +12,7 @@ import {
   ArrowUpDown,
   User,
   Sparkles,
+  GripVertical,
 } from 'lucide-react';
 import {
   DragDropContext,
@@ -527,20 +528,51 @@ export default function TaskBoardView({
                                   <div
                                     ref={provided.innerRef}
                                     {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
                                     style={{
                                       ...provided.draggableProps.style,
                                       opacity: snapshot.isDragging ? 0.8 : 1,
                                     }}
+                                    className={cn(
+                                      'group relative transition-all duration-200',
+                                      snapshot.isDragging && 'z-50'
+                                    )}
                                   >
-                                    <TaskCard
-                                      task={task}
-                                      mutationParams={{
-                                        workspaceId,
-                                        spaceId,
-                                        listId,
-                                      }}
-                                    />
+                                    <div className='flex items-start gap-2'>
+                                      {/* Drag Handle */}
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <div
+                                              {...provided.dragHandleProps}
+                                              className={cn(
+                                                'flex items-center justify-center w-6 h-6 rounded cursor-grab active:cursor-grabbing',
+                                                'text-muted-foreground hover:text-foreground hover:bg-muted/50',
+                                                'opacity-0 group-hover:opacity-100 transition-opacity duration-200',
+                                                snapshot.isDragging &&
+                                                  'opacity-100 text-primary'
+                                              )}
+                                            >
+                                              <GripVertical className='h-4 w-4' />
+                                            </div>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Drag to reorder</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+
+                                      {/* Task Card */}
+                                      <div className='flex-1'>
+                                        <TaskCard
+                                          task={task}
+                                          mutationParams={{
+                                            workspaceId,
+                                            spaceId,
+                                            listId,
+                                          }}
+                                        />
+                                      </div>
+                                    </div>
                                   </div>
                                 )}
                               </Draggable>
