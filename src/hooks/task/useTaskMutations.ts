@@ -74,7 +74,7 @@ export const useTaskMutations = () => {
   };
 
   // --- Create Task Mutation ---
-  const { mutate: createTask, isPending: isCreatingTask } = useMutation<
+  const { mutateAsync: createTask, isPending: isCreatingTask } = useMutation<
     ITask,
     Error,
     CreateTaskMutationInput
