@@ -44,7 +44,8 @@ export const useAuth = () => {
     mutationFn: authService.login,
     mutationKey: [authService.login.name],
     onSuccess: data => {
-      console.log({ res: data });
+   
+      toast.success('Alhamdulillah, login successful!');
       push('/');
     },
   });

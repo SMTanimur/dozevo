@@ -49,21 +49,28 @@ api.interceptors.response.use(
   error => {
     // Only use toast in browser environment
     if (typeof window !== 'undefined') {
-      if (error.response?.data) {
-        if (typeof error.response.data === 'string') {
-          toast.error(error.response.data);
-        } else if (error.response.data.message) {
-          toast.error(error.response.data.message);
-        } else {
-          toast.error('An unexpected error occurred.');
-        }
-      } else if (error.message) {
-        toast.error(error.message);
-      }
-
       if (error.response?.status === 401) {
         Cookies.remove('Authentication');
-        toast.error('Session expired. Please log in again.');
+        // Show API message if available, otherwise generic session expired
+        const message =
+          error.response?.data?.message ||
+          (typeof error.response?.data === 'string'
+            ? error.response.data
+            : null) ||
+          'Session expired. Please log in again.';
+        toast.error(message);
+      } else {
+        if (error.response?.data) {
+          if (typeof error.response.data === 'string') {
+            toast.error(error.response.data);
+          } else if (error.response.data.message) {
+            toast.error(error.response.data.message);
+          } else {
+            toast.error('An unexpected error occurred.');
+          }
+        } else if (error.message) {
+          toast.error(error.message);
+        }
       }
     }
 
