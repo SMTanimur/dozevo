@@ -3,9 +3,9 @@
 // Import the new components
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { TaskDescriptionEditor } from './task-description-editor';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -104,11 +104,13 @@ export const TaskDetailView = () => {
     }
   };
 
-  const handleDescriptionSave = () => {
+  const handleDescriptionSave = (html?: string) => {
+    const desc = html ?? description;
     if (task) {
+      setDescription(desc);
       updateTask({
         taskId: task._id,
-        data: { description },
+        data: { description: desc },
         params: {
           spaceId: task.space,
           listId: task.list as string,
@@ -214,7 +216,8 @@ export const TaskDetailView = () => {
 
   return (
     <Dialog open={isTaskModalOpen} onOpenChange={closeTaskModal}>
-      <DialogContent className='max-w-[1400px] p-0 h-[90vh] flex flex-col overflow-hidden'>
+      <DialogContent aria-describedby={undefined} className='max-w-[1400px] p-0 h-[90vh] flex flex-col overflow-hidden'>
+        <DialogTitle className='sr-only'>{task?.name || 'Task Details'}</DialogTitle>
         {!task ? (
           <div className='flex items-center justify-center h-full'>
             <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
@@ -452,15 +455,12 @@ export const TaskDetailView = () => {
                 </div>
 
                 <div className='mb-6'>
-                  <Label className='text-sm text-gray-500 mb-1'>
+                  <Label className='text-sm text-muted-foreground mb-1'>
                     Description
                   </Label>
-                  <Textarea
-                    value={description}
-                    onChange={e => setDescription(e.target.value)}
-                    placeholder='Add a description...'
-                    className='min-h-[150px]'
-                    onBlur={handleDescriptionSave}
+                  <TaskDescriptionEditor
+                    content={description}
+                    onSave={handleDescriptionSave}
                   />
                 </div>
 
