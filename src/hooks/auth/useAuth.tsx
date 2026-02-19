@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -11,6 +11,7 @@ import { LogingInput } from '@/types';
 import { authService } from '@/services/auth';
 import { createUserSchema, loginSchema, TCreateUser, TLogin } from '@/validations';
 import { toast } from 'sonner';
+import Cookies from 'js-cookie';
 
 
 export const useAuth = () => {
@@ -43,10 +44,15 @@ export const useAuth = () => {
   } = useMutation({
     mutationFn: authService.login,
     mutationKey: [authService.login.name],
-    onSuccess: data => {
-   
+    onSuccess: (data) => {
       toast.success('Alhamdulillah, login successful!');
-      push('/');
+      const activeWorkspace = data.user?.activeWorkspace;
+      if (activeWorkspace) {
+        Cookies.set('workspace', activeWorkspace);
+        push(`/${activeWorkspace}/home`);
+      } else {
+        push('/workspace');
+      }
     },
   });
 
@@ -67,7 +73,7 @@ export const useAuth = () => {
     try {
       await loginMutateAsync(data);
      
-    } catch (error: any) {
+    } catch (error) {
       console.log({ error });
     }
   });
