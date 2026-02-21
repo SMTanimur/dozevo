@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -11,6 +11,7 @@ import { LogingInput } from '@/types';
 import { authService } from '@/services/auth';
 import { createUserSchema, loginSchema, TCreateUser, TLogin } from '@/validations';
 import { toast } from 'sonner';
+import Cookies from 'js-cookie';
 
 
 export const useAuth = () => {
@@ -43,10 +44,15 @@ export const useAuth = () => {
   } = useMutation({
     mutationFn: authService.login,
     mutationKey: [authService.login.name],
-    onSuccess: data => {
-   
+    onSuccess: (data) => {
       toast.success('Alhamdulillah, login successful!');
-      push('/');
+      const activeWorkspace = data.user?.activeWorkspace;
+      if (activeWorkspace) {
+        Cookies.set('workspace', activeWorkspace);
+        push(`/${activeWorkspace}/home`);
+      } else {
+        push('/workspace');
+      }
     },
   });
 
@@ -67,7 +73,7 @@ export const useAuth = () => {
     try {
       await loginMutateAsync(data);
      
-    } catch (error: any) {
+    } catch (error) {
       console.log({ error });
     }
   });
@@ -76,9 +82,9 @@ export const useAuth = () => {
     try {
       await registerMutateAsync(data);
      
-    } catch (error: any) {
-      toast.error(error.message || 'Registration failed');
-      
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Registration failed';
+      toast.error(message);
     }
   });
 
@@ -88,8 +94,9 @@ export const useAuth = () => {
       queryClient.clear();
       toast.success('Logged out successfully');
       push('/');
-    } catch (error: any) {
-      toast.error(error.message || 'Logout failed');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Logout failed';
+      toast.error(message);
     }
   };
 

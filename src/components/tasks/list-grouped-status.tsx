@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { TaskRow } from './task-row';
 import { cn } from '@/lib/utils';
+import { StatusSetupEmptyState } from './status-setup-empty-state';
 import {
   DragDropContext,
   Droppable,
@@ -134,7 +135,11 @@ export const ListGroupedStatus: React.FC<ListGroupedStatusProps> = ({
   };
 
   if (isLoadingStatuses) {
-    return <div className='p-6 text-gray-400'>Loading statuses...</div>;
+    return <div className='p-6 text-muted-foreground'>Loading statuses...</div>;
+  }
+
+  if (statuses.length === 0) {
+    return <StatusSetupEmptyState list={list} />;
   }
 
   return (
