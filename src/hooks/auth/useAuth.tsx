@@ -82,9 +82,9 @@ export const useAuth = () => {
     try {
       await registerMutateAsync(data);
      
-    } catch (error: any) {
-      toast.error(error.message || 'Registration failed');
-      
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Registration failed';
+      toast.error(message);
     }
   });
 
@@ -94,8 +94,9 @@ export const useAuth = () => {
       queryClient.clear();
       toast.success('Logged out successfully');
       push('/');
-    } catch (error: any) {
-      toast.error(error.message || 'Logout failed');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Logout failed';
+      toast.error(message);
     }
   };
 
