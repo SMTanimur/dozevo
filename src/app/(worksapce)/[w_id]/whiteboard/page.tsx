@@ -4,9 +4,9 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
   Pencil, Plus, Search, Trash2, Save, Play, CheckCircle2,
-  Calendar, Layers, ZoomIn, ZoomOut, MousePointer, Maximize
+  Calendar, Layers, ZoomIn, ZoomOut, MousePointer, Maximize,
+  Database, FileText, HelpCircle, RefreshCw
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -41,15 +41,263 @@ import {
   Connection,
   Edge,
   Node,
+  Handle,
+  Position,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
+// ----------------------------------------------------
+// CUSTOM FLOWCHART NODE COMPONENTS WITH SHAPES
+// ----------------------------------------------------
+
+// 1. Start Node (Pill)
+const StartNode = ({ id, data }: any) => {
+  const [val, setVal] = useState(data.label || '');
+  
+  useEffect(() => {
+    setVal(data.label || '');
+  }, [data.label]);
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = e.target.value;
+    setVal(newVal);
+    if (data.onChange) {
+      data.onChange(newVal);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2 px-5 py-3 rounded-full bg-emerald-500/10 dark:bg-emerald-500/5 border-2 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.15)] text-emerald-800 dark:text-emerald-400 min-w-[165px] font-semibold text-center justify-center relative group">
+      <input
+        value={val}
+        onChange={onChange}
+        placeholder="Start Flow"
+        className="bg-transparent border-none outline-none font-bold text-center w-full focus:ring-0 text-sm text-emerald-800 dark:text-emerald-300"
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        className="!bg-emerald-500 !w-2.5 !h-2.5 !border-2 !border-background shadow-md cursor-crosshair hover:scale-125 transition-transform"
+      />
+    </div>
+  );
+};
+
+// 2. End Node (Pill)
+const EndNode = ({ id, data }: any) => {
+  const [val, setVal] = useState(data.label || '');
+
+  useEffect(() => {
+    setVal(data.label || '');
+  }, [data.label]);
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = e.target.value;
+    setVal(newVal);
+    if (data.onChange) {
+      data.onChange(newVal);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2 px-5 py-3 rounded-full bg-rose-500/10 dark:bg-rose-500/5 border-2 border-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.15)] text-rose-800 dark:text-rose-400 min-w-[165px] font-semibold text-center justify-center relative group">
+      <Handle
+        type="target"
+        position={Position.Top}
+        className="!bg-rose-500 !w-2.5 !h-2.5 !border-2 !border-background shadow-md cursor-crosshair hover:scale-125 transition-transform"
+      />
+      <input
+        value={val}
+        onChange={onChange}
+        placeholder="End Flow"
+        className="bg-transparent border-none outline-none font-bold text-center w-full focus:ring-0 text-sm text-rose-800 dark:text-rose-300"
+      />
+    </div>
+  );
+};
+
+// 3. Process Node (Rectangle Box)
+const ProcessNode = ({ id, data }: any) => {
+  const [val, setVal] = useState(data.label || '');
+
+  useEffect(() => {
+    setVal(data.label || '');
+  }, [data.label]);
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = e.target.value;
+    setVal(newVal);
+    if (data.onChange) {
+      data.onChange(newVal);
+    }
+  };
+
+  return (
+    <div className="flex flex-col rounded-xl bg-card border border-border shadow-[0_6px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_10px_28px_rgba(0,0,0,0.12)] overflow-hidden min-w-[210px] transition-all duration-300 relative group">
+      <Handle
+        type="target"
+        position={Position.Top}
+        className="!bg-blue-500 !w-2.5 !h-2.5 !border-2 !border-background shadow-md cursor-crosshair"
+      />
+      
+      {/* Top Accent Strip */}
+      <div className="h-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 w-full" />
+      
+      <div className="p-3.5 bg-card/90 dark:bg-zinc-900/90 flex flex-col gap-1 items-center justify-center">
+        <input
+          value={val}
+          onChange={onChange}
+          placeholder="Process Step"
+          className="w-full bg-muted/40 hover:bg-muted/70 focus:bg-background rounded-lg px-2.5 py-1.5 border border-transparent hover:border-border/50 focus:border-primary/50 text-sm font-semibold text-foreground text-center outline-none transition-all"
+        />
+      </div>
+
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        className="!bg-blue-500 !w-2.5 !h-2.5 !border-2 !border-background shadow-md cursor-crosshair"
+      />
+    </div>
+  );
+};
+
+// 4. Decision Node (Diamond Shape)
+const DecisionNode = ({ id, data }: any) => {
+  const [val, setVal] = useState(data.label || '');
+  
+  useEffect(() => {
+    setVal(data.label || '');
+  }, [data.label]);
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = e.target.value;
+    setVal(newVal);
+    if (data.onChange) {
+      data.onChange(newVal);
+    }
+  };
+
+  return (
+    <div className="relative w-28 h-28 flex items-center justify-center group">
+      {/* Rotated Square for Diamond Shape */}
+      <div className="absolute inset-0 rotate-45 rounded-xl bg-amber-500/10 dark:bg-amber-500/5 border-2 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)] group-hover:scale-105 transition-transform duration-300" />
+      
+      {/* Handles on 4 sides */}
+      <Handle type="target" position={Position.Top} className="!bg-amber-500 !w-2 !h-2 !border-2 !border-background cursor-crosshair" />
+      <Handle type="source" position={Position.Bottom} className="!bg-amber-500 !w-2 !h-2 !border-2 !border-background cursor-crosshair" />
+      <Handle type="target" position={Position.Left} className="!bg-amber-500 !w-2 !h-2 !border-2 !border-background cursor-crosshair" />
+      <Handle type="source" position={Position.Right} className="!bg-amber-500 !w-2 !h-2 !border-2 !border-background cursor-crosshair" />
+
+      {/* Upright Text Container */}
+      <div className="z-10 px-2.5 text-center w-full">
+        <input
+          value={val}
+          onChange={onChange}
+          placeholder="Is Approved?"
+          className="bg-transparent border-none outline-none font-bold text-center w-full focus:ring-0 text-xs text-amber-800 dark:text-amber-300"
+        />
+      </div>
+    </div>
+  );
+};
+
+// 5. Database Cylinder Node
+const DatabaseNode = ({ id, data }: any) => {
+  const [val, setVal] = useState(data.label || '');
+
+  useEffect(() => {
+    setVal(data.label || '');
+  }, [data.label]);
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = e.target.value;
+    setVal(newVal);
+    if (data.onChange) {
+      data.onChange(newVal);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-between rounded-lg bg-indigo-500/10 dark:bg-indigo-500/5 border-2 border-indigo-500 shadow-[0_6px_20px_rgba(0,0,0,0.06)] w-24 h-28 relative group">
+      {/* Cylindrical Ellipse tops/bottoms */}
+      <div className="absolute -top-1.5 left-[-2px] right-[-2px] h-3 rounded-[50%] bg-indigo-500/15 border-2 border-indigo-500" />
+      <div className="absolute bottom-[-2px] left-[-2px] right-[-2px] h-3.5 rounded-[50%] bg-indigo-500 border-2 border-indigo-500" />
+      
+      <Handle type="target" position={Position.Top} className="!bg-indigo-500 !w-2 !h-2 !border-2 !border-background cursor-crosshair" />
+      <Handle type="source" position={Position.Bottom} className="!bg-indigo-500 !w-2 !h-2 !border-2 !border-background cursor-crosshair" />
+      <Handle type="target" position={Position.Left} className="!bg-indigo-500 !w-2 !h-2 !border-2 !border-background cursor-crosshair" />
+      <Handle type="source" position={Position.Right} className="!bg-indigo-500 !w-2 !h-2 !border-2 !border-background cursor-crosshair" />
+
+      <div className="my-auto px-2 text-center w-full z-10 flex flex-col items-center gap-1 mt-3">
+        <Database className="h-4 w-4 text-indigo-500" />
+        <input
+          value={val}
+          onChange={onChange}
+          placeholder="Database"
+          className="bg-transparent border-none outline-none font-bold text-center w-full focus:ring-0 text-[11px] text-indigo-800 dark:text-indigo-300"
+        />
+      </div>
+    </div>
+  );
+};
+
+// 6. Document Node (Folded Corner)
+const DocumentNode = ({ id, data }: any) => {
+  const [val, setVal] = useState(data.label || '');
+
+  useEffect(() => {
+    setVal(data.label || '');
+  }, [data.label]);
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = e.target.value;
+    setVal(newVal);
+    if (data.onChange) {
+      data.onChange(newVal);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center rounded-tr-2xl rounded-bl-sm rounded-br-sm rounded-tl-sm bg-purple-500/10 dark:bg-purple-500/5 border-2 border-purple-500 shadow-[0_6px_20px_rgba(0,0,0,0.06)] w-24 h-28 relative group">
+      {/* Folded Corner Triangle */}
+      <div className="absolute top-[-2px] right-[-2px] w-4.5 h-4.5 border-l-2 border-b-2 border-purple-500 bg-card rounded-bl-lg" />
+
+      <Handle type="target" position={Position.Top} className="!bg-purple-500 !w-2 !h-2 !border-2 !border-background cursor-crosshair" />
+      <Handle type="source" position={Position.Bottom} className="!bg-purple-500 !w-2 !h-2 !border-2 !border-background cursor-crosshair" />
+      <Handle type="target" position={Position.Left} className="!bg-purple-500 !w-2 !h-2 !border-2 !border-background cursor-crosshair" />
+      <Handle type="source" position={Position.Right} className="!bg-purple-500 !w-2 !h-2 !border-2 !border-background cursor-crosshair" />
+
+      <div className="px-2 text-center w-full z-10 flex flex-col items-center gap-1">
+        <FileText className="h-4 w-4 text-purple-500" />
+        <input
+          value={val}
+          onChange={onChange}
+          placeholder="Document"
+          className="bg-transparent border-none outline-none font-bold text-center w-full focus:ring-0 text-[11px] text-purple-800 dark:text-purple-300"
+        />
+      </div>
+    </div>
+  );
+};
+
+const nodeTypes = {
+  customInput: StartNode,
+  customOutput: EndNode,
+  customDefault: ProcessNode,
+  customDecision: DecisionNode,
+  customDatabase: DatabaseNode,
+  customDocument: DocumentNode,
+};
+
+// ----------------------------------------------------
+// MAIN WHITEBOARD PAGE COMPONENT
+// ----------------------------------------------------
+
 export default function WhiteboardPage() {
   const { w_id } = useParams();
-  const router = useRouter();
   const workspaceId = w_id as string;
 
-  // Fetch spaces for dropdowns/filters
+  // Fetch spaces
   const { data: spaces = [] } = useGetSpaces(workspaceId, { enabled: !!workspaceId });
   const [activeSpaceId, setActiveSpaceId] = useState('');
 
@@ -59,7 +307,7 @@ export default function WhiteboardPage() {
     }
   }, [spaces, activeSpaceId]);
 
-  // Fetch all whiteboards (flowcharts) for the active space
+  // Fetch all whiteboards
   const { data: whiteboards = [], isLoading: isLoadingWhiteboards } = useGetWhiteboards(
     { workspaceId, spaceId: activeSpaceId },
     { enabled: !!workspaceId && !!activeSpaceId }
@@ -68,48 +316,87 @@ export default function WhiteboardPage() {
   // Mutations
   const { createWhiteboard, updateWhiteboard, deleteWhiteboard } = useWhiteboardMutations();
 
-  // Dialog state
+  // Dialog and navigation states
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newBoardName, setNewBoardName] = useState('');
   const [newBoardSpaceId, setNewBoardSpaceId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Editor states
+  // Editor node/edge states
   const [selectedBoard, setSelectedBoard] = useState<IFlowchart | null>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
 
-  // Set the selected space inside create modal when active space changes
   useEffect(() => {
     if (activeSpaceId) {
       setNewBoardSpaceId(activeSpaceId);
     }
   }, [activeSpaceId]);
 
-  // Load selected whiteboard data
+  // Update node label callback
+  const updateNodeLabel = useCallback((nodeId: string, newLabel: string) => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              label: newLabel,
+            },
+          };
+        }
+        return node;
+      })
+    );
+  }, [setNodes]);
+
+  // Load flowchart layout
   useEffect(() => {
     if (selectedBoard && selectedBoard.data) {
       const boardData = selectedBoard.data as { nodes?: Node[]; edges?: Edge[] };
-      setNodes(boardData.nodes || []);
-      setEdges(boardData.edges || []);
+      const rawNodes = boardData.nodes || [];
+      const rawEdges = boardData.edges || [];
+      
+      const mappedNodes = rawNodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          onChange: (val: string) => updateNodeLabel(node.id, val)
+        }
+      }));
+
+      setNodes(mappedNodes);
+      setEdges(rawEdges);
       setLastSaved(null);
     } else if (selectedBoard) {
-      // Default placeholder nodes if blank
-      setNodes([
+      // Default nodes if new/blank
+      const defaultNodes: Node[] = [
         {
           id: '1',
-          position: { x: 250, y: 100 },
-          data: { label: 'Start Node' },
-          type: 'input',
+          position: { x: 250, y: 80 },
+          data: { label: 'Start Flow' },
+          type: 'customInput',
         },
         {
           id: '2',
-          position: { x: 250, y: 250 },
-          data: { label: 'Action Node' },
+          position: { x: 250, y: 220 },
+          data: { label: 'Decision Logic' },
+          type: 'customDecision',
         }
-      ]);
+      ];
+
+      const mappedDefaults = defaultNodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          onChange: (val: string) => updateNodeLabel(node.id, val)
+        }
+      }));
+
+      setNodes(mappedDefaults);
       setEdges([
         {
           id: 'e1-2',
@@ -124,22 +411,22 @@ export default function WhiteboardPage() {
       setEdges([]);
       setLastSaved(null);
     }
-  }, [selectedBoard, setNodes, setEdges]);
+  }, [selectedBoard, setNodes, setEdges, updateNodeLabel]);
 
-  // Filter whiteboards locally
+  // Filter boards locally
   const filteredBoards = useMemo(() => {
     return whiteboards.filter(board =>
       board.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [whiteboards, searchQuery]);
 
-  // Handle connection creation
+  // Add edge connection
   const onConnect = useCallback(
     (params: Connection | Edge) => setEdges((eds) => addEdge({ ...params, animated: true }, eds)),
     [setEdges]
   );
 
-  // Save current nodes & edges state
+  // Save layout
   const handleSaveBoard = async () => {
     if (!selectedBoard) return;
     setIsSaving(true);
@@ -161,42 +448,66 @@ export default function WhiteboardPage() {
     }
   };
 
-  // Add a new node programmatically
-  const handleAddNode = (type?: 'input' | 'output' | 'default') => {
+  // Add custom shape nodes programmatically
+  const handleAddNode = (type: 'customInput' | 'customDefault' | 'customOutput' | 'customDecision' | 'customDatabase' | 'customDocument') => {
     const id = String(nodes.length + 1);
+    let initialLabel = 'Process Step';
+    if (type === 'customInput') initialLabel = 'Start Flow';
+    if (type === 'customOutput') initialLabel = 'End Flow';
+    if (type === 'customDecision') initialLabel = 'Is Approved?';
+    if (type === 'customDatabase') initialLabel = 'Save to DB';
+    if (type === 'customDocument') initialLabel = 'Generate Doc';
+
     const newNode: Node = {
       id,
-      position: { x: 150 + Math.random() * 150, y: 150 + Math.random() * 150 },
-      data: { label: `New Node ${id}` },
+      position: { x: 200 + Math.random() * 100, y: 150 + Math.random() * 100 },
+      data: { 
+        label: initialLabel,
+        onChange: (val: string) => updateNodeLabel(id, val)
+      },
       type,
     };
     setNodes((nds) => [...nds, newNode]);
   };
 
-  // Create new Whiteboard
+  // Delete selected nodes/edges from canvas
+  const handleDeleteSelected = () => {
+    setNodes((nds) => nds.filter((n) => !n.selected));
+    setEdges((eds) => eds.filter((e) => !e.selected));
+  };
+
+  // Clear Canvas completely
+  const handleClearCanvas = () => {
+    if (confirm('Clear the entire whiteboard canvas?')) {
+      setNodes([]);
+      setEdges([]);
+    }
+  };
+
+  // Create Whiteboard
   const handleCreateBoard = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newBoardName.trim() || !newBoardSpaceId) return;
 
     try {
-      const initialData = {
-        nodes: [
-          {
-            id: '1',
-            position: { x: 250, y: 100 },
-            data: { label: 'Start Node' },
-            type: 'input',
-          }
-        ],
-        edges: []
-      };
+      const initialNodes: Node[] = [
+        {
+          id: '1',
+          position: { x: 250, y: 100 },
+          data: { label: 'Start Flow' },
+          type: 'customInput',
+        }
+      ];
 
       const newBoard = await createWhiteboard({
         workspaceId,
         data: {
           name: newBoardName.trim(),
-          space: newBoardSpaceId,
-          data: initialData
+          spaceId: newBoardSpaceId,
+          data: {
+            nodes: initialNodes,
+            edges: []
+          }
         }
       });
       setNewBoardName('');
@@ -271,7 +582,7 @@ export default function WhiteboardPage() {
           </div>
         </div>
 
-        {/* List scroll container */}
+        {/* Scrollable list */}
         <ScrollArea className="flex-1 custom-scrollbar">
           <div className="p-2.5 space-y-1.5">
             {isLoadingWhiteboards ? (
@@ -324,7 +635,7 @@ export default function WhiteboardPage() {
         </ScrollArea>
       </div>
 
-      {/* RIGHT PANEL: Live React Flow Canvas */}
+      {/* RIGHT PANEL: Live Flow Canvas */}
       <div className="flex-1 bg-card/10 flex flex-col min-w-0 h-full relative">
         {selectedBoard ? (
           <div className="flex-1 flex flex-col min-h-0 h-full">
@@ -336,7 +647,7 @@ export default function WhiteboardPage() {
                 </div>
                 <div className="flex flex-col min-w-0">
                   <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-                    Interactive Canvas
+                    Flowchart Palette
                   </span>
                   <div className="flex items-center gap-2">
                     {lastSaved && (
@@ -352,29 +663,71 @@ export default function WhiteboardPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleAddNode('input')}
+                  onClick={() => handleAddNode('customInput')}
                   className="rounded-lg h-9 font-semibold text-xs border border-border text-foreground hover:bg-muted"
                 >
-                  + Start Node
+                  🟢 Start
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleAddNode('default')}
+                  onClick={() => handleAddNode('customDefault')}
                   className="rounded-lg h-9 font-semibold text-xs border border-border text-foreground hover:bg-muted"
                 >
-                  + Process Box
+                  🟦 Process
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleAddNode('output')}
+                  onClick={() => handleAddNode('customDecision')}
                   className="rounded-lg h-9 font-semibold text-xs border border-border text-foreground hover:bg-muted"
                 >
-                  + End Node
+                  🔶 Decision
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAddNode('customDatabase')}
+                  className="rounded-lg h-9 font-semibold text-xs border border-border text-foreground hover:bg-muted"
+                >
+                  💾 Database
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAddNode('customDocument')}
+                  className="rounded-lg h-9 font-semibold text-xs border border-border text-foreground hover:bg-muted"
+                >
+                  📄 Doc
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAddNode('customOutput')}
+                  className="rounded-lg h-9 font-semibold text-xs border border-border text-foreground hover:bg-muted"
+                >
+                  🛑 End
                 </Button>
 
                 <div className="w-px h-6 bg-border mx-2" />
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDeleteSelected}
+                  className="rounded-lg h-9 font-semibold text-xs border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-950 dark:hover:bg-red-950/20"
+                >
+                  Delete Selected
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearCanvas}
+                  className="rounded-lg h-9 font-semibold text-xs border border-border text-foreground hover:bg-muted"
+                >
+                  Clear All
+                </Button>
 
                 <Button
                   onClick={handleSaveBoard}
@@ -392,6 +745,7 @@ export default function WhiteboardPage() {
               <ReactFlow
                 nodes={nodes}
                 edges={edges}
+                nodeTypes={nodeTypes}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}

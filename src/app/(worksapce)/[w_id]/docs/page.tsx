@@ -140,7 +140,7 @@ export default function DocsPage() {
         workspaceId,
         data: {
           name: newDocName.trim(),
-          space: newDocSpaceId,
+          spaceId: newDocSpaceId,
           content: { body: '# ' + newDocName.trim() + '\n\nStart writing here...' }
         }
       });

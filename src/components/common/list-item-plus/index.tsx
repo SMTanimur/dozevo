@@ -31,7 +31,7 @@ export const ListItemPlus = ({ itemPlusType, space }: ListItemPlusProps) => {
         workspaceId: space.workspace,
         data: {
           name: 'New Document',
-          space: space._id,
+          spaceId: space._id,
           content: { body: '# New Document\n\nStart writing wiki notes here...' }
         }
       });
@@ -50,7 +50,7 @@ export const ListItemPlus = ({ itemPlusType, space }: ListItemPlusProps) => {
         workspaceId: space.workspace,
         data: {
           name: 'New Whiteboard',
-          space: space._id,
+          spaceId: space._id,
           data: {
             nodes: [
               { id: '1', position: { x: 250, y: 150 }, data: { label: 'Start Node' }, type: 'input' }

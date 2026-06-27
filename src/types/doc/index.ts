@@ -4,7 +4,9 @@ export interface IDoc {
   name: string;
   workspace: string; // Workspace ID as string
   space: string; // Space ID as string
+  spaceId?: string; // DTO creation helper
   list?: string; // List ID as string (optional)
+  listId?: string; // DTO creation helper
   content?: Record<string, unknown> | null;
   createdAt: string; // ISO Date string
   updatedAt: string; // ISO Date string
