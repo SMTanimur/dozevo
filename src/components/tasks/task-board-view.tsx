@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import {
@@ -446,13 +447,9 @@ export default function TaskBoardView({
           onDragEnd={handleDragEnd}
         >
           <div className='flex items-start gap-6 h-full min-h-[600px]'>
-            <AnimatePresence>
               {statuses.map((status, columnIndex) => (
-                <motion.div
+                <div
                   key={status._id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: columnIndex * 0.1 }}
                   className='min-w-[320px] max-w-[360px]'
                 >
                   <Droppable
@@ -515,42 +512,47 @@ export default function TaskBoardView({
 
                         {/* Tasks Container */}
                         <div className='flex-1 overflow-auto p-3 space-y-3 min-h-[400px]'>
-                          <AnimatePresence mode='popLayout'>
-                            {(
-                              localTasksByStatus[status._id as string] || []
-                            ).map((task, index) => (
+                          {(
+                            localTasksByStatus[status._id as string] || []
+                          ).map((task, index) => (
                               <Draggable
                                 key={task._id}
                                 draggableId={task._id}
                                 index={index}
                               >
-                                {(provided, snapshot) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    style={{
-                                      ...provided.draggableProps.style,
-                                    }}
-                                    className={cn(
-                                      'group relative select-none rounded-xl mb-3 outline-none',
-                                      !snapshot.isDragging && 'transition-all duration-200',
-                                      snapshot.isDragging && 'z-50 shadow-2xl scale-[1.03] rotate-[0.5deg]'
-                                    )}
-                                  >
-                                    <TaskCard
-                                      task={task}
-                                      mutationParams={{
-                                        workspaceId,
-                                        spaceId,
-                                        listId,
+                                {(provided, snapshot) => {
+                                  const cardElement = (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      style={{
+                                        ...provided.draggableProps.style,
                                       }}
-                                    />
-                                  </div>
-                                )}
+                                      className={cn(
+                                        'group relative select-none rounded-xl mb-3 outline-none',
+                                        !snapshot.isDragging && 'transition-all duration-200',
+                                        snapshot.isDragging && 'z-50 shadow-2xl scale-[1.03] rotate-[0.5deg]'
+                                      )}
+                                    >
+                                      <TaskCard
+                                        task={task}
+                                        mutationParams={{
+                                          workspaceId,
+                                          spaceId,
+                                          listId,
+                                        }}
+                                      />
+                                    </div>
+                                  );
+
+                                  if (snapshot.isDragging && typeof window !== 'undefined') {
+                                    return ReactDOM.createPortal(cardElement, document.body);
+                                  }
+                                  return cardElement;
+                                }}
                               </Draggable>
                             ))}
-                          </AnimatePresence>
                           {provided.placeholder}
                         </div>
 
@@ -571,15 +573,11 @@ export default function TaskBoardView({
                       </div>
                     )}
                   </Droppable>
-                </motion.div>
+                </div>
               ))}
-            </AnimatePresence>
 
             {/* Add Column Button */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: statuses.length * 0.1 }}
+            <div
               className='flex-shrink-0 w-[280px]'
             >
               <Button
@@ -590,7 +588,7 @@ export default function TaskBoardView({
                 <Plus className='h-4 w-4 mr-2' />
                 <span className='font-medium'>Add Status Group</span>
               </Button>
-            </motion.div>
+            </div>
           </div>
         </DragDropContext>
       </div>
