@@ -18,8 +18,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useGetLists } from '@/hooks/list';
+import { useGetLists, useListMutations } from '@/hooks/list';
 import { useGetOverview, useGetSpace, useSpaceMutations } from '@/hooks/space';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { FileText, MoreHorizontal } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import React, { useState, useMemo, useEffect } from 'react';
@@ -50,6 +57,27 @@ const SpaceScreen = () => {
   const { data: lists = [] } = useGetLists(w_id as string, space_id as string, {
     enabled: !!w_id && !!space_id,
   });
+
+  // List mutations and creation state
+  const { createList, isCreatingList } = useListMutations();
+  const [isAddListOpen, setIsAddListOpen] = useState(false);
+  const [newListName, setNewListName] = useState('');
+
+  const handleCreateList = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newListName.trim()) return;
+
+    createList({
+      workspaceId: w_id as string,
+      data: {
+        name: newListName.trim(),
+        space: space_id as string,
+        private: false,
+      },
+    });
+    setNewListName('');
+    setIsAddListOpen(false);
+  };
 
   // Initialize space name when data is loaded
   useEffect(() => {
@@ -182,7 +210,12 @@ const SpaceScreen = () => {
           )}
           <MoreHorizontal className='h-5 w-5 text-gray-500' />
         </div>
-        <Button className='bg-pink-500 hover:bg-pink-600'>Add card</Button>
+        <Button
+          onClick={() => setIsAddListOpen(true)}
+          className='bg-primary hover:bg-primary/95 text-primary-foreground font-semibold rounded-lg px-4 h-9 shadow-sm transition-all'
+        >
+          Create List
+        </Button>
       </header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className='flex-1'>
@@ -460,6 +493,51 @@ const SpaceScreen = () => {
           </TabsContent>
         </ScrollArea>
       </Tabs>
+
+      {/* Create List Dialog */}
+      <Dialog open={isAddListOpen} onOpenChange={setIsAddListOpen}>
+        <DialogContent className="sm:max-w-[400px] rounded-2xl p-6 bg-card border border-border shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-foreground">
+              Create New List
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateList} className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="list-name" className="text-sm font-semibold">
+                List Name
+              </Label>
+              <Input
+                id="list-name"
+                type="text"
+                placeholder="Enter list name..."
+                value={newListName}
+                onChange={e => setNewListName(e.target.value)}
+                autoFocus
+                className="w-full h-10 px-3 rounded-lg border border-border focus:ring-1 focus:ring-primary focus:border-primary"
+                required
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-4 border-t border-border">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsAddListOpen(false)}
+                className="rounded-lg px-4"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isCreatingList}
+                className="rounded-lg px-5 bg-primary hover:bg-primary/95 text-primary-foreground font-semibold shadow-md shadow-primary/20"
+              >
+                {isCreatingList ? 'Creating...' : 'Create'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

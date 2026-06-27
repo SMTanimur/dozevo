@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,8 @@ import {
 import { ITask, IStatusDefinition } from '@/types';
 import { useGetTasks, useTaskMutations } from '@/hooks/task';
 import { useGetStatuses } from '@/hooks/list';
+import { useCreateStatus } from '@/hooks/list/useStatusMutations';
+import { useGetWorkspace } from '@/hooks/workspace';
 import TaskCard from './task-card'; // Import TaskCard
 import { TCreateTask } from '@/validations';
 import { cn } from '@/lib';
@@ -36,6 +38,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { UserAvatar } from '../ui';
 
 // Assume workspaceId, spaceId, and listId are passed as props or derived from context
 interface TaskBoardViewProps {
@@ -58,8 +72,19 @@ export default function TaskBoardView({
   // State for filters
   const [searchTerm, setSearchTerm] = useState('');
   const [showArchived, setShowArchived] = useState(false);
+  const [selectedAssigneeFilter, setSelectedAssigneeFilter] = useState<string | null>(null);
 
-  const filtersApplied = searchTerm !== '' || showArchived;
+  // State for sorting
+  const [sortBy, setSortBy] = useState<'name' | 'due_date' | 'priority' | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  // State for adding status
+  const [isAddStatusOpen, setIsAddStatusOpen] = useState(false);
+  const [newStatusName, setNewStatusName] = useState('');
+  const [newStatusColor, setNewStatusColor] = useState('#3b82f6'); // default blue
+  const [assigneeSearch, setAssigneeSearch] = useState('');
+
+  const filtersApplied = searchTerm !== '' || showArchived || selectedAssigneeFilter !== null || sortBy !== null;
 
   // Fetch tasks and statuses
   const { data: tasksResponse, isLoading: isLoadingTasks } = useGetTasks({
@@ -78,23 +103,70 @@ export default function TaskBoardView({
     spaceId,
     listId,
   });
+
+  const { data: workspace } = useGetWorkspace(workspaceId, {
+    enabled: !!workspaceId,
+  });
+
+  const { mutateAsync: createStatusAsync } = useCreateStatus();
+
   const { updateTask, createTask, reorderTasks } = useTaskMutations();
 
   // Local state for tasks grouped by status
   const [localTasksByStatus, setLocalTasksByStatus] =
     useState<TasksByStatusMap>({});
 
-  // Effect to initialize and sync local state with fetched data
+  // Workspace members filtered by search term
+  const workspaceMembers = useMemo(() => {
+    if (!workspace?.members) return [];
+    return workspace.members.filter(m => {
+      if (!m?.user) return false;
+      const fullName = `${m.user.firstName || ''} ${m.user.lastName || ''}`.toLowerCase();
+      return fullName.includes(assigneeSearch.toLowerCase());
+    });
+  }, [workspace, assigneeSearch]);
+
+  // Effect to initialize, filter, sort, and sync local state with fetched data
   useEffect(() => {
     if (tasks && statuses.length > 0) {
+      // 1. Filter tasks locally by assignee
+      const filteredTasks = tasks.filter(task => {
+        if (!selectedAssigneeFilter) return true;
+        return task.assignees?.some(a => a._id === selectedAssigneeFilter);
+      });
+
+      // 2. Sort tasks locally
+      const sortedTasks = [...filteredTasks].sort((a, b) => {
+        if (!sortBy) return 0;
+        let comparison = 0;
+        if (sortBy === 'name') {
+          comparison = a.name.localeCompare(b.name);
+        } else if (sortBy === 'due_date') {
+          const dateA = a.due_date ? new Date(a.due_date).getTime() : 0;
+          const dateB = b.due_date ? new Date(b.due_date).getTime() : 0;
+          comparison = dateA - dateB;
+        } else if (sortBy === 'priority') {
+          const getPriorityWeight = (p: string) => {
+            if (p === 'low') return 1;
+            if (p === 'normal') return 2;
+            if (p === 'high') return 3;
+            if (p === 'critical') return 4;
+            return 0;
+          };
+          comparison = getPriorityWeight(a.priority) - getPriorityWeight(b.priority);
+        }
+        return sortOrder === 'asc' ? comparison : -comparison;
+      });
+
+      // 3. Group by status
       const newTasksByStatus = statuses.reduce((acc, status) => {
         const statusId = status._id as string;
-        acc[statusId] = tasks.filter(task => task.status?._id === statusId);
+        acc[statusId] = sortedTasks.filter(task => task.status?._id === statusId);
         return acc;
       }, {} as TasksByStatusMap);
       setLocalTasksByStatus(newTasksByStatus);
     }
-  }, [tasks, statuses]);
+  }, [tasks, statuses, selectedAssigneeFilter, sortBy, sortOrder]);
 
   const handleAddTask = async (status: IStatusDefinition) => {
     const newTask: TCreateTask = {
@@ -110,6 +182,31 @@ export default function TaskBoardView({
       });
     } catch (error) {
       console.error('Failed to create task:', error);
+    }
+  };
+
+  const handleCreateStatus = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newStatusName.trim()) return;
+
+    try {
+      await createStatusAsync({
+        workspaceId,
+        spaceId,
+        listId,
+        data: {
+          status: newStatusName.trim(),
+          color: newStatusColor,
+          listId: listId,
+          orderIndex: statuses.length, // satisfies NestJS class-validator DTO
+          orderindex: statuses.length, // satisfies Mongoose database schema
+          type: 'custom',
+        } as any,
+      });
+      setNewStatusName('');
+      setIsAddStatusOpen(false);
+    } catch (error) {
+      console.error('Failed to create status:', error);
     }
   };
 
@@ -323,90 +420,144 @@ export default function TaskBoardView({
             <Sparkles className='h-4 w-4 text-primary-foreground' />
           </motion.div>
           <div className='flex items-center gap-2'>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    className='flex items-center gap-2 h-9 rounded-lg'
-                  >
-                    <span className='text-sm font-medium'>Group: Status</span>
-                    <ChevronDown className='h-3.5 w-3.5' />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Group by status</TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    className='flex items-center gap-2 h-9 rounded-lg'
-                  >
-                    <span className='text-sm font-medium'>Subtasks</span>
-                    <ChevronDown className='h-3.5 w-3.5' />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Show/hide subtasks</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <span className='text-xs font-semibold text-muted-foreground bg-muted px-2.5 py-1 rounded-full uppercase tracking-wider'>
+              Group: Status
+            </span>
           </div>
         </div>
 
         <div className='flex items-center gap-2'>
           <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
+            {/* Sort Popover */}
+            <Popover>
+              <PopoverTrigger asChild>
                 <Button
-                  variant={filtersApplied ? 'default' : 'outline'}
+                  variant={sortBy ? 'default' : 'outline'}
                   size='sm'
                   className={cn(
                     'flex items-center gap-2 h-9 rounded-lg',
-                    filtersApplied &&
-                      'bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30'
+                    sortBy && 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20'
                   )}
-                >
-                  <Filter className='h-3.5 w-3.5' />
-                  <span className='text-sm font-medium'>Filter</span>
-                  {filtersApplied && (
-                    <span className='ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground/20 rounded'>
-                      1
-                    </span>
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Filter tasks</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  className='flex items-center gap-2 h-9 rounded-lg'
                 >
                   <ArrowUpDown className='h-3.5 w-3.5' />
-                  <span className='text-sm font-medium'>Sort</span>
+                  <span className='text-sm font-medium'>
+                    {sortBy ? `Sort: ${sortBy === 'due_date' ? 'Due Date' : sortBy === 'priority' ? 'Priority' : 'Name'}` : 'Sort'}
+                  </span>
                 </Button>
-              </TooltipTrigger>
-              <TooltipContent>Sort tasks</TooltipContent>
-            </Tooltip>
+              </PopoverTrigger>
+              <PopoverContent className='w-48 p-1 bg-card border border-border shadow-lg rounded-xl overflow-hidden'>
+                <div className='p-1.5 text-xs font-semibold text-muted-foreground border-b border-border'>
+                  Sort Tasks By
+                </div>
+                <div className='space-y-1 p-1'>
+                  {[
+                    { id: 'name', label: 'Task Name' },
+                    { id: 'due_date', label: 'Due Date' },
+                    { id: 'priority', label: 'Priority Level' },
+                  ].map(option => (
+                    <button
+                      key={option.id}
+                      onClick={() => {
+                        if (sortBy === option.id) {
+                          setSortOrder(o => o === 'asc' ? 'desc' : 'asc');
+                        } else {
+                          setSortBy(option.id as any);
+                          setSortOrder('asc');
+                        }
+                      }}
+                      className='w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left text-xs font-medium hover:bg-muted transition-colors cursor-pointer text-foreground'
+                    >
+                      <span>{option.label}</span>
+                      {sortBy === option.id && (
+                        <span className='text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold uppercase'>
+                          {sortOrder}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                  {sortBy && (
+                    <button
+                      onClick={() => {
+                        setSortBy(null);
+                      }}
+                      className='w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-left text-xs font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer border-t border-border mt-1 pt-1.5'
+                    >
+                      Clear Sort
+                    </button>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
+            {/* Assignee Filter Popover */}
+            <Popover>
+              <PopoverTrigger asChild>
                 <Button
-                  variant='outline'
+                  variant={selectedAssigneeFilter ? 'default' : 'outline'}
                   size='sm'
-                  className='flex items-center gap-2 h-9 rounded-lg'
+                  className={cn(
+                    'flex items-center gap-2 h-9 rounded-lg',
+                    selectedAssigneeFilter && 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20'
+                  )}
                 >
                   <User className='h-3.5 w-3.5' />
-                  <span className='text-sm font-medium'>Assignee</span>
+                  <span className='text-sm font-medium'>
+                    {selectedAssigneeFilter
+                      ? 'Assignee (1)'
+                      : 'Assignee'}
+                  </span>
                 </Button>
-              </TooltipTrigger>
-              <TooltipContent>Filter by assignee</TooltipContent>
-            </Tooltip>
+              </PopoverTrigger>
+              <PopoverContent className='w-60 p-0 bg-card border border-border shadow-lg rounded-xl overflow-hidden'>
+                <div className='p-2 border-b border-border bg-muted/20'>
+                  <Input
+                    placeholder='Filter by assignee...'
+                    className='text-xs h-8 focus-visible:ring-1 focus-visible:ring-primary'
+                    value={assigneeSearch}
+                    onChange={e => setAssigneeSearch(e.target.value)}
+                  />
+                </div>
+                <div className='max-h-48 overflow-y-auto p-1'>
+                  {workspaceMembers.length > 0 ? (
+                    workspaceMembers.map(member => (
+                      <button
+                        key={member.user._id}
+                        onClick={() => {
+                          if (selectedAssigneeFilter === member.user._id) {
+                            setSelectedAssigneeFilter(null);
+                          } else {
+                            setSelectedAssigneeFilter(member.user._id);
+                          }
+                        }}
+                        className='w-full flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg text-left text-xs font-medium hover:bg-muted transition-colors cursor-pointer text-foreground'
+                      >
+                        <div className='flex items-center gap-2 truncate'>
+                          <UserAvatar user={member.user} size='sm' />
+                          <span className='truncate'>
+                            {member.user.firstName} {member.user.lastName}
+                          </span>
+                        </div>
+                        {selectedAssigneeFilter === member.user._id && (
+                          <Check className='h-3.5 w-3.5 text-primary flex-shrink-0' />
+                        )}
+                      </button>
+                    ))
+                  ) : (
+                    <div className='p-4 text-center text-muted-foreground text-xs'>
+                      No members found
+                    </div>
+                  )}
+                  {selectedAssigneeFilter && (
+                    <button
+                      onClick={() => setSelectedAssigneeFilter(null)}
+                      className='w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-left text-xs font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer border-t border-border mt-1 pt-1.5'
+                    >
+                      Clear Filter
+                    </button>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
           </TooltipProvider>
 
           <div className='flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-background'>
@@ -583,6 +734,7 @@ export default function TaskBoardView({
               <Button
                 variant='outline'
                 size='sm'
+                onClick={() => setIsAddStatusOpen(true)}
                 className='w-full h-12 justify-start rounded-xl border-dashed border-2 hover:border-primary hover:bg-primary/5 transition-all'
               >
                 <Plus className='h-4 w-4 mr-2' />
@@ -592,6 +744,79 @@ export default function TaskBoardView({
           </div>
         </DragDropContext>
       </div>
+
+      {/* Create Status Group Dialog */}
+      <Dialog open={isAddStatusOpen} onOpenChange={setIsAddStatusOpen}>
+        <DialogContent className="sm:max-w-[400px] rounded-2xl p-6 bg-card border border-border shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-foreground">
+              Add Status Group
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateStatus} className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="status-name" className="text-sm font-semibold">
+                Status Name
+              </Label>
+              <Input
+                id="status-name"
+                type="text"
+                placeholder="e.g. In Review, Testing, On Hold"
+                value={newStatusName}
+                onChange={e => setNewStatusName(e.target.value)}
+                autoFocus
+                className="w-full h-10 px-3 rounded-lg border border-border focus:ring-1 focus:ring-primary focus:border-primary"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">
+                Status Color
+              </Label>
+              <div className="flex items-center gap-2 flex-wrap pt-1">
+                {[
+                  '#3b82f6', // Blue
+                  '#10b981', // Green
+                  '#f59e0b', // Amber/Orange
+                  '#ef4444', // Red
+                  '#8b5cf6', // Purple
+                  '#ec4899', // Pink
+                  '#6b7280', // Gray
+                ].map(color => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => setNewStatusColor(color)}
+                    className={cn(
+                      'w-8 h-8 rounded-full border-2 transition-all cursor-pointer',
+                      newStatusColor === color ? 'border-foreground scale-110' : 'border-transparent hover:scale-105'
+                    )}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-border">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsAddStatusOpen(false)}
+                className="rounded-lg px-4"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="rounded-lg px-5 bg-primary hover:bg-primary/95 text-primary-foreground font-semibold shadow-md shadow-primary/20"
+              >
+                Add Status
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-}
+};
