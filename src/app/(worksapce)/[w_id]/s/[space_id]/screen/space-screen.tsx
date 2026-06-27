@@ -169,7 +169,7 @@ const SpaceScreen = () => {
   };
 
   return (
-    <div className='flex flex-col h-[calc(100vh-4rem)] bg-background'>
+    <div className='flex flex-col h-full w-full overflow-hidden bg-background'>
       <header className='flex items-center justify-between p-4 border-b'>
         <div className='flex items-center gap-2'>
           {isEditingSpaceName ? (
@@ -218,7 +218,7 @@ const SpaceScreen = () => {
         </Button>
       </header>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className='flex-1'>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className='flex-1 flex flex-col min-h-0 overflow-hidden'>
         <div className='flex items-center border-b'>
           <TabsList className='h-12 bg-transparent border-b-0 p-0 ml-4'>
             <TabsTrigger
@@ -443,7 +443,7 @@ const SpaceScreen = () => {
           }
         `}} />
 
-        <ScrollArea className='h-[calc(100vh-12rem)] no-scrollbar'>
+        <ScrollArea className='flex-1 min-h-0 w-full no-scrollbar'>
           <TabsContent value='overview' className='flex-1 p-0 m-0'>
             <GridLayout pageId='overview' key={space_id as string}>
               {['docs', 'recent', 'workload', 'resources'].map(id => (

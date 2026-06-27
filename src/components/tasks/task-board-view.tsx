@@ -695,7 +695,7 @@ export default function TaskBoardView({
       </motion.div>
 
       {/* Board Content */}
-      <div className='flex-1 overflow-x-auto overflow-y-hidden p-6 no-scrollbar'>
+      <div className='flex-1 overflow-x-auto overflow-y-hidden p-6 custom-scrollbar pb-8'>
         {/* Custom scrollbars and styling */}
         <style dangerouslySetInnerHTML={{ __html: `
           .custom-scrollbar::-webkit-scrollbar {
@@ -703,15 +703,16 @@ export default function TaskBoardView({
             height: 6px;
           }
           .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
+            background: rgba(100, 116, 139, 0.05);
+            border-radius: 99px;
           }
           .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(100, 116, 139, 0.15);
+            background: rgba(100, 116, 139, 0.25);
             border-radius: 99px;
             border: 1px solid transparent;
           }
           .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(100, 116, 139, 0.3);
+            background: rgba(100, 116, 139, 0.45);
           }
           .no-scrollbar::-webkit-scrollbar {
             display: none;

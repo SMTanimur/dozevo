@@ -13,10 +13,12 @@ export default function NoteBookLayout({ children }: { children: ReactNode }) {
       <AppSidebar>
         <WorkspaceSidebar />
       </AppSidebar>
-      <main className='relative h-full max-w-full  flex-1 '>
+      <main className='relative h-screen max-w-full flex-1 flex flex-col overflow-hidden'>
         <Setting />
         <WorkspaceHeader />
-        {children}
+        <div className='flex-1 min-h-0 w-full overflow-hidden'>
+          {children}
+        </div>
       </main>
     </SidebarProvider>
   );
