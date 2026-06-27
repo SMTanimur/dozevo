@@ -22,29 +22,16 @@ const downloadDocx = async (
 ) => {
   setDownloading(true);
   try {
-    // Dynamically import to avoid SSR issues
-    const HTMLtoDOCX = (await import('html-to-docx')).default;
-
-    // Wrap content in a full HTML document for the converter
-    const fullHtml = `<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>${title}</title></head>
-<body>
-  <h1>${title}</h1>
-  ${html}
-</body>
-</html>`;
-
-    const docxBlob = await HTMLtoDOCX(fullHtml, undefined, {
-      table: { row: { cantSplit: true } },
-      footer: false,
-      pageNumber: false,
-      font: 'Calibri',
-      fontSize: 22,
-      margins: { top: 720, right: 900, bottom: 720, left: 900 },
+    const res = await fetch('/api/export-docx', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, html }),
     });
 
-    const url = URL.createObjectURL(docxBlob as Blob);
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'document'}.docx`;
@@ -59,6 +46,7 @@ const downloadDocx = async (
     setDownloading(false);
   }
 };
+
 
 export const DocsStatusBar = ({
   isDirty,
