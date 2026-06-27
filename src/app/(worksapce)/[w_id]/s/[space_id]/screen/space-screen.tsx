@@ -441,74 +441,99 @@ const SpaceScreen = () => {
             -ms-overflow-style: none !important;
             scrollbar-width: none !important;
           }
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(100, 116, 139, 0.02);
+            border-radius: 99px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(100, 116, 139, 0.2);
+            border-radius: 99px;
+            border: 1px solid transparent;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 116, 139, 0.35);
+          }
         `}} />
 
-        <ScrollArea className='flex-1 min-h-0 w-full no-scrollbar'>
-          <TabsContent value='overview' className='flex-1 p-0 m-0'>
-            <GridLayout pageId='overview' key={space_id as string}>
-              {['docs', 'recent', 'workload', 'resources'].map(id => (
-                <div key={id}>{renderCard(id)}</div>
-              ))}
-            </GridLayout>
-          </TabsContent>
-          <TabsContent value='board' className='flex-1 p-5'>
-            {lists.length > 0 ? (
-              <>
-                <div className='flex items-center gap-2 mb-4'>
-                  <span className='text-sm font-semibold text-muted-foreground'>List group:</span>
-                  <Select
-                    value={selectedBoardListId}
-                    onValueChange={setSelectedBoardListId}
-                  >
-                    <SelectTrigger className='w-[220px] h-9 rounded-lg bg-card border-border shadow-sm font-medium text-sm'>
-                      <SelectValue placeholder='Select a list' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {lists.map(list => (
-                        <SelectItem key={list._id} value={list._id}>
-                          {list.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+        <TabsContent value='overview' className='flex-1 p-0 m-0 overflow-hidden'>
+          <ScrollArea className='h-full w-full custom-scrollbar'>
+            <div className='p-6'>
+              <GridLayout pageId='overview' key={space_id as string}>
+                {['docs', 'recent', 'workload', 'resources'].map(id => (
+                  <div key={id}>{renderCard(id)}</div>
+                ))}
+              </GridLayout>
+            </div>
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value='board' className='flex-1 flex flex-col min-h-0 p-5 overflow-hidden data-[state=inactive]:hidden'>
+          {lists.length > 0 ? (
+            <>
+              <div className='flex items-center gap-2 mb-4 flex-shrink-0'>
+                <span className='text-sm font-semibold text-muted-foreground'>List group:</span>
+                <Select
+                  value={selectedBoardListId}
+                  onValueChange={setSelectedBoardListId}
+                >
+                  <SelectTrigger className='w-[220px] h-9 rounded-lg bg-card border-border shadow-sm font-medium text-sm'>
+                    <SelectValue placeholder='Select a list' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {lists.map(list => (
+                      <SelectItem key={list._id} value={list._id}>
+                        {list.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <TaskBoardView
+                workspaceId={w_id as string}
+                spaceId={space_id as string}
+                listId={selectedBoardListId}
+              />
+            </>
+          ) : (
+            <div className='p-8 text-gray-400 text-center flex-shrink-0'>
+              No lists found.
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value='list' className='flex-1 p-0 m-0 overflow-hidden data-[state=inactive]:hidden'>
+          <ScrollArea className='h-full w-full custom-scrollbar'>
+            <div className='p-5 space-y-4'>
+              {lists.length > 0 ? (
+                lists.map(list => (
+                  <ListCard key={list._id} list={list} defaultExpanded>
+                    <ListGroupedStatus
+                      list={list}
+                      tasks={tasksByList[list._id] || []}
+                    />
+                  </ListCard>
+                ))
+              ) : (
+                <div className='p-8 text-gray-400 text-center'>
+                  No lists found.
                 </div>
-                <TaskBoardView
-                  workspaceId={w_id as string}
-                  spaceId={space_id as string}
-                  listId={selectedBoardListId}
-                />
-              </>
-            ) : (
-              <div className='p-8 text-gray-400 text-center'>
-                No lists found.
-              </div>
-            )}
-          </TabsContent>
-          <TabsContent value='list' className='flex-1 p-5'>
-            {lists.length > 0 ? (
-              lists.map(list => (
-                <ListCard key={list._id} list={list} defaultExpanded>
-                  <ListGroupedStatus
-                    list={list}
-                    tasks={tasksByList[list._id] || []}
-                  />
-                </ListCard>
-              ))
-            ) : (
-              <div className='p-8 text-gray-400 text-center'>
-                No lists found.
-              </div>
-            )}
-          </TabsContent>
-          <TabsContent value='calendar' className='flex-1 p-0 m-0 h-full'>
-            <TaskCalendarView
-              workspaceId={w_id as string}
-              spaceId={space_id as string}
-              tasks={allTasksData?.data || []}
-              lists={lists}
-            />
-          </TabsContent>
-        </ScrollArea>
+              )}
+            </div>
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value='calendar' className='flex-1 p-0 m-0 h-full overflow-hidden data-[state=inactive]:hidden'>
+          <TaskCalendarView
+            workspaceId={w_id as string}
+            spaceId={space_id as string}
+            tasks={allTasksData?.data || []}
+            lists={lists}
+          />
+        </TabsContent>
       </Tabs>
 
       {/* Create List Dialog */}

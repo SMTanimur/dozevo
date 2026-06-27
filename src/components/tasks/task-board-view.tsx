@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import {
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Plus,
   MoreHorizontal,
   Search,
@@ -87,6 +89,7 @@ export default function TaskBoardView({
 
   const filtersApplied = searchTerm !== '' || showArchived || selectedAssigneeFilter !== null || sortBy !== null;
 
+
   // Fetch tasks and statuses
   const { data: tasksResponse, isLoading: isLoadingTasks } = useGetTasks({
     listId: listId,
@@ -127,6 +130,47 @@ export default function TaskBoardView({
   // Local state for tasks grouped by status
   const [localTasksByStatus, setLocalTasksByStatus] =
     useState<TasksByStatusMap>({});
+
+  // Ref and helper for horizontal board scrolling
+  const boardRef = React.useRef<HTMLDivElement>(null);
+  const [showScrollLeft, setShowScrollLeft] = useState(false);
+  const [showScrollRight, setShowScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    if (boardRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = boardRef.current;
+      setShowScrollLeft(scrollLeft > 10);
+      setShowScrollRight(scrollWidth - scrollLeft - clientWidth > 10);
+    }
+  };
+
+  useEffect(() => {
+    const boardEl = boardRef.current;
+    if (boardEl) {
+      boardEl.addEventListener('scroll', checkScroll);
+      // Initial check and resize check
+      checkScroll();
+      window.addEventListener('resize', checkScroll);
+      
+      const timer = setTimeout(checkScroll, 500);
+
+      return () => {
+        boardEl.removeEventListener('scroll', checkScroll);
+        window.removeEventListener('resize', checkScroll);
+        clearTimeout(timer);
+      };
+    }
+  }, [localStatuses, tasks]);
+
+  const scrollBoard = (direction: 'left' | 'right') => {
+    if (boardRef.current) {
+      const scrollAmount = 346; // width of a column (320px) + gap (24px)
+      boardRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   // Workspace members filtered by search term
   const workspaceMembers = useMemo(() => {
@@ -694,34 +738,66 @@ export default function TaskBoardView({
         </div>
       </motion.div>
 
-      {/* Board Content */}
-      <div className='flex-1 overflow-x-auto overflow-y-hidden p-6 custom-scrollbar pb-8'>
-        {/* Custom scrollbars and styling */}
-        <style dangerouslySetInnerHTML={{ __html: `
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(100, 116, 139, 0.05);
-            border-radius: 99px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(100, 116, 139, 0.25);
-            border-radius: 99px;
-            border: 1px solid transparent;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(100, 116, 139, 0.45);
-          }
-          .no-scrollbar::-webkit-scrollbar {
-            display: none;
-          }
-          .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
-        `}} />
+      {/* Board Content Wrapper */}
+      <div className='relative flex-1 overflow-hidden flex flex-col'>
+        <AnimatePresence>
+          {showScrollLeft && (
+            <motion.button
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              onClick={() => scrollBoard('left')}
+              className='absolute left-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-background/90 hover:bg-background border border-border shadow-xl hover:shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all text-muted-foreground hover:text-foreground cursor-pointer'
+              title="Scroll left"
+            >
+              <ChevronLeft className='h-5 w-5' />
+            </motion.button>
+          )}
+
+          {showScrollRight && (
+            <motion.button
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              onClick={() => scrollBoard('right')}
+              className='absolute right-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-background/90 hover:bg-background border border-border shadow-xl hover:shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all text-muted-foreground hover:text-foreground cursor-pointer'
+              title="Scroll right"
+            >
+              <ChevronRight className='h-5 w-5' />
+            </motion.button>
+          )}
+        </AnimatePresence>
+
+        <div
+          ref={boardRef}
+          className='flex-1 overflow-x-auto overflow-y-hidden p-6 custom-scrollbar pb-8'
+        >
+          {/* Custom scrollbars and styling */}
+          <style dangerouslySetInnerHTML={{ __html: `
+            .custom-scrollbar::-webkit-scrollbar {
+              width: 6px;
+              height: 6px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+              background: rgba(100, 116, 139, 0.05);
+              border-radius: 99px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+              background: rgba(100, 116, 139, 0.25);
+              border-radius: 99px;
+              border: 1px solid transparent;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+              background: rgba(100, 116, 139, 0.45);
+            }
+            .no-scrollbar::-webkit-scrollbar {
+              display: none;
+            }
+            .no-scrollbar {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+          `}} />
 
         <DragDropContext
           onDragStart={handleDragStart}
@@ -732,7 +808,7 @@ export default function TaskBoardView({
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className='flex items-start gap-6 h-full min-h-[600px]'
+                className='flex items-start gap-6 h-full min-h-0'
               >
                 {localStatuses.map((status, columnIndex) => (
                   <Draggable
@@ -841,7 +917,7 @@ export default function TaskBoardView({
                               ref={providedDroppableZone.innerRef}
                               {...providedDroppableZone.droppableProps}
                               className={cn(
-                                'flex-1 overflow-y-auto p-3 space-y-3 min-h-[400px] custom-scrollbar pr-1.5 transition-colors duration-200',
+                                'flex-1 overflow-y-auto p-3 space-y-3 min-h-0 custom-scrollbar pr-1.5 transition-colors duration-200',
                                 snapshotDroppableZone.isDraggingOver && 'bg-primary/5'
                               )}
                             >
@@ -929,6 +1005,7 @@ export default function TaskBoardView({
             )}
           </Droppable>
         </DragDropContext>
+      </div>
       </div>
 
       {/* Create Status Group Dialog */}
