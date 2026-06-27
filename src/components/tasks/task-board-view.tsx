@@ -14,6 +14,7 @@ import {
   User,
   Sparkles,
   GripVertical,
+  Check,
 } from 'lucide-react';
 import {
   DragDropContext,
@@ -24,7 +25,7 @@ import {
 import { ITask, IStatusDefinition } from '@/types';
 import { useGetTasks, useTaskMutations } from '@/hooks/task';
 import { useGetStatuses } from '@/hooks/list';
-import { useCreateStatus } from '@/hooks/list/useStatusMutations';
+import { useCreateStatus, useUpdateStatus, useDeleteStatus } from '@/hooks/list/useStatusMutations';
 import { useGetWorkspace } from '@/hooks/workspace';
 import TaskCard from './task-card'; // Import TaskCard
 import { TCreateTask } from '@/validations';
@@ -109,8 +110,19 @@ export default function TaskBoardView({
   });
 
   const { mutateAsync: createStatusAsync } = useCreateStatus();
+  const { mutateAsync: updateStatusAsync } = useUpdateStatus();
+  const { mutateAsync: deleteStatusAsync } = useDeleteStatus();
 
   const { updateTask, createTask, reorderTasks } = useTaskMutations();
+
+  // Local state for statuses (for instant drag-and-drop reordering)
+  const [localStatuses, setLocalStatuses] = useState<IStatusDefinition[]>([]);
+
+  useEffect(() => {
+    if (statuses) {
+      setLocalStatuses(statuses);
+    }
+  }, [statuses]);
 
   // Local state for tasks grouped by status
   const [localTasksByStatus, setLocalTasksByStatus] =
@@ -128,7 +140,7 @@ export default function TaskBoardView({
 
   // Effect to initialize, filter, sort, and sync local state with fetched data
   useEffect(() => {
-    if (tasks && statuses.length > 0) {
+    if (tasks && localStatuses.length > 0) {
       // 1. Filter tasks locally by assignee
       const filteredTasks = tasks.filter(task => {
         if (!selectedAssigneeFilter) return true;
@@ -159,14 +171,14 @@ export default function TaskBoardView({
       });
 
       // 3. Group by status
-      const newTasksByStatus = statuses.reduce((acc, status) => {
+      const newTasksByStatus = localStatuses.reduce((acc, status) => {
         const statusId = status._id as string;
         acc[statusId] = sortedTasks.filter(task => task.status?._id === statusId);
         return acc;
       }, {} as TasksByStatusMap);
       setLocalTasksByStatus(newTasksByStatus);
     }
-  }, [tasks, statuses, selectedAssigneeFilter, sortBy, sortOrder]);
+  }, [tasks, localStatuses, selectedAssigneeFilter, sortBy, sortOrder]);
 
   const handleAddTask = async (status: IStatusDefinition) => {
     const newTask: TCreateTask = {
@@ -210,16 +222,107 @@ export default function TaskBoardView({
     }
   };
 
+  const handleMoveStatus = async (statusId: string, direction: 'left' | 'right') => {
+    const currentIndex = statuses.findIndex(s => s._id === statusId);
+    if (currentIndex === -1) return;
+
+    const targetIndex = direction === 'left' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= statuses.length) return;
+
+    const currentStatus = statuses[currentIndex];
+    const targetStatus = statuses[targetIndex];
+
+    const currentOrder = currentStatus.orderindex ?? currentIndex;
+    const targetOrder = targetStatus.orderindex ?? targetIndex;
+
+    try {
+      await Promise.all([
+        updateStatusAsync({
+          workspaceId,
+          spaceId,
+          listId,
+          statusId: currentStatus._id as string,
+          data: {
+            orderIndex: targetOrder,
+            orderindex: targetOrder,
+          } as any,
+        }),
+        updateStatusAsync({
+          workspaceId,
+          spaceId,
+          listId,
+          statusId: targetStatus._id as string,
+          data: {
+            orderIndex: currentOrder,
+            orderindex: currentOrder,
+          } as any,
+        }),
+      ]);
+    } catch (error) {
+      console.error('Failed to reorder statuses:', error);
+    }
+  };
+
+  const handleDeleteStatus = async (statusId: string) => {
+    try {
+      await deleteStatusAsync({
+        workspaceId,
+        spaceId,
+        listId,
+        statusId,
+      });
+    } catch (error) {
+      console.error('Failed to delete status:', error);
+    }
+  };
+
   const handleDragStart = (result: { draggableId: string }) => {
     console.log('Drag started:', result.draggableId);
   };
 
   const handleDragEnd = async (result: DropResult) => {
-    const { destination, source, draggableId } = result;
+    const { destination, source, draggableId, type } = result;
 
     // 1. Basic validation and exit conditions
     if (!destination) {
       // If dropped outside a valid drop zone, do nothing
+      return;
+    }
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      // If dropped in the same position, do nothing
+      return;
+    }
+
+    // Handle column reordering
+    if (type === 'COLUMN') {
+      const reorderedStatuses = Array.from(localStatuses);
+      const [removed] = reorderedStatuses.splice(source.index, 1);
+      reorderedStatuses.splice(destination.index, 0, removed);
+      setLocalStatuses(reorderedStatuses);
+
+      try {
+        await Promise.all(
+          reorderedStatuses.map((status, index) =>
+            updateStatusAsync({
+              workspaceId,
+              spaceId,
+              listId,
+              statusId: status._id as string,
+              data: {
+                orderIndex: index,
+                orderindex: index,
+              } as any,
+            })
+          )
+        );
+      } catch (error) {
+        console.error('Failed to save columns order:', error);
+        // revert local state on error
+        setLocalStatuses(statuses);
+      }
       return;
     }
     if (
@@ -521,23 +624,23 @@ export default function TaskBoardView({
                   {workspaceMembers.length > 0 ? (
                     workspaceMembers.map(member => (
                       <button
-                        key={member.user._id}
+                        key={(member.user as any)._id}
                         onClick={() => {
-                          if (selectedAssigneeFilter === member.user._id) {
+                          if (selectedAssigneeFilter === (member.user as any)._id) {
                             setSelectedAssigneeFilter(null);
                           } else {
-                            setSelectedAssigneeFilter(member.user._id);
+                            setSelectedAssigneeFilter((member.user as any)._id);
                           }
                         }}
                         className='w-full flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg text-left text-xs font-medium hover:bg-muted transition-colors cursor-pointer text-foreground'
                       >
                         <div className='flex items-center gap-2 truncate'>
-                          <UserAvatar user={member.user} size='sm' />
+                          <UserAvatar user={member.user as any} size='sm' />
                           <span className='truncate'>
                             {member.user.firstName} {member.user.lastName}
                           </span>
                         </div>
-                        {selectedAssigneeFilter === member.user._id && (
+                        {selectedAssigneeFilter === (member.user as any)._id && (
                           <Check className='h-3.5 w-3.5 text-primary flex-shrink-0' />
                         )}
                       </button>
@@ -592,34 +695,66 @@ export default function TaskBoardView({
       </motion.div>
 
       {/* Board Content */}
-      <div className='flex-1 overflow-auto p-6'>
+      <div className='flex-1 overflow-x-auto overflow-y-hidden p-6 no-scrollbar'>
+        {/* Custom scrollbars and styling */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(100, 116, 139, 0.15);
+            border-radius: 99px;
+            border: 1px solid transparent;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 116, 139, 0.3);
+          }
+          .no-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+          .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}} />
+
         <DragDropContext
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className='flex items-start gap-6 h-full min-h-[600px]'>
-              {statuses.map((status, columnIndex) => (
-                <div
-                  key={status._id}
-                  className='min-w-[320px] max-w-[360px]'
-                >
-                  <Droppable
-                    droppableId={status._id as string}
+          <Droppable droppableId="board" type="COLUMN" direction="horizontal">
+            {(provided) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className='flex items-start gap-6 h-full min-h-[600px]'
+              >
+                {localStatuses.map((status, columnIndex) => (
+                  <Draggable
                     key={status._id}
+                    draggableId={status._id as string}
+                    index={columnIndex}
                   >
-                    {(provided, snapshot) => (
+                    {(providedDraggable, snapshotDraggable) => (
                       <div
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
+                        ref={providedDraggable.innerRef}
+                        {...providedDraggable.draggableProps}
                         className={cn(
-                          'flex flex-col h-full rounded-2xl border transition-all duration-300 bg-card/80 backdrop-blur-sm',
-                          snapshot.isDraggingOver
-                            ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20 ring-2 ring-primary/30'
+                          'min-w-[320px] max-w-[360px] flex flex-col h-full rounded-2xl border transition-shadow duration-300 bg-card/80 backdrop-blur-sm',
+                          snapshotDraggable.isDragging
+                            ? 'shadow-2xl border-primary ring-2 ring-primary/20 scale-[1.01]'
                             : 'border-border shadow-md hover:shadow-xl hover:shadow-primary/10'
                         )}
                       >
-                        {/* Column Header */}
-                        <div className='flex items-center justify-between p-4 border-b border-border'>
+                        {/* Column Header (acts as drag handle) */}
+                        <div
+                          {...providedDraggable.dragHandleProps}
+                          className='flex items-center justify-between p-4 border-b border-border cursor-grab active:cursor-grabbing select-none'
+                        >
                           <div className='flex items-center gap-3 flex-1'>
                             <motion.div
                               className='w-2.5 h-2.5 rounded-full shadow-lg'
@@ -652,60 +787,108 @@ export default function TaskBoardView({
                                 ?.length || 0}
                             </motion.span>
                           </div>
-                          <Button
-                            variant='ghost'
-                            size='icon'
-                            className='h-8 w-8 rounded-lg'
-                          >
-                            <MoreHorizontal className='h-4 w-4' />
-                          </Button>
-                        </div>
-
-                        {/* Tasks Container */}
-                        <div className='flex-1 overflow-auto p-3 space-y-3 min-h-[400px]'>
-                          {(
-                            localTasksByStatus[status._id as string] || []
-                          ).map((task, index) => (
-                              <Draggable
-                                key={task._id}
-                                draggableId={task._id}
-                                index={index}
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant='ghost'
+                                size='icon'
+                                className='h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground'
+                                onClick={(e) => e.stopPropagation()} // Prevent drag triggering on menu click!
                               >
-                                {(provided, snapshot) => {
-                                  const cardElement = (
-                                    <div
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
-                                      style={{
-                                        ...provided.draggableProps.style,
-                                      }}
-                                      className={cn(
-                                        'group relative select-none rounded-xl mb-3 outline-none',
-                                        !snapshot.isDragging && 'transition-all duration-200',
-                                        snapshot.isDragging && 'z-50 shadow-2xl scale-[1.03] rotate-[0.5deg]'
-                                      )}
-                                    >
-                                      <TaskCard
-                                        task={task}
-                                        mutationParams={{
-                                          workspaceId,
-                                          spaceId,
-                                          listId,
-                                        }}
-                                      />
-                                    </div>
-                                  );
-
-                                  if (snapshot.isDragging && typeof window !== 'undefined') {
-                                    return ReactDOM.createPortal(cardElement, document.body);
-                                  }
-                                  return cardElement;
-                                }}
-                              </Draggable>
-                            ))}
-                          {provided.placeholder}
+                                <MoreHorizontal className='h-4 w-4' />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className='w-40 p-1 bg-card border border-border shadow-lg rounded-xl overflow-hidden' align='end'>
+                              <div className='p-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground border-b border-border'>
+                                Column Actions
+                              </div>
+                              <div className='space-y-1 p-1'>
+                                {columnIndex > 0 && (
+                                  <button
+                                    onClick={() => handleMoveStatus(status._id as string, 'left')}
+                                    className='w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-xs font-medium hover:bg-muted transition-colors cursor-pointer text-foreground'
+                                  >
+                                    Move Left
+                                  </button>
+                                )}
+                                {columnIndex < localStatuses.length - 1 && (
+                                  <button
+                                    onClick={() => handleMoveStatus(status._id as string, 'right')}
+                                    className='w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-xs font-medium hover:bg-muted transition-colors cursor-pointer text-foreground'
+                                  >
+                                    Move Right
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => handleDeleteStatus(status._id as string)}
+                                  className='w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-xs font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer border-t border-border mt-1 pt-1.5'
+                                >
+                                  Delete Status
+                                </button>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
                         </div>
+
+                        {/* Tasks Droppable container */}
+                        <Droppable
+                          droppableId={status._id as string}
+                          key={status._id}
+                        >
+                          {(providedDroppableZone, snapshotDroppableZone) => (
+                            <div
+                              ref={providedDroppableZone.innerRef}
+                              {...providedDroppableZone.droppableProps}
+                              className={cn(
+                                'flex-1 overflow-y-auto p-3 space-y-3 min-h-[400px] custom-scrollbar pr-1.5 transition-colors duration-200',
+                                snapshotDroppableZone.isDraggingOver && 'bg-primary/5'
+                              )}
+                            >
+                              {(
+                                localTasksByStatus[status._id as string] || []
+                              ).map((task, index) => (
+                                <Draggable
+                                  key={task._id}
+                                  draggableId={task._id}
+                                  index={index}
+                                >
+                                  {(providedDraggableCard, snapshotDraggableCard) => {
+                                    const cardElement = (
+                                      <div
+                                        ref={providedDraggableCard.innerRef}
+                                        {...providedDraggableCard.draggableProps}
+                                        {...providedDraggableCard.dragHandleProps}
+                                        style={{
+                                          ...providedDraggableCard.draggableProps.style,
+                                        }}
+                                        className={cn(
+                                          'group relative select-none rounded-xl mb-3 outline-none',
+                                          !snapshotDraggableCard.isDragging && 'transition-all duration-200',
+                                          snapshotDraggableCard.isDragging && 'z-50 shadow-2xl scale-[1.03] rotate-[0.5deg]'
+                                        )}
+                                      >
+                                        <TaskCard
+                                          task={task}
+                                          mutationParams={{
+                                            workspaceId,
+                                            spaceId,
+                                            listId,
+                                          }}
+                                        />
+                                      </div>
+                                    );
+
+                                    if (snapshotDraggableCard.isDragging && typeof window !== 'undefined') {
+                                      return ReactDOM.createPortal(cardElement, document.body);
+                                    }
+                                    return cardElement;
+                                  }}
+                                </Draggable>
+                              ))}
+                              {providedDroppableZone.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
 
                         {/* Add Task Button */}
                         <div className='p-3 border-t border-border'>
@@ -723,25 +906,27 @@ export default function TaskBoardView({
                         </div>
                       </div>
                     )}
-                  </Droppable>
-                </div>
-              ))}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
 
-            {/* Add Column Button */}
-            <div
-              className='flex-shrink-0 w-[280px]'
-            >
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={() => setIsAddStatusOpen(true)}
-                className='w-full h-12 justify-start rounded-xl border-dashed border-2 hover:border-primary hover:bg-primary/5 transition-all'
-              >
-                <Plus className='h-4 w-4 mr-2' />
-                <span className='font-medium'>Add Status Group</span>
-              </Button>
-            </div>
-          </div>
+                {/* Add Column Button */}
+                <div
+                  className='flex-shrink-0 w-[280px]'
+                >
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={() => setIsAddStatusOpen(true)}
+                    className='w-full h-12 justify-start rounded-xl border-dashed border-2 hover:border-primary hover:bg-primary/5 transition-all'
+                  >
+                    <Plus className='h-4 w-4 mr-2' />
+                    <span className='font-medium'>Add Status Group</span>
+                  </Button>
+                </div>
+              </div>
+            )}
+          </Droppable>
         </DragDropContext>
       </div>
 

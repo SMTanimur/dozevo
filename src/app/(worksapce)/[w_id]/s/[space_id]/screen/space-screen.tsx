@@ -426,7 +426,24 @@ const SpaceScreen = () => {
           </div>
         </div>
 
-        <ScrollArea className='h-[calc(100vh-12rem)]'>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .no-scrollbar [data-radix-scroll-area-viewport] {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+          }
+          .no-scrollbar [data-radix-scroll-area-viewport]::-webkit-scrollbar {
+            display: none !important;
+          }
+          .no-scrollbar::-webkit-scrollbar {
+            display: none !important;
+          }
+          .no-scrollbar {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+          }
+        `}} />
+
+        <ScrollArea className='h-[calc(100vh-12rem)] no-scrollbar'>
           <TabsContent value='overview' className='flex-1 p-0 m-0'>
             <GridLayout pageId='overview' key={space_id as string}>
               {['docs', 'recent', 'workload', 'resources'].map(id => (
