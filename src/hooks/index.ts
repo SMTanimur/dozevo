@@ -8,3 +8,5 @@ export * from './comment';
 export * from './notification';
 export * from './use-mobile';
 export * from './dashboard';
+export * from './docs';
+export * from './flowcharts';

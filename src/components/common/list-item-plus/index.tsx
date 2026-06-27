@@ -6,6 +6,8 @@ import { Button, Popover, PopoverContent, PopoverTrigger } from '../../ui';
 import { FileText, ListTodo, Pencil, Plus, ChevronRight } from 'lucide-react';
 import { CreateListModal } from '../../modals';
 import { motion, AnimatePresence } from 'motion/react';
+import { useRouter } from 'next/navigation';
+import { useDocMutations, useWhiteboardMutations } from '@/hooks';
 
 interface ListItemPlusProps {
   itemPlusType: 'space' | 'list';
@@ -13,8 +15,56 @@ interface ListItemPlusProps {
 }
 
 export const ListItemPlus = ({ itemPlusType, space }: ListItemPlusProps) => {
+  const router = useRouter();
   const [showCreateListModal, setShowCreateListModal] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+
+  // Mutations
+  const { createDoc } = useDocMutations();
+  const { createWhiteboard } = useWhiteboardMutations();
+
+  // Create Doc and redirect
+  const handleCreateDocClick = async () => {
+    try {
+      setIsOpen(false);
+      await createDoc({
+        workspaceId: space.workspace,
+        data: {
+          name: 'New Document',
+          space: space._id,
+          content: { body: '# New Document\n\nStart writing wiki notes here...' }
+        }
+      });
+      // Redirect to Docs dashboard
+      router.push(`/${space.workspace}/docs`);
+    } catch (err) {
+      console.error('Failed to create doc from sidebar:', err);
+    }
+  };
+
+  // Create Whiteboard flowchart and redirect
+  const handleCreateWhiteboardClick = async () => {
+    try {
+      setIsOpen(false);
+      await createWhiteboard({
+        workspaceId: space.workspace,
+        data: {
+          name: 'New Whiteboard',
+          space: space._id,
+          data: {
+            nodes: [
+              { id: '1', position: { x: 250, y: 150 }, data: { label: 'Start Node' }, type: 'input' }
+            ],
+            edges: []
+          }
+        }
+      });
+      // Redirect to Whiteboard dashboard
+      router.push(`/${space.workspace}/whiteboard`);
+    } catch (err) {
+      console.error('Failed to create flowchart from sidebar:', err);
+    }
+  };
 
   return (
     <>
@@ -88,10 +138,7 @@ export const ListItemPlus = ({ itemPlusType, space }: ListItemPlusProps) => {
                     transition={{ delay: 0.1 }}
                   >
                     <button
-                      onClick={() => {
-                        // Will trigger creation of a new Doc (navigates or pops Modal)
-                        setIsOpen(false);
-                      }}
+                      onClick={handleCreateDocClick}
                       className='w-full flex items-center justify-between p-2.5 rounded-xl text-left hover:bg-muted/70 border border-transparent hover:border-border/40 transition-all duration-200 cursor-pointer group'
                     >
                       <div className='flex items-start gap-3 min-w-0'>
@@ -116,10 +163,7 @@ export const ListItemPlus = ({ itemPlusType, space }: ListItemPlusProps) => {
                     transition={{ delay: 0.15 }}
                   >
                     <button
-                      onClick={() => {
-                        // Will trigger creation of a new Whiteboard
-                        setIsOpen(false);
-                      }}
+                      onClick={handleCreateWhiteboardClick}
                       className='w-full flex items-center justify-between p-2.5 rounded-xl text-left hover:bg-muted/70 border border-transparent hover:border-border/40 transition-all duration-200 cursor-pointer group'
                     >
                       <div className='flex items-start gap-3 min-w-0'>
