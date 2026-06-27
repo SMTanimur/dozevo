@@ -9,3 +9,4 @@ export * from './notification';
 export * from './layout';
 export * from './status';
 export * from './doc';
+export * from './flowchart';
