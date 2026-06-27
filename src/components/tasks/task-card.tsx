@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { ITask, Priority } from '@/types';
 import {
@@ -12,9 +12,11 @@ import {
   User,
   Flag,
   X,
+  Check,
 } from 'lucide-react';
 import { UserAvatar } from '../ui';
 import { useGlobalStateStore } from '@/stores';
+import { useGetWorkspace } from '@/hooks/workspace';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -56,6 +58,43 @@ export default function TaskCard({
   const [dueDate, setDueDate] = useState<Date | undefined>(
     task.due_date ? new Date(task.due_date) : undefined
   );
+  const [assigneeSearch, setAssigneeSearch] = useState('');
+
+  // Fetch workspace details to get workspace members
+  const { data: workspace } = useGetWorkspace(mutationParams.workspaceId, {
+    enabled: !!mutationParams.workspaceId,
+  });
+
+  // Filter workspace members by search term
+  const filteredMembers = useMemo(() => {
+    if (!workspace?.members) return [];
+    return workspace.members.filter(member => {
+      if (!member?.user) return false;
+      const fullName = `${member.user.firstName || ''} ${member.user.lastName || ''}`.toLowerCase();
+      return fullName.includes(assigneeSearch.toLowerCase()) || 
+             (member.user.email && member.user.email.toLowerCase().includes(assigneeSearch.toLowerCase()));
+    });
+  }, [workspace, assigneeSearch]);
+
+  // Handle toggling assignee
+  const handleAssigneeToggle = (userId: string) => {
+    const isCurrentlyAssigned = task.assignees?.some(a => a._id === userId);
+    let newAssignees: string[];
+
+    if (isCurrentlyAssigned) {
+      newAssignees = (task.assignees || [])
+        .filter(a => a._id !== userId)
+        .map(a => a._id);
+    } else {
+      newAssignees = [...(task.assignees || []).map(a => a._id), userId];
+    }
+
+    updateTask({
+      taskId: task._id,
+      data: { assignees: newAssignees },
+      params: mutationParams,
+    });
+  };
 
   const isSubtask = !!task.parentTask;
   const hasSubtasks = task.subtasks && task.subtasks.length > 0;
@@ -89,9 +128,10 @@ export default function TaskCard({
   return (
     <React.Fragment>
       <div
-        className={`bg-white rounded-md shadow-sm border border-gray-200 mb-1 ${
-          !isSubtask ? '' : 'border-l-2 border-blue-200'
-        }`}
+        className={cn(
+          'bg-card rounded-xl border border-border/80 hover:border-primary/40 hover:shadow-lg shadow-sm transition-all duration-200',
+          isSubtask ? 'border-l-4 border-l-primary/40' : ''
+        )}
         style={isSubtask ? indentationStyle : undefined}
       >
         <TooltipProvider delayDuration={200}>
@@ -130,15 +170,44 @@ export default function TaskCard({
                   </PopoverTrigger>
                   <TooltipContent>Assignee</TooltipContent>
                 </Tooltip>
-                <PopoverContent className='w-60 p-0'>
-                  <div className='p-2'>
+                <PopoverContent className='w-60 p-0 bg-card border border-border shadow-lg rounded-xl overflow-hidden'>
+                  <div className='p-2 border-b border-border'>
                     <Input
-                      placeholder='Search or enter email...'
-                      className='text-xs'
+                      placeholder='Filter members...'
+                      className='text-xs h-8 focus-visible:ring-1 focus-visible:ring-primary'
+                      value={assigneeSearch}
+                      onChange={e => setAssigneeSearch(e.target.value)}
                     />
                   </div>
-                  <div className='p-2 text-center text-gray-400 text-xs'>
-                    User list placeholder
+                  <div className='max-h-48 overflow-y-auto p-1'>
+                    {filteredMembers.length > 0 ? (
+                      filteredMembers.map(member => {
+                        const isAssigned = task.assignees?.some(
+                          a => a._id === member.user._id
+                        );
+                        return (
+                          <button
+                            key={member.user._id}
+                            className='w-full flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg text-left text-xs font-medium hover:bg-muted transition-colors cursor-pointer'
+                            onClick={() => handleAssigneeToggle(member.user._id)}
+                          >
+                            <div className='flex items-center gap-2 truncate'>
+                              <UserAvatar user={member.user} size='sm' />
+                              <span className='truncate text-foreground'>
+                                {member.user.firstName} {member.user.lastName}
+                              </span>
+                            </div>
+                            {isAssigned && (
+                              <Check className='h-3.5 w-3.5 text-primary flex-shrink-0' />
+                            )}
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <div className='p-4 text-center text-muted-foreground text-xs'>
+                        No members found
+                      </div>
+                    )}
                   </div>
                 </PopoverContent>
               </Popover>

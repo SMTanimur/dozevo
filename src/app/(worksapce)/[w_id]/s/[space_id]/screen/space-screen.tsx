@@ -11,6 +11,13 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useGetLists } from '@/hooks/list';
 import { useGetOverview, useGetSpace, useSpaceMutations } from '@/hooks/space';
 import { FileText, MoreHorizontal } from 'lucide-react';
@@ -22,6 +29,7 @@ import { ListCard } from '@/components/tasks/list-card';
 import { ListGroupedStatus } from '@/components/tasks/list-grouped-status';
 import { ITask } from '@/types';
 import TaskBoardView from '@/components/tasks/task-board-view';
+import TaskCalendarView from '@/components/tasks/task-calendar-view';
 
 const SpaceScreen = () => {
   const { space_id, w_id } = useParams();
@@ -396,17 +404,24 @@ const SpaceScreen = () => {
           <TabsContent value='board' className='flex-1 p-5'>
             {lists.length > 0 ? (
               <>
-                <select
-                  className='mb-4 p-2 border rounded'
-                  value={selectedBoardListId}
-                  onChange={e => setSelectedBoardListId(e.target.value)}
-                >
-                  {lists.map(list => (
-                    <option key={list._id} value={list._id}>
-                      {list.name}
-                    </option>
-                  ))}
-                </select>
+                <div className='flex items-center gap-2 mb-4'>
+                  <span className='text-sm font-semibold text-muted-foreground'>List group:</span>
+                  <Select
+                    value={selectedBoardListId}
+                    onValueChange={setSelectedBoardListId}
+                  >
+                    <SelectTrigger className='w-[220px] h-9 rounded-lg bg-card border-border shadow-sm font-medium text-sm'>
+                      <SelectValue placeholder='Select a list' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {lists.map(list => (
+                        <SelectItem key={list._id} value={list._id}>
+                          {list.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <TaskBoardView
                   workspaceId={w_id as string}
                   spaceId={space_id as string}
@@ -434,6 +449,14 @@ const SpaceScreen = () => {
                 No lists found.
               </div>
             )}
+          </TabsContent>
+          <TabsContent value='calendar' className='flex-1 p-0 m-0 h-full'>
+            <TaskCalendarView
+              workspaceId={w_id as string}
+              spaceId={space_id as string}
+              tasks={allTasksData?.data || []}
+              lists={lists}
+            />
           </TabsContent>
         </ScrollArea>
       </Tabs>
