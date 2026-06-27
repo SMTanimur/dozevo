@@ -230,7 +230,7 @@ export const NotionEditor = ({ content, onChange, onBlur }: NotionEditorProps) =
   // Sync content when switching docs (only if actually different)
   useEffect(() => {
     if (editor && !editor.isDestroyed && content !== prevContent.current) {
-      editor.commands.setContent(content || '<p></p>', false);
+      editor.commands.setContent(content || '<p></p>', { emitUpdate: false });
       prevContent.current = content;
     }
   }, [editor, content]);

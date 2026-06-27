@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import HTMLtoDOCX from 'html-to-docx';
 
+// Force Node.js runtime — html-to-docx requires fs (not available in Edge)
+export const runtime = 'nodejs';
+
+
 export async function POST(req: NextRequest) {
   try {
     const { title, html } = (await req.json()) as { title: string; html: string };
